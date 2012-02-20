@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="css/docbody.css">
+    <link rel="stylesheet" type="text/css" href="css/doc.css">
+	<title>joDoc</title>
+</head>
+<body>
+<h1><a name="villo.user.login">villo.user.login</a></h1>
+
+<p>Login a user to Villo using a username and password. </p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_user.js.html#villo.user.login">villo.user.login</a>({username: string, password: string, callback: function})</code></p>
+
+<ul>
+<li>The "username" string should be the Villo username, as provided by the user.</li>
+<li>The "username" string should be the Villo password, as provided by the user.</li>
+<li>The "callback" funtion is called when the function is completed, letting you know if the user was logged in or not.</li>
+</ul>
+
+<h2>Callback</h2>
+
+<p>If the user was successfully logged in, then the callback value will be true. If the user's username was incorrect, the value will be "1". If the user's password was incorrect, the value will be "2".</p>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_user.js.html#villo.user.login">villo.user.login</a>({
+    username: "SomeVilloUser",
+    password: "somePassword1234"
+    callback: function(success){
+        //Check to see if we were logged in.
+        if(success === true){
+            alert("The user has been logged in");
+        }else{
+            alert("Could not log you in. Please check your username and password.
+        }
+    }
+});
+</code></pre>
+
+<h2>Notes</h2>
+
+<p>Once a user is logged into Villo, you do not need to store the username or password. Villo will automatically save the username, along with a unique authentication token, and will load both of them every time Villo is initialized.</p>
+
+<p>The username of the user currently logged in to Villo is stored as a string in villo.user.username, which you can view by calling <a href="core_user.js.html#villo.user.getUsername">villo.user.getUsername</a>.</p>
+
+<pre><code> * Log a user out of Villo.
+ * @return {boolean} Returns 1 if logout was successful.
+ * @since 0.8.0
+
+
+ * Determine if a user is currently logged in.
+ * @return {boolean} Returns true if the user is logged in.
+ * @since 0.8.5
+
+
+ * Register a user for Villo.
+ * @param {object} userObject Object containing user information for registration.
+ * @param {string} userObject.username Requested username for the account.
+ * @param {string} userObject.password Password for the user account.
+ * @param {string} userObject.password_confirm The confirmation of the password for the account.
+ * @param {string} userObject.email Email of the user registering.
+ * @param {function} callback Funtion to call once registration is complete.
+ * @since 0.8.0
+</code></pre>
+
+<h1><a name="villo.user.getUsername">villo.user.getUsername</a></h1>
+
+<p>This function returns the username of the user who is currently logged in. This function acts as a safe medium for villo.user.username, where the string is stored.</p>
+
+<h2>Returns</h2>
+
+<p>Will return the username of the currently logged in user. If no user is logged in, it will return false.</p>
+
+<h2>Use</h2>
+
+<pre><code>var username = <a href="core_user.js.html#villo.user.getUsername">villo.user.getUsername</a>();
+</code></pre>
+
+</body>
+</html>
+

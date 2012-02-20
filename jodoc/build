@@ -1,0 +1,1 @@
+./jodoc ../core/*.js ../utils/*.js LICENSE.mdown ABOUT.mdown --output html --toc TOC_SAMPLE.mdown --markdown /Users/jordan/Markdown.pl --template template.html

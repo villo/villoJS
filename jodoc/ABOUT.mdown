@@ -1,0 +1,4 @@
+About Villo
+===========
+
+Villo is a JavaScript framework that aims to connect your applications to the cloud. Villo.js provides you with the necessary tools to get your apps tapped into Villo's services, and get your app Villo Enabled.

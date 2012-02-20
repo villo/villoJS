@@ -1,0 +1,40 @@
+villo.load({
+	"id": "me.villo.villov",
+	"version": "0.8.9",
+	"developer": "Villo",
+	"type": "PhoneGap",
+	"title": "Villo",
+	"api": "39929f283058e6b1a46d93e586697068",
+	"push": true,
+	"extensions": [
+		"extensions/common.js",
+		"extensions/presence.js"
+	],
+	"include": [
+	]
+});
+
+/*
+
+Stock Loader:
+
+villo.load({
+	"id": "your.app.id",
+	"version": "1.0.0",
+	"developer": "Your Company",
+	"type": "mobile",
+	"title": "Your App",
+	"api": "YOURAPIKEY",
+	"push": true,
+	"extensions": [
+	],
+	"include": [
+	],
+	//Optional. If this is used, Villo Feeds will not work.
+	"pubnub": {
+		"pub": "",
+		"sub": ""
+	}
+});
+
+*/

@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="css/docbody.css">
+    <link rel="stylesheet" type="text/css" href="css/doc.css">
+	<title>joDoc</title>
+</head>
+<body>
+<h1><a name="villo.load">villo.load</a></h1>
+
+<p>The load function can be called for two things. It is initially used to initialize the Villo library. Once Villo has been initialized, the function can be used to asynchronously load resources for extensions.</p>
+
+<h2>   Initialization</h2>
+
+<p>The recommended way to initialize Villo is to create a file called "info.villo.js". This file should be called after villo.js.</p>
+
+<pre><code>&lt;script type="text/javascript" src="villo.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="info.villo.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<p>This file should contain the call to <a href="core_init.js.html#villo.load">villo.load</a>, which will allow you to call Villo's APIs.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_chat.js.html#villo.chat.join">villo.chat.join</a>({room: string, callback: function, presence: {enabled: boolean})</code></p>
+
+<ul>
+<li>"Room" is the name of the chat room you want to join. Rooms are app-dependent.</li>
+<li>The "callback" is called when a chat message is received. </li>
+<li>The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.chat.presence.join</li>
+</ul>
+
+<h2>Returns</h2>
+
+<p>Returns true if the chat room has successfully been subscribed to.</p>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_chat.js.html#villo.chat.join">villo.chat.join</a>({
+    room: "main",
+    callback: function(message){
+        //The message variable is where the goods are.
+    }
+});
+</code></pre>
+
+</body>
+</html>
+
