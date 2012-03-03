@@ -27,5 +27,5 @@ villo = ({});
 
 (function(){
 	villo.apiKey = "";
-	villo.version = "0.9.6";
+	villo.version = "0.9.7";
 })();

@@ -1,17 +1,43 @@
-/* 
- * Villo Friends
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo Friends */
 (function(){
 	villo.friends = {
-		/**
-		 * Add a user to the logged in user's friend list.
-		 * @param {object} addObject Options for the function.
-		 * @param {string} addObject.username Username to add to the friend list.
-		 * @param {function} getObject.callback Funtion to call once the profile is retrieved.
-		 * @since 0.8.0
-		 */
+/**
+	villo.friends.add
+	=================
+	
+    Adds a friend to the current user's friend list.
+    
+	Calling
+	-------
+
+	`villo.friends.add({username: string, callback: function})`
+	
+	- The "username" parameter is the username of the user which you wish to add to the friends list.
+	- The "callback" should be a function that is called when the function is completed.
+	
+	Callback
+	--------
+		
+	If the username does not exist, 0 will be passed to the callback. If the user does exist, an object will be passed to the callback function which will contain an object with the current user's friends, formatted like this:
+		
+		{"friends": [
+			"Kesne",
+			"Admin",
+			"someOtherUser"
+		]}
+		
+	Use
+	---
+		
+		villo.friends.add({
+			username: "someThirdUser",
+			callback: function(friends){
+				//The friends variable has a list of the current user's friends.
+			}
+		});
+
+*/
 		add: function(addObject){
 			villo.ajax("https://api.villo.me/friends.php", {
 				method: 'post',
@@ -31,7 +57,7 @@
 					//66 - Unauthenticated User
 					//99 - Unauthorized App
 					
-					villo.log(transport);
+					villo.verbose && villo.log(transport);
 					
 					if (!transport == "") {
 						var tmprsp = JSON.parse(transport);
@@ -52,6 +78,41 @@
 				}
 			});
 		},
+/**
+	villo.friends.remove
+	====================
+	
+    Remove a current friend from the user's friend list.
+    
+	Calling
+	-------
+
+	`villo.friends.remove({username: string, callback: function})`
+	
+	- The "username" parameter is the username of the user which you wish to remove from the friends list.
+	- The "callback" is a function that is called when the friend has been removed.
+	
+	Callback
+	--------
+		
+	If the function is completed, an object will be passed to the callback function which will contain an object with the current user's friends, formatted like this:
+		
+		{"friends": [
+			"Kesne",
+			"Admin"
+		]}
+		
+	Use
+	---
+		
+		villo.friends.remove({
+			username: "someOtherUser",
+			callback: function(friends){
+				//The friends variable has a list of the current user's friends.
+			}
+		});
+
+*/	
 		remove: function(removeObject){
 			villo.ajax("https://api.villo.me/friends.php", {
 				method: 'post',
@@ -70,7 +131,7 @@
 					//33 - Generic Error
 					//66 - Unauthenticated User
 					//99 - Unauthorized App
-					villo.log(transport);
+					villo.verbose && villo.log(transport);
 					if (!transport == "") {
 						var tmprsp = JSON.parse(transport);
 						if (tmprsp.friends) {
@@ -96,6 +157,39 @@
 		 * @param {function} getObject.callback Funtion to call once the profile is retrieved.
 		 * @since 0.8.0
 		 */
+/**
+	villo.friends.get
+	=================
+	
+    Get the friend list for the user currently logged in.
+    
+	Calling
+	-------
+
+	`villo.friends.get({callback: function})`
+	
+	- The "callback" is a function that is called when the friend has been removed.
+	
+	Callback
+	--------
+		
+	The friends list will be passed to the callback and formatted like this:
+		
+		{"friends": [
+			"Kesne",
+			"Admin"
+		]}
+		
+	Use
+	---
+		
+		villo.friends.get({
+			callback: function(friends){
+				//The friends variable has a list of the current user's friends.
+			}
+		});
+
+*/	
 		get: function(getObject){
 			villo.ajax("https://api.villo.me/friends.php", {
 				method: 'post',
@@ -115,7 +209,7 @@
 					//66 - Unauthenticated User
 					//99 - Unauthorized App
 					
-					villo.log(transport)
+					villo.verbose && villo.log(transport)
 					
 					if (!transport == "") {
 						var tmprsp = JSON.parse(transport);
@@ -138,3 +232,4 @@
 		}
 	}
 })();
+

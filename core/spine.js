@@ -1,11 +1,9 @@
+
+
+
 //Spine.js
-//Push Framework
 //Pubnub wrapped all nice, with a http rest API for developers to push (via secret developer keys).
 //Subscribe client-side.
-
-//NEED HISTORY
-
-//Also: Use Villo features to hook into spine.
 
 
 
@@ -47,12 +45,6 @@
 				data: "someDataString"
 			}
 			
-			var spineData = {
-				type: "users",
-				subType: "list",
-				data: "someDataString"
-			}
-			
 			
 			
 			//Connect To Pubnub
@@ -65,14 +57,6 @@
 				});
 			}
 		},
-		userList: [
-			{
-				username: "kesne"
-			},
-			{
-				username: "tester"
-			}
-		],
 		//private:
 		updater: function(){
 			//Ping the API server, telling it to revive our session. 

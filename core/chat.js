@@ -17,7 +17,7 @@
 	
 	- "Room" is the name of the chat room you want to join. Rooms are app-dependent.
 	- The "callback" is called when a chat message is received. 
-	- The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.chat.presence.join
+	- The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.presence.join
 
 	Returns
 	-------
@@ -59,7 +59,7 @@
 					});
 					
 					if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled == true){
-						villo.chat.presence.join({
+						villo.presence.join({
 							room: chatObject.room,
 							callback: (chatObject.presence.callback || "")
 						});
@@ -201,7 +201,7 @@
 							channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
 						});
 						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
-							villo.chat.presence.leave({
+							villo.presence.leave({
 								room: villo.chat.rooms[x].name
 							});
 						}
@@ -246,7 +246,7 @@
 						if (villo.chat.rooms[x].name == closerObject) {
 							var rmv = x;
 							if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
-								villo.chat.presence.leave({
+								villo.presence.leave({
 									room: villo.chat.rooms[x].name
 								});
 							}
@@ -260,6 +260,49 @@
 			}
 		},
 		
+/**
+	villo.chat.history
+	==================
+	
+    Retrieves recent messages sent in a given room.
+    
+	Calling
+	-------
+
+	`villo.chat.history({room: string, limit: number, callback: function})`
+	
+	- The "room" string is the name of the chat room you wish to get the history messages of.
+	- "limit" is the maximum number of history messages you want to receive. If you do not specify this parameter, it will default to 25.
+	- The "callback" function will be called after the messages are received, 
+	
+	Callback
+	--------
+		
+	An object will be passed to the callback function when the history is loaded, and will be formatted like this:
+		
+		[{
+			username: "Kesne",
+			message: "Hey man, how's it going?"
+		},{
+			username: "someOtherUser",
+			message: "Not much, how are you?"
+		},{
+			username: "Kesne",
+			message: "I'm great, thanks for asking!"
+		}]
+			
+	Use
+	---
+		
+		villo.chat.history({
+			room: "main",
+			limit: 50,
+			callback: function(messages){
+				//The messages variable holds the object with all of the messages.
+			}
+		});
+
+*/
 		history: function(historyObject){
 			if('PUBNUB' in window){
 				PUBNUB.history({
@@ -275,8 +318,14 @@
 	/*
 	 * TODO:
 	 * Document out the presence APIs.
+	 * 
+	 * TODO:
+	 * Run extensive tests on this API.
+	 * 
+	 * TODO:
+	 * Eventually swap this out with some socketIO sweetness.
 	 */
-	villo.chat.presence = {
+	villo.presence = {
 			rooms: {},
 			
 			join: function(joinObject){
@@ -290,25 +339,25 @@
 						if (evt.name === "user-presence") {
 							var user = evt.data.username;
 							
-							if (villo.chat.presence._timeouts[joinObject.room][user]) {
-								clearTimeout(villo.chat.presence._timeouts[joinObject.room][user]);
+							if (villo.presence._timeouts[joinObject.room][user]) {
+								clearTimeout(villo.presence._timeouts[joinObject.room][user]);
 							} else {
-								villo.chat.presence.rooms[joinObject.room].users.push(user);
+								villo.presence.rooms[joinObject.room].users.push(user);
 								//New User, so push event to the callback:
 								if(joinObject.callback && typeof(joinObject.callback) === "function"){
 									joinObject.callback({
 										name: "new-user",
-										data: villo.chat.presence.rooms[joinObject.room]
+										data: villo.presence.rooms[joinObject.room]
 									});
 								}
 							}
 							
-							villo.chat.presence._timeouts[joinObject.room][user] = setTimeout(function(){
-								villo.chat.presence.rooms[joinObject.room].users.splice([villo.chat.presence.rooms[joinObject.room].users.indexOf(user)], 1);
-								delete villo.chat.presence._timeouts[joinObject.room][user];
+							villo.presence._timeouts[joinObject.room][user] = setTimeout(function(){
+								villo.presence.rooms[joinObject.room].users.splice([villo.presence.rooms[joinObject.room].users.indexOf(user)], 1);
+								delete villo.presence._timeouts[joinObject.room][user];
 								joinObject.callback({
 									name: "exit-user",
-									data: villo.chat.presence.rooms[joinObject.room]
+									data: villo.presence.rooms[joinObject.room]
 								});
 							}, 5000);
 						} else {
@@ -345,8 +394,9 @@
 				
 				return true;
 			},
-			//Also use get as a medium to access villo.chat.presence.get
+			//Also use get as a medium to access villo.presence.get
 			get: function(getObject){
+				//TODO: Check to see if we're already subscribed. If we are, we can pass them the current object, we don't need to go through this process.
 				this._get[getObject.room] = {}
 				
 				PUBNUB.subscribe({
@@ -355,13 +405,13 @@
 						if (evt.name === "user-presence") {
 							var user = evt.data.username;
 							
-							if (villo.chat.presence._get[getObject.room][user]) {
+							if (villo.presence._get[getObject.room][user]) {
 								
 							} else {
 								
 							}
 							
-							villo.chat.presence._get[getObject.room][user] = {"username": user};
+							villo.presence._get[getObject.room][user] = {"username": user};
 						} else {
 							//Some other event. We just leave this here for potential future expansion.
 						}
@@ -376,8 +426,8 @@
 						room: getObject.room,
 						users: []
 					};
-					for(x in villo.chat.presence._get[getObject.room]){
-						returnObject.users.push(villo.chat.presence._get[getObject.room][x].username);
+					for(x in villo.presence._get[getObject.room]){
+						returnObject.users.push(villo.presence._get[getObject.room][x].username);
 					}
 					getObject.callback(returnObject);
 				}, 4000);

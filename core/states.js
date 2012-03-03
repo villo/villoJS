@@ -28,6 +28,7 @@
 					privacy: true,
 					title: "VAppState",
 					callback: function(transit){
+						//TODO: Check for the need of this:
 						var transit = JSON.parse(transit);
 						transit.storage = JSON.parse(villo.stripslashes(transit.storage));
 						

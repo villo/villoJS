@@ -1,10 +1,11 @@
-/* 
- * Villo Cloud Storage
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo Cloud Storage */
 (function(){
 	villo.storage = {
+		
+		//TODO: Check to see if the string is JSON when we get it back.
+		//TODO: Get callback values.
+		
 		/**
 		 * Store a piece of data on the cloud.
 		 * @param {object} addObject Object containing the options.
@@ -39,7 +40,15 @@
 				},
 				onSuccess: function(transport){
 					if (!transport == "") {
-						addObject.callback(transport);
+						//Check for JSON:
+						try{
+							var trans = JSON.parse(transport);
+						}catch(e){
+							var trans = transport;
+						}
+						if(addObject.callback){
+							addObject.callback(trans);
+						}
 					} else {
 						addObject.callback(33);
 					}
@@ -62,7 +71,6 @@
 		 * @since 0.8.5
 		 */
 		get: function(getObject){
-			//TODO: Finish this.
 			if (!getObject.privacy) {
 				getObject.privacy = false;
 			}
@@ -87,7 +95,13 @@
 				},
 				onSuccess: function(transport){
 					if (!transport == "") {
-						getObject.callback(transport);
+						//Check for JSON
+						try{
+							var trans = JSON.parse(transport);
+						}catch(e){
+							var trans = transport;
+						}
+						getObject.callback(trans);
 					} else {
 						getObject.callback(33);
 					}

@@ -1,18 +1,18 @@
-/* 
- * Villo Gift
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo Gift */
 (function(){
+
+/**
+	villo.gift
+	==================
+	
+	As of Villo 1.0.0 Villo's Gift functionality is being rewritten from the ground up to make it easier for developers to use. 
+	
+	A public release for Villo's Gift functionality is planned for Villo version 1.2.0. 
+*/
+	
 	//Sync them, web interface for adding gifts
 	villo.gift = {
-		/**
-		 * Get the list of gifts in a given category
-		 * @param {object} giftObject Object containing options and the callback.
-		 * @param {string} giftObject.categoryStack Category to load the gifts from.
-		 * @param {function} giftObject.callback Funtion to call once the gifts are retrieved from the server.
-		 * @since 0.8.0
-		 */
 		retrieve: function(giftObject){
 			villo.ajax("https://api.villo.me/gifts.php", {
 				method: 'post',
@@ -49,12 +49,7 @@
 		getCatagories: function(){
 			villo.gift.getCategories(arguments);
 		},
-		/**
-		 * Gets a list of the categories.
-		 * @param {object} giftObject Object containing options.
-		 * @param {function} giftObject.callback Funtion to call once the categories are retrieved from the server.
-		 * @since 0.8.0
-		 */
+		
 		getCategories: function(giftObject){
 			//Get gifts under a specific category
 			villo.ajax("https://api.villo.me/gifts.php", {
@@ -87,13 +82,7 @@
 				}
 			});
 		},
-		/**
-		 * Buy a specific gift
-		 * @param {object} giftObject Options for the purchase.
-		 * @param {string} giftObject.giftID Universal ID of the gift the user wants to buy.
-		 * @param {function} giftObject.callback Funtion to call once the purchase is completed.
-		 * @since 0.8.0
-		 */
+		
 		buy: function(giftObject){
 			//Get gifts under a specific category
 			villo.ajax("https://api.villo.me/gifts.php", {
@@ -128,12 +117,7 @@
 				}
 			});
 		},
-		/**
-		 * Gets the number of Villo Credits your account currently contains.
-		 * @param {object} giftObject Object containing options and the callback.
-		 * @param {function} giftObject.callback Funtion to call once the gifts are retrieved from the server.
-		 * @since 0.8.0
-		 */
+		
 		credits: function(giftObject){
 			villo.log(villo.user.token);
 			villo.log("Gettin' it!!");
@@ -170,14 +154,8 @@
 				}
 			});
 		},
-		/**
-		 * Gets the purchases linked to the account currently logged in.
-		 * @param {object} giftObject Object containing options and the callback.
-		 * @param {function} giftObject.callback Funtion to call once the purchases are retrieved from the server.
-		 * @since 0.8.0
-		 */
+		
 		purchases: function(giftObject){
-			villo.log(villo.user.token);
 			//Get gifts under a specific category
 			villo.ajax("https://api.villo.me/gifts.php", {
 				method: 'post',

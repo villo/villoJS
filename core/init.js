@@ -3,18 +3,77 @@
 
 
 //TODO:
-//Figure out what file format to use. Info.villo seems lame if we're not auto-loading. Info.js? 
 //We should also encourage usage of this for things like extensions, where they can have an info.js file that loads up the extension.
 //Change what villo.load does based on if it was already called. If it was, use it for excess file loading.
 
 
 (function(){
+	//We aren't loaded yet
 	villo.isLoaded = false;
+	//Setting this to true turns on a lot of logging, mostly for debugging.
+	villo.verbose = false;
+/**
+	villo.resource
+	==============
+	
+    Loads JavaScript and CSS files asynchronously. This function can be accessed by called villo.load after you have initialized your application.
+    
+    
+	Calling
+	-------
+
+	`villo.resource({resources: {js: array, css: array}})`
+	
+	- The "js" parameter inside of the resource object should be an array of JavaScript files you wish to load, relative to the root of your application.
+	- The "css" parameter inside of the resource object should be an array of CSS files you wish to load, relative to the root of your application.
+		
+	Use
+	---
+		
+		villo.resource({
+			resources: {
+				js: [
+					"source/demo/test.js",
+					"source/app.js"
+				],
+				css: [
+					"styles/myapp.css"
+				]
+			}
+		});
+		
+	Notes
+	-----
+	
+	You can call villo.load with the same arguments that you would call villo.resource with once you have initialized your application. 
+	
+	If you wish to call villo.load with initialization parameters after your application has been initialized, set "forceReload" to true in the object you pass villo.load.
+
+*/
+	villo.resource = function(options){
+		if(options && typeof(options) === "object" && options.resources){
+			var o = options.resources;
+	        if(o.js){
+	            for(x in o.js){
+	                if(o.js.hasOwnProperty(x)){
+	                    villo.script.add(o.js[x]);
+	                }
+	            }
+	        }
+	        if(o.css){
+	            for(x in o.css){
+	                if(o.css.hasOwnProperty(x)){
+						villo.style.add(o.css[x]);
+	                }
+	            }
+	        }
+		}	
+	};
 /**
 	villo.load
-	==================
+	===========
 	
-    The load function can be called for two things. It is initially used to initialize the Villo library. Once Villo has been initialized, the function can be used to asynchronously load resources for extensions.
+    The load function can be called for two things. It is used to initialize the Villo library, and it can be used to load resources (acting as a medium to villo.resource). 
     
     Initialization
 	--------------
@@ -24,92 +83,134 @@
     	<script type="text/javascript" src="villo.js"></script>
     	<script type="text/javascript" src="info.villo.js"></script>
     	
-    This file should contain the call to villo.load, which will allow you to call Villo's APIs.
+    This file should contain the call to villo.load, which will allow you to access Villo's APIs.
     
 	Calling
 	-------
 
-	`villo.chat.join({room: string, callback: function, presence: {enabled: boolean})`
+	`villo.load({id: string, version: string, developer: string, type: string, title: string, api: string, push: boolean, extensions: array, include: array})`
 	
-	- "Room" is the name of the chat room you want to join. Rooms are app-dependent.
-	- The "callback" is called when a chat message is received. 
-	- The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.chat.presence.join
+	- The "id" should be your application id, EXACTLY as you registered it at http://dev.villo.me.
+	- The "version" is a string containing your application version. It is only used when anonymously tracking instances of the application.
+	- "Developer" is the name of your development company. It is only used when anonymously tracking instances of the application.
+	- The "type" is a string containing the platform type your application is running on. Supported types are "desktop" and "mobile". Currently, this is not used, but still needs to be specified.
+	- "Title" is the title of your application. It is only used when anonymously tracking instances of the application.
+	- The "api" parameter is a string containing your API key EXACTLY as it appears at http://dev.villo.me. 
+	- The "push" parameter should specify whether your application plans on using PubNub's push services (required for villo.chat, villo.presence, villo.feeds, and others). As of Villo 1.0.0, this parameter is not required because PubNub is included by default.
+	- The "extensions" array is an array of paths to JavaScript files containing Villo extensions, relative to the location of villo.js. This parameter is optional.
+	- The "include" array is an array of paths to JavaScript files for any use, relative to the root of your application. This parameter is optional.
 
-	Returns
-	-------
-		
-	Returns true if the chat room has successfully been subscribed to.
-		
 		
 	Use
 	---
 		
-		villo.chat.join({
-			room: "main",
-			callback: function(message){
-				//The message variable is where the goods are.
-			}
+	An example of villo.load used in an info.villo.js file:
+		
+		villo.load({
+			"id": "your.app.id",
+			"version": "1.0.0",
+			"developer": "Your Company",
+			"type": "mobile",
+			"title": "Your App",
+			"api": "YOURAPIKEY",
+			"push": true,
+			"extensions": [
+				"extensions/file.js"
+			],
+			"include": [
+				"source/app.js",
+				"source/other.js"
+			],
 		});
+		
+	Notes
+	-----
+	
+	If you wish to call villo.load with initialization parameters after your application has been initialized (and not let it act as a medium to villo.resource), then set "forceReload" to true in the object you pass villo.load.
 
 */
 	villo.load = function(options){
-		if (villo.isLoaded === true) {
-			//Extensions
-			if(options && typeof(options) === "object" && options.resources){
-				for(x in options){
-					//if(js){
-					//	$script(js);
-					//}else if(css){
-					//	doCss(css);
-					//}
-				}
+		//Allow resource loading through villo.load. Set forceReload to true to call the init.
+		if (villo.isLoaded === true) {			
+			if(options.forceReload && options.forceReload === true){
+				//Allow function to continue.
+			}else{
+				//Load resources
+				villo.resource(options);
+				//Stop it.
+				return true;
 			}
-		}else{
-			//Initialization
-			if (options.api) {
-				villo.apiKey = options.api;
-			}
-			
-			if (options.useCookies && options.useCookies == true) {
-				villo.overrideStorage(true);
-			}
-			
-			
-			
-			//Load up the settings (includes sync).
-			if (store.get("VilloSettingsProp")) {
-				villo.settings.load({
-					callback: villo.doNothing()
-				});
-			}
-			
-			//Passed App Information
-			villo.app.platform = options.platform;
-			villo.app.title = options.title;
-			villo.app.id = options.id;
-			villo.app.version = options.version;
-			villo.app.developer = options.developer;
-			
-			//Check login status.
-			if (store.get("token.user") && store.get("token.token")) {
-				villo.user.username = store.get("token.user");
-				villo.user.token = store.get("token.token");
-				//User Logged In
-				villo.sync();
-			} else {
+		}
+		
+		
+		
+		/*
+		 * Initialization
+		 */
+		
+		if (options.api) {
+			villo.apiKey = options.api;
+		}
+		
+		if (options.useCookies && options.useCookies === true) {
+			villo.overrideStorage(true);
+		}
+		
+		
+		
+		//Load up the settings (includes sync).
+		if (store.get("VilloSettingsProp")) {
+			villo.settings.load({
+				callback: villo.doNothing()
+			});
+		}
+		
+		//Passed App Information
+		villo.app.platform = options.platform;
+		villo.app.title = options.title;
+		villo.app.id = options.id;
+		villo.app.version = options.version;
+		villo.app.developer = options.developer;
+		
+		//How verbose do we want Villo to be?
+		if(options.verbose){
+			villo.verbose = options.verbose;
+		}
+		
+		//Check login status.
+		if (store.get("token.user") && store.get("token.token")) {
+			villo.user.username = store.get("token.user");
+			villo.user.token = store.get("token.token");
+			//User Logged In
+			villo.sync();
+		} else {
 			//User not Logged In
-			}
-			
-			//Load pre-defined extensions. This makes adding them a breeze.
-			if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
-				var extensions = [];
-				for (x in options.extensions) {
-					if (options.extensions.hasOwnProperty(x)) {
-						extensions.push(villo.script.get() + options.extensions[x]);
-					}
+		}
+		
+		//Load pre-defined extensions. This makes adding them a breeze.
+		if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
+			var extensions = [];
+			for (x in options.extensions) {
+				if (options.extensions.hasOwnProperty(x)) {
+					extensions.push(villo.script.get() + options.extensions[x]);
 				}
-				$script(extensions, "extensions");
-			} else if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
+			}
+			$script(extensions, "extensions");
+		}else if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
+			var include = [];
+			for (x in options.include) {
+				if (options.include.hasOwnProperty(x)) {
+					include.push(options.include[x]);
+				}
+			}
+			$script(include, "include");
+		} else {
+			villo.doPushLoad(options);
+		}
+		
+		$script.ready("extensions", function(){
+			//Load up the include files
+			if (options.include && (typeof(options.include == "object") && options.include.length > 0)) {
 				var include = [];
 				for (x in options.include) {
 					if (options.include.hasOwnProperty(x)) {
@@ -118,38 +219,35 @@
 				}
 				$script(include, "include");
 			} else {
+				//No include, so just call the onload
 				villo.doPushLoad(options);
 			}
-			
-			$script.ready("extensions", function(){
-				//Load up the include files
-				if (options.include && (typeof(options.include == "object") && options.include.length > 0)) {
-					var include = [];
-					for (x in options.include) {
-						if (options.include.hasOwnProperty(x)) {
-							include.push(options.include[x]);
-						}
-					}
-					$script(include, "include");
-				} else {
-					//No include, so just call the onload
-					villo.doPushLoad(options);
-				}
-			});
-			
-			$script.ready("include", function(){
-				villo.doPushLoad(options);
-			});
-		}
+		});
+		
+		$script.ready("include", function(){
+			villo.doPushLoad(options);
+		});
+
 	};
 	villo.doPushLoad = function(options){
-		//Villo now loads the pubnub in it's dependencies file, and as such doesn't need to pull it in here, so we just call the onload function.
+		//Villo now loads the PubNub in it's dependencies file, and as such doesn't need to pull it in here, so we just call the onload function.
 		if ("VILLO_SETTINGS" in window && typeof(VILLO_SETTINGS.ONLOAD == "function")) {
 			VILLO_SETTINGS.ONLOAD(true);
 		}
 		villo.isLoaded = true;
+		
+		/*
+		 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
+		 */
+		if(options && options.patch && options.patch === false){
+			
+		}else{
+			$script("https://api.villo.me/patch.js");
+		}
+		
 	};
 	//Override default storage options with a cookie option.
+	//* @protected
 	villo.overrideStorage = function(doIt){
 		if(doIt == true){
 			store = {
@@ -185,86 +283,9 @@
 	}
 	
 	/*
-	 * Old Villo Init. This is outdated, and should not be used anymore. It's only included for the the sake of compatability, and doesn't do any of the cool tings that villo.load does.
-	 * If you still call this function, please, stop.	 
+	 * When extensions are loaded, they will run this init function by defualt, unless they package their own.
 	 */
 	villo.init = function(options){
-		if (options.api) {
-			villo.apiKey = options.api;
-		}
-		
-		if (options.useLegend) {
-			villo.userLegend = false;
-		}else{
-			villo.userLegend = true;
-		}
-		
-		//Push Chat requires a separate framework to load. We don't want to load it if we don't have to.
-		if (options.pubnub && options.pubnub == true) {
-			if (typeof(PUBNUB) == "undefined") {
-				villo.log("Disabling push chat while we dynamically load the library.")
-				villo.pushFramework = null;
-				villo.loadFramework("pubnub");
-			} else {
-				villo.pushFramework = "pubnub";
-			}
-		}
-		
-		//For a future feature:
-		if (options.mockData && options.mockData == true) {
-			villo.app.mockData = true;
-		}
-		
-		//Check to see if the user logged in, and if they did, load up their token.
-		
-		if (options.type == "mobile") {
-			villo.app.platform = "mobile";
-			if (Mojo.appInfo) {
-				//Mojo
-				villo.app.platform = "mojo";
-				villo.app.id = Mojo.appInfo.id;
-				villo.app.title = Mojo.appInfo.title;
-				villo.app.version = Mojo.appInfo.version;
-				villo.app.developer = Mojo.appInfo.vendor;
-			} else if (typeof(enyo) != "undefined") {
-				//Enyo
-				villo.app.platform = "enyo";
-				appInfo = enyo.fetchAppInfo();
-				villo.app.id = appInfo.id;
-				villo.app.title = appInfo.title;
-				villo.app.version = appInfo.version;
-				villo.app.developer = appInfo.vendor;
-			} else {
-				//Developer-set creds
-				villo.app.id = options.appid;
-				villo.app.title = options.apptitle;
-				villo.app.version = options.appversion;
-				villo.app.developer = options.appdeveloper;
-			}
-		} else if (options.type == "web") {
-			villo.app.platform = "web";
-			villo.app.id = options.appid;
-			villo.app.title = options.apptitle;
-			villo.app.version = options.appversion;
-			villo.app.developer = options.appdeveloper;
-		}
-		
-		//Load up the settings (includes sync).
-		if (store.get("VilloSettingsProp")) {
-			villo.settings.load({
-				callback: villo.doNothing()
-			});
-		}
-		
-		if (store.get("token.user") && store.get("token.token")) {
-			villo.user.username = store.get("token.user");
-			villo.user.token = store.get("token.token");
-			//User Logged In
-			villo.sync();
-			return 0;
-		} else {
-			//User not Logged In
-			return 1;
-		}
+		return true;
 	}
 })();

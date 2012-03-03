@@ -1,3 +1,4 @@
+
 /* Villo Leaders */
 (function(){
 	villo.leaders = {		
@@ -15,7 +16,7 @@
     - "Duration" is the time frame you want to load the scores from. Possible durations include "all", "year", "month", "day", and "latest".
     - "Board"  is an optional parameter that lets you specify what leaderboard you wish to grab scores from in your application.
     - "Callback" is a function that is called when the retrieval of scores from the server is completed. The scores object is passed to the callback.
-    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for perfomance reasons. If the parameter is not passed, a value of 30 will be used by default.
+    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for performance reasons. If the parameter is not passed, a value of 30 will be used by default.
 
 	Callback
 	--------
@@ -33,7 +34,16 @@
 	
 		villo.leaders.get({
 			duration: "all",
-			callback: enyo.bind(this, this.gotLeaders),
+			callback: function(leaderboard){
+				//Check for errors.
+				if(leaderboard && leaderboard.leaders){
+					var leaders = leaderboard.leaders;
+					//Now you can do something with the leaderboard array, stored in the leaders array.
+				}else{
+					//Some error occured.
+					alert("Error getting leaderboards.")
+				}
+			},
 			limit: 50
 		});
 
@@ -62,8 +72,8 @@
 					limit: leaderLimiter
 				},
 				onSuccess: function(transport){
-					villo.log("Success!");
-					villo.log(transport);
+					villo.verbose && villo.log("Success!");
+					villo.verbose && villo.log(transport);
 					if (transport !== "") {
 						var tmprsp = JSON.parse(transport)
 						if (tmprsp.leaders) {
@@ -79,7 +89,7 @@
 					}
 				},
 				onFailure: function(failure){
-					villo.log("failure!");
+					villo.verbose && villo.log("failure!");
 					getObject.callback(33);
 				}
 			});
@@ -98,7 +108,7 @@
     - "Username" is the full or partial username you want to get the scores for.
     - "Board"  is an optional parameter that lets you specify what leaderboard you wish to grab scores from in your application.
     - "Callback" is a function that is called when the retrieval of the user's scores from the server is completed. The scores object is passed to the callback.
-    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for perfomance reasons. If the parameter is not passed, a value of 30 will be used by default.
+    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for performance reasons. If the parameter is not passed, a value of 30 will be used by default.
 
 	Callback
 	--------
@@ -107,6 +117,7 @@
 	
 		{"leaders":[
 			{"username":"noah","data":"243","date":"2011-06-24"},
+			{"username":"noah","data":"200","date":"2011-06-24"},
 			{"username":"noahtest","data":"178","date":"2011-06-13"},
 			{"username":"noahtest2","data":"93","date":"2011-06-13"},
 		]}
@@ -116,7 +127,16 @@
 	
 		villo.leaders.search({
 			username: this.$.scoreSearch.getValue(),
-			callback: enyo.bind(this, this.gotLeaders),
+			callback: function(leaderboard){
+				//Check for errors.
+				if(leaderboard && leaderboard.leaders){
+					var leaders = leaderboard.leaders;
+					//Now you can do something with the leaderboard array, stored in the leaders array.
+				}else{
+					//Some error occured.
+					alert("Error getting leaderboards.")
+				}
+			},
 			limit: 50
 		});
 
@@ -146,8 +166,8 @@
 					limit: leaderLimiter
 				},
 				onSuccess: function(transport){
-					villo.log("Success!");
-					villo.log(transport);
+					villo.verbose && villo.log("Success!");
+					villo.verbose && villo.log(transport);
 					if (transport !== "") {
 						var tmprsp = JSON.parse(transport)
 						if (tmprsp.leaders) {
@@ -163,7 +183,7 @@
 					}
 				},
 				onFailure: function(failure){
-					villo.log("failure!");
+					villo.verbose && villo.log("failure!");
 					getObject.callback(33);
 				}
 			});
@@ -177,7 +197,53 @@
 		 * @param {function} scoreObject.callback Funtion to call once the score is submitted.
 		 * @since 0.8.0
 		 */
-		//Redo callback
+/**
+	villo.leaders.submit
+	====================
+	
+    Submit a given (numerical) score to a leaderboard.
+    
+    Calling
+	-------
+
+	`villo.leaders.get({duration: string, board: string, callback: function, limit: number})`
+    
+    - "Duration" is the time frame you want to load the scores from. Possible durations include "all", "year", "month", "day", and "latest".
+    - "Board"  is an optional parameter that lets you specify what leaderboard you wish to grab scores from in your application.
+    - "Callback" is a function that is called when the retrieval of scores from the server is completed. The scores object is passed to the callback.
+    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for performance reasons. If the parameter is not passed, a value of 30 will be used by default.
+
+	Callback
+	--------
+	
+	An object will be passed to the callback. The object will be formatted like this, where data is the score submitted:
+	
+		{"leaders":[
+			{"username":"kesne","data":"203","date":"2011-06-24"},
+			{"username":"kesne","data":"193","date":"2011-06-13"},
+			{"username":"admin","data":"110","date":"2011-06-13"},
+		]}
+	
+	Use
+	---
+	
+		villo.leaders.get({
+			duration: "all",
+			callback: function(leaderboard){
+				//Check for errors.
+				if(leaderboard && leaderboard.leaders){
+					var leaders = leaderboard.leaders;
+					//Now you can do something with the leaderboard array, stored in the leaders array.
+				}else{
+					//Some error occured.
+					alert("Error getting leaderboards.")
+				}
+			},
+			limit: 50
+		});
+
+*/
+//TODO: Figure out callback
 		submit: function(scoreObject){
 		
 			if (scoreObject.board && scoreObject.board !== "") {
@@ -203,23 +269,22 @@
 					score: scoreObject.score
 				},
 				onSuccess: function(transport){
-					villo.log(transport);
+					villo.verbose && villo.log(transport);
 					if (transport !== "") {
 						var tmprsp = JSON.parse(transport)
 						if (tmprsp.leaders) {
 							scoreObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								scoreObject.callback(transport);
-							} else {
-								scoreObject.callback(33);
-							}
+						} else if (transport == 33 || transport == 66 || transport == 99) {
+							scoreObject.callback(transport);
+						} else {
+							scoreObject.callback(33);
+						}
 					} else {
 						scoreObject.callback(33);
 					}
 				},
 				onFailure: function(failure){
-					villo.log("failure!");
+					villo.verbose && villo.log("failure!");
 					scoreObject.callback(33);
 				}
 			});
