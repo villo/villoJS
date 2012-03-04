@@ -1,7 +1,5 @@
+
 /* Villo Sync */
-
-//TODO: Needs more client-end management on the data-usage end of things. We probably shouldn't ping the server if we open the app twice in a row.
-
 (function(){
 	//Private function that is run on initialization.
 	villo.sync = function(){

@@ -1,8 +1,5 @@
-/* 
- * Villo App
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo App */
 (function(){
 	/*
 	 * Generic/Private Functions/Housings

@@ -1,8 +1,5 @@
-/* 
- * Villo Do Functions
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo Do Functions */
 (function(){
 	villo.doNothing = function(){
 		//We successfully did nothing! Yay!
@@ -22,16 +19,7 @@
 		villo.log("Why did you say ", strings, "?!?!?!?!?!");
 		if (arguments[0] == "easterEgg") {
 			//Easter Egg!
-			villo.webLog("IT'S FRIDAY, FRIDAY");
-			villo.webLog("GOTTA GET DOWN ON FRIDAY");
-			villo.webLog("EVERYBODY'S LOOKING FORWARD TO THE WEEKEND, WEEKEND");
-			villo.webLog("FRIDAY FRIDAY");
-			villo.webLog("GETTING DOWN ON FRIDAY");
-			villo.webLog("EVERYBODY'S LOOKING FORWARD TO THE WEEKEND");
-			villo.webLog("PARTIN' PARTIN' (yeah)");
-			villo.webLog("PARTIN' PARTIN' (yeah)");
-			villo.webLog("FUN FUN FUN FUN");
-			villo.webLog("LOOKING FORWARD TO THE WEEKEND");
+			villo.webLog("IT'S OVER 9000!");
 		}
 		//Hehehe
 		return true;
