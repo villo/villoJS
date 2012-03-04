@@ -1333,7 +1333,7 @@ villo = ({});
 					//Now you can do something with the leaderboard array, stored in the leaders array.
 				}else{
 					//Some error occured.
-					alert("Error getting leaderboards.")
+					alert("Error getting leaderboards.");
 				}
 			},
 			limit: 50
@@ -1426,7 +1426,7 @@ villo = ({});
 					//Now you can do something with the leaderboard array, stored in the leaders array.
 				}else{
 					//Some error occured.
-					alert("Error getting leaderboards.")
+					alert("Error getting leaderboards.");
 				}
 			},
 			limit: 50
@@ -1480,15 +1480,6 @@ villo = ({});
 				}
 			});
 		},
-		
-		/**
-		 * Submit a score to the app's leaderboard. As of 0.8.5, multiple leaderboards are supported, as well as anonymous postings for users not logged in.
-		 * @param {object} scoreObject Options for the leaderboard, and the callback.
-		 * @param {string} scoreObject.score The score you wish to submit to the leaderboard.
-		 * @param {string} scoreObject.board Optional parameter. This is the name of the board that you want to submit to. If none is selected, the applications name will be used.
-		 * @param {function} scoreObject.callback Funtion to call once the score is submitted.
-		 * @since 0.8.0
-		 */
 /**
 	villo.leaders.submit
 	====================
@@ -1515,14 +1506,14 @@ villo = ({});
 		var theScore = 100;
 		villo.leaders.submit({
 			score: theScore,
-			callback: function(leaderboard){
+			callback: function(didIDoIt){
 				//Check for errors.
-				if(leaderboard === true){
-					var leaders = leaderboard.leaders;
-					//Now you can do something with the leaderboard array, stored in the leaders array.
+				if(didIDoIt === true){
+					//Submitted score!
+					alert("Score was submitted!");
 				}else{
 					//Some error occured.
-					alert("Error getting leaderboards.")
+					alert("Error submitting score.");
 				}
 			}
 		});
@@ -1557,7 +1548,8 @@ villo = ({});
 					villo.verbose && villo.log(transport);
 					if (transport !== "") {
 						if (transport === "0") {
-							scoreObject.callback(transport);
+							//Submitted!
+							scoreObject.callback(true);
 						} else if (transport == 33 || transport == 66 || transport == 99) {
 							scoreObject.callback(transport);
 						} else {
@@ -1602,12 +1594,23 @@ villo = ({});
 	Callback
 	--------
 		
-	If the username does not exist, FIGURE OUT WHAT HAPPENS! If the user does exist, an object will be passed to the callback function which will contains the user's profile, formatted like this:
+	If the username does not exist, a "33" generic error will be passed to the function. If the user does exist, an object will be passed to the callback function which will contains the user's profile, formatted like this:
 		
-		{"profile": [{
-			"username": "",
-			"other things": ""
-		}]}
+		{"profile":[
+			{
+				"username": "admin",
+				"email": "jordan@villo.me",
+				"avatar": "https://api.villo.me/avatar.php?username=admin",
+				"firstname": "Jordan",
+				"lastname": "Gensler",
+				"status": "My name is Jordan Gensler! How are you doing?",
+				"location": "Oregon",
+				"apps":[
+					{"name": "Villo Demo App", "id": "me.villo.villov"},
+					{"name": "Developer Console", "id": "me.villo.api.console"},
+				]
+			}
+		]}
 		
 	Use
 	---
@@ -1615,7 +1618,7 @@ villo = ({});
 		villo.profile.get({
 			username: "kesne",
 			callback: function(profile){
-				//Do something wid it.
+				//Do something with it.
 			}
 		});
 
@@ -1662,28 +1665,25 @@ villo = ({});
 	Calling
 	-------
 
-	`villo.profile.get({username: string, callback: function})`
+	`villo.profile.get({field: string, data: string, callback: function})`
 	
-	- The "username" parameter is the username of the user profile to get. If this parameter is not passed, then the profile for the user currently logged in will be used.
-	- The "callback" should be a function that is called when the function is completed.
+	- The "field" parameter is the specific profile field you wish to update. Supported fields are "firstname", "lastname", "location", "status", and "avatar".
+	- The "data" field is the information you would like to put in the field.
+	- The "callback" is a function that is called when the profile has been updated.
 	
 	Callback
 	--------
 		
-	If the username does not exist, FIGURE OUT WHAT HAPPENS! If the user does exist, an object will be passed to the callback function which will contains the user's profile, formatted like this:
-		
-		{"profile": [{
-			"username": "",
-			"other things": ""
-		}]}
+	The profile of the user currently logged in will be passed to the callback function. For details on how the profile is formatted, see villo.profile.get.
 		
 	Use
 	---
 		
-		villo.profile.get({
-			username: "kesne",
-			callback: function(profile){
-				//Do something wid it.
+		villo.profile.set({
+			field: "status",
+			data: "I'm doing pretty slick right now! How is everybody!",
+			callback : function(data) {
+				//Data holds the goods.
 			}
 		});
 
@@ -1741,15 +1741,33 @@ villo = ({});
 		
 	An object will be passed to the callback function which will contains the profiles of the user's friends, formatted like this:
 		
-		{"profile": [
-		{
-			"username": "",
-			"other things": ""
-		},
-		{
-			"username": "",
-			"other things": ""
-		},
+		{"profile":[
+			{
+				"username": "admin",
+				"email": "jordan@villo.me",
+				"avatar": "https://api.villo.me/avatar.php?username=admin",
+				"firstname": "Jordan",
+				"lastname": "Gensler",
+				"status": "My name is Jordan Gensler! How are you doing?",
+				"location": "Oregon",
+				"apps":[
+					{"name": "Villo Demo App", "id": "me.villo.villov"},
+					{"name": "Developer Console", "id": "me.villo.api.console"},
+				]
+			},
+			{
+				"username": "kesne",
+				"email": "jordangens@gmail.com",
+				"avatar": "https://api.villo.me/avatar.php?username=kesne",
+				"firstname": "Jordan",
+				"lastname": "Gensler",
+				"status": "My name is also Jordan Gensler! How strange! There must be some method to this madness!",
+				"location": "under the rainbow",
+				"apps":[
+					{"name": "Some Other App", "id": "some.other.app"},
+					{"name": "Developer Console", "id": "me.villo.api.console"},
+				]
+			},
 		]}
 		
 	Use
@@ -1757,7 +1775,7 @@ villo = ({});
 		
 		villo.profile.friends({
 			callback: function(profile){
-				//Do something wid it.
+				//Do something with it.
 			}
 		});
 

@@ -11,7 +11,7 @@
 <body>
 <h1><a name="villo.settings.load">villo.settings.load</a></h1>
 
-<p>Load your applications settings, which have been set through villo.settings.save. Villo Settings uses villo.storage to store the settings, in addition to using local settings to fall back on. Additionally, Villo Settings is designed to handle JSON, and saves the settings object to the object villo.app.settings.</p>
+<p>Load your applications settings, which have been set through <a href="core_settings.js.html#villo.settings.save">villo.settings.save</a>. Villo Settings uses villo.storage to store the settings, in addition to using local settings to fall back on. Additionally, Villo Settings is designed to handle JSON, and saves the settings object to the object villo.app.settings.</p>
 
 <h2>   Calling</h2>
 
@@ -62,11 +62,67 @@ var prefTwo = villo.app.settings.preferenceTwo;
 
 <p>If your application is currently offline, then Villo will load the local version of the settings.</p>
 
-<p>When you set the settings through villo.settings.save, the settings are timestamped and uploaded to the server. When you use <a href="core_settings.js.html#villo.settings.load">villo.settings.load</a>, the latest version of settings are loaded.</p>
+<p>When you set the settings through <a href="core_settings.js.html#villo.settings.save">villo.settings.save</a>, the settings are timestamped and uploaded to the server. When you use <a href="core_settings.js.html#villo.settings.load">villo.settings.load</a>, the latest version of settings are loaded.</p>
 
 <p>Villo Settings uses the privacy feature in villo.storage, which encrypts the settings on the server.</p>
 
 <p>If the version of the settings on the server are older than the settings on your device, then the server will be updated with the local settings.</p>
+
+<h1><a name="villo.settings.save">villo.settings.save</a></h1>
+
+<p>Save settings for your application. Settings uses villo.storage to store the settings, in addition to using local settings to fall back on. When you save settings, they are available in the villo.app.settings object.</p>
+
+<h2>   Calling</h2>
+
+<p><code><a href="core_settings.js.html#villo.settings.save">villo.settings.save</a>({settings: object})</code></p>
+
+<ul>
+<li>The "settings" object contains your actual settings. Your settings MUST be formatted as JSON!</li>
+</ul>
+
+<h2>Returns</h2>
+
+<p>Returns the villo.app.settings object, which your settings have now been added to.</p>
+
+<h2>Use</h2>
+
+<pre><code>var userSettings = {
+    "preferenceOne": true,
+    "preferenceTwo": false,
+    "isCool": "Oh yes, yes it is."
+}
+
+<a href="core_settings.js.html#villo.settings.save">villo.settings.save</a>({
+    settings: userSettings
+});
+</code></pre>
+
+<h2>Notes</h2>
+
+<p>When the settings are loaded, they are saved in villo.app.settings.</p>
+
+<p>Villo Settings are loaded when the app is launched, allowing you to access villo.app.settings from the start of your application.</p>
+
+<p>Settings are user-specific, not universal.</p>
+
+<h1><a name="villo.settings.remove">villo.settings.remove</a></h1>
+
+<p>Removes the local version of the settings.</p>
+
+<h2>   Calling</h2>
+
+<p><code><a href="core_settings.js.html#villo.settings.remove">villo.settings.remove</a>()</code></p>
+
+<p>This function takes no arguments.</p>
+
+<h2>Returns</h2>
+
+<p>Returns true if the settings were removed.</p>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_settings.js.html#villo.settings.remove">villo.settings.remove</a>();
+</code></pre>
 
 </body>
 </html>

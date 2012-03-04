@@ -46,7 +46,7 @@
             //Now you can do something with the leaderboard array, stored in the leaders array.
         }else{
             //Some error occured.
-            alert("Error getting leaderboards.")
+            alert("Error getting leaderboards.");
         }
     },
     limit: 50
@@ -91,19 +91,11 @@
             //Now you can do something with the leaderboard array, stored in the leaders array.
         }else{
             //Some error occured.
-            alert("Error getting leaderboards.")
+            alert("Error getting leaderboards.");
         }
     },
     limit: 50
 });
-
-
- * Submit a score to the app's leaderboard. As of 0.8.5, multiple leaderboards are supported, as well as anonymous postings for users not logged in.
- * @param {object} scoreObject Options for the leaderboard, and the callback.
- * @param {string} scoreObject.score The score you wish to submit to the leaderboard.
- * @param {string} scoreObject.board Optional parameter. This is the name of the board that you want to submit to. If none is selected, the applications name will be used.
- * @param {function} scoreObject.callback Funtion to call once the score is submitted.
- * @since 0.8.0
 </code></pre>
 
 <h1><a name="villo.leaders.submit">villo.leaders.submit</a></h1>
@@ -112,41 +104,33 @@
 
 <h2>   Calling</h2>
 
-<p><code><a href="core_leaders.js.html#villo.leaders.get">villo.leaders.get</a>({duration: string, board: string, callback: function, limit: number})</code></p>
+<p><code><a href="core_leaders.js.html#villo.leaders.submit">villo.leaders.submit</a>({score: string, board: string, callback: function})</code></p>
 
 <ul>
-<li>"Duration" is the time frame you want to load the scores from. Possible durations include "all", "year", "month", "day", and "latest".</li>
-<li>"Board"  is an optional parameter that lets you specify what leaderboard you wish to grab scores from in your application.</li>
-<li>"Callback" is a function that is called when the retrieval of scores from the server is completed. The scores object is passed to the callback.</li>
-<li>"Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for performance reasons. If the parameter is not passed, a value of 30 will be used by default.</li>
+<li>The "score" is the numerical score that you wish to submit.</li>
+<li>"Board"  is an optional parameter that lets you specify what leaderboard you wish to submit the score to. If you specify a board while submitting, then the scores will only be visible if you call <a href="core_leaders.js.html#villo.leaders.get">villo.leaders.get</a> for the same board name.</li>
+<li>"Callback" is a function that is called when the score is submitted.</li>
 </ul>
 
 <h2>Callback</h2>
 
-<p>An object will be passed to the callback. The object will be formatted like this, where data is the score submitted:</p>
-
-<pre><code>{"leaders":[
-    {"username":"kesne","data":"203","date":"2011-06-24"},
-    {"username":"kesne","data":"193","date":"2011-06-13"},
-    {"username":"admin","data":"110","date":"2011-06-13"},
-]}
-</code></pre>
+<p>If the score was submitted successfully, true will be passed to the callback.</p>
 
 <h2>Use</h2>
 
-<pre><code><a href="core_leaders.js.html#villo.leaders.get">villo.leaders.get</a>({
-    duration: "all",
-    callback: function(leaderboard){
+<pre><code>var theScore = 100;
+<a href="core_leaders.js.html#villo.leaders.submit">villo.leaders.submit</a>({
+    score: theScore,
+    callback: function(didIDoIt){
         //Check for errors.
-        if(leaderboard &amp;&amp; leaderboard.leaders){
-            var leaders = leaderboard.leaders;
-            //Now you can do something with the leaderboard array, stored in the leaders array.
+        if(didIDoIt === true){
+            //Submitted score!
+            alert("Score was submitted!");
         }else{
             //Some error occured.
-            alert("Error getting leaderboards.")
+            alert("Error submitting score.");
         }
-    },
-    limit: 50
+    }
 });
 </code></pre>
 

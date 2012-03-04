@@ -8,7 +8,7 @@ Villo is a JavaScript framework that aims to connect your applications to the cl
 Hackathon
 =========
 
-For the [International Enyo Hackathon](http://enyohackathon.com/), we'll be giving out prizes to the best Villo integration. Additionally, we are releasing the latest version of Villo to developers.
+For the <a href="http://enyohackathon.com/" target="_blank">International Enyo Hackathon</a>, we'll be giving out prizes to the best Villo integration. Additionally, we are releasing the latest version of Villo to developers.
 
 Meet the Judges
 ---------------
@@ -46,3 +46,44 @@ To submit entries to Villo for the Enyo Hackathon, email a .zip archive of your 
 We ask that all entries work in a Chrome browser without too many issues.
 
 If you have specific running instructions for your application, please include them in your email.
+
+Getting Started
+===============
+
+This guide will get you set up developing Villo applications using VilloJS.
+
+Registering as a Developer
+--------------------------
+
+To get started developing Villo applications, you must first create a Villo developer account. You can do so by vising <a href="http://dev.villo.me" target="_blank">dev.villo.me</a>, and clicking register.
+
+If you already have an existing Villo account, you can just login to the Villo <a href="http://dev.villo.me" target="_blank">developer website</a>, and it will convert your existing account into a developer account.
+
+Downloading Villo
+-----------------
+
+You can download the latest version of Villo from the Villo developer website. Once you've downloaded the villo.js file, you should include it in your application.
+
+Direct download: <a href="http://dev.villo.me/files/download/villo/0.9.7/villo.js" target="_blank">click here</a>
+
+Registering your Application
+----------------------------
+
+Once you have downloaded Villo, you need to register your application to use our APIs. You can do this from <a href="http://dev.villo.me/user/apps.php" target="_blank">Tools page</a> on the developer website. Simply click "New App".
+
+When you are registering your application, select "HP WebOS (Enyo)" as your platform.
+
+Initializing Villo
+------------------
+
+Now that you've included VilloJS in your application and registered your application with Villo's API, you can start using all of Villo's APIs!
+
+We recommend that you take a look at the following APIs to get started!
+
+ - villo.user.login
+ - villo.user.register
+
+That's It!
+----------
+
+You're now off and running using Villo! Check out the documentation for all of our APIs.
