@@ -9,11 +9,108 @@
 	<title>joDoc</title>
 </head>
 <body>
-<p>* Get a specific user's profile
-     * @param {object} getObject Options for the function.
-     * @param {string} getObject.username Username of the user profile to get. If this param is not passed, we will use the user currently logged in.
-     * @param {function} getObject.callback Funtion to call once the profile is retrieved.
-     * @since 0.8.0</p>
+<h1><a name="villo.profile.get">villo.profile.get</a></h1>
+
+<p>Gets the user profile for a specific user (found by their username).</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_profile.js.html#villo.profile.get">villo.profile.get</a>({username: string, callback: function})</code></p>
+
+<ul>
+<li>The "username" parameter is the username of the user profile to get. If this parameter is not passed, then the profile for the user currently logged in will be used.</li>
+<li>The "callback" should be a function that is called when the function is completed.</li>
+</ul>
+
+<h2>Callback</h2>
+
+<p>If the username does not exist, FIGURE OUT WHAT HAPPENS! If the user does exist, an object will be passed to the callback function which will contains the user's profile, formatted like this:</p>
+
+<pre><code>{"profile": [{
+    "username": "",
+    "other things": ""
+}]}
+</code></pre>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_profile.js.html#villo.profile.get">villo.profile.get</a>({
+    username: "kesne",
+    callback: function(profile){
+        //Do something wid it.
+    }
+});
+</code></pre>
+
+<h1><a name="villo.profile.set">villo.profile.set</a></h1>
+
+<p>Sets a specific field in the user's profile (the user currently logged in) to a new value.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_profile.js.html#villo.profile.get">villo.profile.get</a>({username: string, callback: function})</code></p>
+
+<ul>
+<li>The "username" parameter is the username of the user profile to get. If this parameter is not passed, then the profile for the user currently logged in will be used.</li>
+<li>The "callback" should be a function that is called when the function is completed.</li>
+</ul>
+
+<h2>Callback</h2>
+
+<p>If the username does not exist, FIGURE OUT WHAT HAPPENS! If the user does exist, an object will be passed to the callback function which will contains the user's profile, formatted like this:</p>
+
+<pre><code>{"profile": [{
+    "username": "",
+    "other things": ""
+}]}
+</code></pre>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_profile.js.html#villo.profile.get">villo.profile.get</a>({
+    username: "kesne",
+    callback: function(profile){
+        //Do something wid it.
+    }
+});
+</code></pre>
+
+<h1><a name="villo.profile.friends">villo.profile.friends</a></h1>
+
+<p>Gets the profiles for all of the users on your friend list. This feature can be used as a replacement for <a href="core_friends.js.html#villo.friends.get">villo.friends.get</a> when you need the detailed profiles for all of your friends.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_profile.js.html#villo.profile.friends">villo.profile.friends</a>({callback: function})</code></p>
+
+<ul>
+<li>The "callback" should be a function that is called when the profiles for the user's friends have been retrieved.</li>
+</ul>
+
+<h2>Callback</h2>
+
+<p>An object will be passed to the callback function which will contains the profiles of the user's friends, formatted like this:</p>
+
+<pre><code>{"profile": [
+{
+    "username": "",
+    "other things": ""
+},
+{
+    "username": "",
+    "other things": ""
+},
+]}
+</code></pre>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_profile.js.html#villo.profile.friends">villo.profile.friends</a>({
+    callback: function(profile){
+        //Do something wid it.
+    }
+});
+</code></pre>
 
 </body>
 </html>

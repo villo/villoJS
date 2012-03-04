@@ -9,17 +9,48 @@
 	<title>joDoc</title>
 </head>
 <body>
+<h1><a name="villo.extend">villo.extend</a></h1>
+
+<p>Allows developers to extend Villo functionality by adding methods to the Villo object. As of Villo 1.0, <a href="utils_extend.js.html#villo.extend">villo.extend</a> actually adds the extend function to the Object prototype.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="utils_extend.js.html#villo.extend">villo.extend</a>(object)</code></p>
+
 <ul>
-<li>OLD DOCUMENTATION, NEED THE NEW STUFF:</li>
-<li>
-<ul>
-<li>Extend or update villo's functionality.</li>
-</ul></li>
-<li>@param {string} namespace The namespace that your villo extension will live in. All extentions be pushed into the villo.e root namespace.</li>
-<li>@param {object} javascripts The functionality you want to add.</li>
-<li>@return {boolean} Returns true if the function was executed.</li>
-<li>@since 0.8.0</li>
+<li>The only parameter that <a href="utils_extend.js.html#villo.extend">villo.extend</a> takes is the object. Villo will add the object into the main Villo object. Additionally, if you define a function named "init" in the object, the function will run when the extension is loaded.</li>
 </ul>
+
+<h2>Returns</h2>
+
+<p>The function returns the Villo object, or the part of the object you were modifying.</p>
+
+<h2>Use</h2>
+
+<pre><code><a href="utils_extend.js.html#villo.extend">villo.extend</a>({
+    suggest:{
+        get: function(){
+            //Function that can be called using villo.
+            this.users = ["kesne", "admin"];
+            return this.users;
+        }
+    },
+    init: function(){
+        //This will be executed when the extension is loaded.
+        <a href="utils_log.js.html#villo.log">villo.log</a>("Init functionw was called.");
+    }
+});
+</code></pre>
+
+<h2>Notes</h2>
+
+<p>Because this function is actually an addition to the Object prototype, you can call it on any part of Villo that is an object.</p>
+
+<p>For example, to extend the villo.profile, object, you call <code>villo.profile.extend({"suggest": function(){}});</code>, which would add the suggest method to villo.profile.</p>
+
+<p>Any methods added through <a href="utils_extend.js.html#villo.extend">villo.extend</a> will override other methods if they already exist.</p>
+
+<p>If you define an init function in the object, then it will be run when the extension is loaded. The init function will be deleted after it is run.</p>
 
 </body>
 </html>

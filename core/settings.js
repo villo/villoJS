@@ -115,6 +115,48 @@
 				});
 			}
 		},
+/**
+	villo.settings.save
+	===================
+	
+	Save settings for your application. Settings uses villo.storage to store the settings, in addition to using local settings to fall back on. When you save settings, they are available in the villo.app.settings object.
+    
+    Calling
+	-------
+
+	`villo.settings.save({settings: object})`
+    
+    - The "settings" object contains your actual settings. Your settings MUST be formatted as JSON!
+
+	Returns
+	-------
+	
+	Returns the villo.app.settings object, which your settings have now been added to.
+
+	
+	Use
+	---
+		
+		var userSettings = {
+			"preferenceOne": true,
+			"preferenceTwo": false,
+			"isCool": "Oh yes, yes it is."
+		}
+		
+		villo.settings.save({
+			settings: userSettings
+		});
+		
+	Notes
+	-----
+	
+	When the settings are loaded, they are saved in villo.app.settings.
+	
+	Villo Settings are loaded when the app is launched, allowing you to access villo.app.settings from the start of your application.
+	
+	Settings are user-specific, not universal.
+
+*/
 		save: function(saveObject){
 			var settingsObject = {};
 			var d = new Date();
@@ -129,9 +171,36 @@
 				title: "VilloSettingsProp",
 				data: settingsObject
 			});
+			return villo.app.settings;
 		},
-		destroy: function(){
+/**
+	villo.settings.remove
+	=====================
+	
+	Removes the local version of the settings.
+    
+    Calling
+	-------
+
+	`villo.settings.remove()`
+    
+    This function takes no arguments.
+
+	Returns
+	-------
+	
+	Returns true if the settings were removed.
+	
+	Use
+	---
+		
+		villo.settings.remove();
+
+*/
+		remove: function(){
 			store.remove("VilloSettingsProp");
+			villo.app.settings = {};
+			return true;
 		}
 	}
 })();

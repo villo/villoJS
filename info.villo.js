@@ -1,8 +1,5 @@
-
 /*
-
-Stock Loader:
-
+	Example Villo Loader:
 */
 
 villo.load({
@@ -17,4 +14,9 @@ villo.load({
 	],
 	"include": [
 	],
+	
+	//Other utility parameters (optional):
+	useCookies: false, //Replace localstorage with cookies.
+	verbose: false, //Turn on logging.
+	patch: true //Include Villo's server patch file.
 });

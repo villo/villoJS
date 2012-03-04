@@ -182,6 +182,8 @@
 
 	`villo.chat.leaveAll()`
 	
+	This function takes no arguments.
+	
 	Returns
 	-------
 		
@@ -223,6 +225,8 @@
 	-------
 
 	`villo.chat.leave(string)`
+	
+	- The only parameter to be passed is a string containing the room you want to leave.
 	
 	Returns
 	-------

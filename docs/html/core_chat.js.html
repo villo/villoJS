@@ -20,7 +20,7 @@
 <ul>
 <li>"Room" is the name of the chat room you want to join. Rooms are app-dependent.</li>
 <li>The "callback" is called when a chat message is received. </li>
-<li>The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.chat.presence.join</li>
+<li>The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.presence.join</li>
 </ul>
 
 <h2>Returns</h2>
@@ -129,6 +129,47 @@
 <h2>Use</h2>
 
 <pre><code><a href="core_chat.js.html#villo.chat.leave">villo.chat.leave</a>("main");
+</code></pre>
+
+<h1><a name="villo.chat.history">villo.chat.history</a></h1>
+
+<p>Retrieves recent messages sent in a given room.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_chat.js.html#villo.chat.history">villo.chat.history</a>({room: string, limit: number, callback: function})</code></p>
+
+<ul>
+<li>The "room" string is the name of the chat room you wish to get the history messages of.</li>
+<li>"limit" is the maximum number of history messages you want to receive. If you do not specify this parameter, it will default to 25.</li>
+<li>The "callback" function will be called after the messages are received, </li>
+</ul>
+
+<h2>Callback</h2>
+
+<p>An object will be passed to the callback function when the history is loaded, and will be formatted like this:</p>
+
+<pre><code>[{
+    username: "Kesne",
+    message: "Hey man, how's it going?"
+},{
+    username: "someOtherUser",
+    message: "Not much, how are you?"
+},{
+    username: "Kesne",
+    message: "I'm great, thanks for asking!"
+}]
+</code></pre>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_chat.js.html#villo.chat.history">villo.chat.history</a>({
+    room: "main",
+    limit: 50,
+    callback: function(messages){
+        //The messages variable holds the object with all of the messages.
+    }
+});
 </code></pre>
 
 </body>

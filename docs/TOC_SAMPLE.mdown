@@ -12,7 +12,8 @@ Villo Documentation
 -------------------
 
 - {ABOUT.mdown}
-- Developer Guide
+- Getting Started
+<!-- - Developer Guide -->
 
 API Reference
 -------------
@@ -44,8 +45,11 @@ API Reference
 
 ### Utilities
 - Ajax
+- - {../utils/ajax.js}
 - Extend
+- - {../utils/extend.js}
 - Log
+- - {../utils/log.js}
 
 
 

@@ -1,4 +1,48 @@
+<img src="https://api.villo.me/avatar.php?username=kesne"/>
+
 About Villo
 ===========
 
-Villo is a JavaScript framework that aims to connect your applications to the cloud. Villo.js provides you with the necessary tools to get your apps tapped into Villo's services, and get your app Villo Enabled.
+Villo is a JavaScript framework that aims to connect your applications to the cloud. VilloJS provides you with the necessary tools to get your apps tapped into Villo's services, and get your app Villo-Enabled.
+
+Hackathon
+=========
+
+For the [International Enyo Hackathon](http://enyohackathon.com/), we'll be giving out prizes to the best Villo integration. Additionally, we are releasing the latest version of Villo to developers.
+
+Meet the Judges
+---------------
+
+Your entries will be judged by our very special panel of judges.
+
+ - Jordan Gensler: Creator of Villo, owner of Keen Studios Apps.
+ - Noah Manders: Owner of webOSworld, co-owner of Villo.
+ - James Saddler: Head of Marketing at Villo.
+ 
+Prizes
+------
+
+To give you some insentive to use Villo in your applications, we will be giving out the following prizes to developers who integrate Villo.
+
+ - Grand Prize: $100 via PayPal 
+ 	- Given to the best overall integration of Villo.
+ - Runner-up: $50 Amazon Gift Card
+ 	- Given to the most complete (and clever!) integration of Villo.
+
+Additionally, everybody who submits an application using Villo will recieve a free Villo T-Shirt!
+ 
+How to use Villo
+----------------
+
+Alongside with the release of the latest version of Villo, we're also releasing the latest extensive documentation, which you can view right on this site!
+
+For a very basic guide to help you get started, see Getting Started.
+ 
+How to Submit Entries
+---------------------
+
+To submit entries to Villo for the Enyo Hackathon, email a .zip archive of your application to villohackathon@gmail.com.
+
+We ask that all entries work in a Chrome browser without too many issues.
+
+If you have specific running instructions for your application, please include them in your email.

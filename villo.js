@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2010-2011, Villo Services. All rights reserved.
+ * Copyright (c) 2012, Villo Services. All rights reserved.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, 
@@ -27,23 +27,15 @@ villo = ({});
 
 (function(){
 	villo.apiKey = "";
-	villo.version = "0.9.5 pr 2";
-})();/* Villo Analytics */
-
-//TODO:
-//Error Handling on the html side
-//MAYBE:
-//Add villo.bridge.login and villo.bridge.register kinds.
+	villo.version = "0.9.7";
+})();
+/* Villo Analytics */
+//TODO: For 1.0 release.
 
 /* Villo Bridge */
 (function(){
 /*
- * Villo Bridge allows for accelerated Villo development, giving developers a plug-in method for viewing Villo content.
- * ------------
- * Villo Bridge is currently Enyo-only, and uses a custom enyo-kind, set up to your specifications.
- * UPDATE: As of September 24th, the below is no longer true.
- * Bridge also is using the 1.0 (or 1.x, pending a final decision) specification for callbacks, passing a callback object as a separate object, and providing onSuccess and onFailure callbacks. 
- * The 1.0 specification also supports calling the callbacks based on the server response, by passing "specify: true".
+ * Villo Bridge allows for accelerated Villo development, giving developers a simple method for viewing Villo content.
  */
 
 	
@@ -55,7 +47,8 @@ villo = ({});
 	
 	
 })();
-/* Villo Push Chat - Revamped in 0.9.5*/
+
+/* Villo Push Chat */
 (function(){
 	villo.chat = {
 		rooms: [],
@@ -69,10 +62,11 @@ villo = ({});
 	Calling
 	-------
 
-	`villo.chat.join({room: string, callback: function})`
+	`villo.chat.join({room: string, callback: function, presence: {enabled: boolean})`
 	
 	- "Room" is the name of the chat room you want to join. Rooms are app-dependent.
-	- The "Callback" is called when a chat message is received. 
+	- The "callback" is called when a chat message is received. 
+	- The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.presence.join
 
 	Returns
 	-------
@@ -89,13 +83,11 @@ villo = ({});
 			message: "Hey man, how's it going?"
 		}
 		
-	If any information was passed in the "options" object while sending the message, it will be retrived in the "extras" object in the callback object.
-		
 	Use
 	---
 		
 		villo.chat.join({
-			room: "VilloDemo/main",
+			room: "main",
 			callback: function(message){
 				//The message variable is where the goods are.
 			}
@@ -116,7 +108,7 @@ villo = ({});
 					});
 					
 					if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled == true){
-						villo.chat.presence.join({
+						villo.presence.join({
 							room: chatObject.room,
 							callback: (chatObject.presence.callback || "")
 						});
@@ -160,7 +152,7 @@ villo = ({});
 	Use
 	---
 		
-		villo.chat.isSubscribed("roomName");
+		villo.chat.isSubscribed("main");
 
 */
 
@@ -175,14 +167,45 @@ villo = ({});
 			}
 			return c;
 		},
+/**
+	villo.chat.send
+	==================
+	
+    Send a message into any given chat room.
+    
+	Calling
+	-------
 
+	`villo.chat.send({room: string, message: string})`
+	
+	- "Room" is the name of the chat room you want to join. Rooms are app-dependent, and you cannot send messages accross different applications.
+	- The "message" is a string which is a message that you want to send. You can also pass objects in the message parameter, instead of string. 
+
+	Returns
+	-------
+		
+	Returns true if the message was sent. Returns false if an error occurred.
+			
+	Use
+	---
+		
+		villo.chat.send({
+			room: "main",
+			message: "Hey man, how's it going?"
+		});
+		
+	Notes
+	-----
+	
+	If you have joined a chat room, when a message is sent, it will be received through the callback defined in the join function call.
+
+*/
 		send: function(messageObject){
 			if ('PUBNUB' in window) {
 				//Build the JSON to push to the server.
 				var pushMessage = {
 					"username": villo.user.username,
-					"message": messageObject.message,
-					"extra": messageObject.options
+					"message": messageObject.message
 				};
 				if(!messageObject.room){
 					messageObject.room = villo.chat.rooms[0].name;
@@ -197,33 +220,30 @@ villo = ({});
 			}
 			
 		},
-	/*
-		send: function(messageObject){
-			if ('PUBNUB' in window) {
-				//Build the JSON to push to the server.
-				var pushMessage = {
-					"username": villo.user.username,
-					"message": messageObject.message,
-					"extra": messageObject.options
-				};
-				if(!messageObject.room){
-					messageObject.room = villo.chat.rooms[0].name;
-				}
-				PUBNUB.publish({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + messageObject.room.toUpperCase(),
-					message: pushMessage
-				});
-				return true;
-			} else {
-				return false;
-			}
-		},
-	*/
-		/**
-		 * Unsubscribes to all push chat rooms currently subscribed to.
-		 * @return {boolean} Returns true if the function is successfully executed.
-		 * @since 0.8.0
-		 */
+/**
+	villo.chat.leaveAll
+	==================
+	
+    Closes all of the open connections to chat rooms. If a presence room was joined when the function was loaded, the connection to the presence rooms will also be closed.
+    
+	Calling
+	-------
+
+	`villo.chat.leaveAll()`
+	
+	This function takes no arguments.
+	
+	Returns
+	-------
+		
+	Returns true if all of the rooms have been disconnected from. 
+			
+	Use
+	---
+		
+		villo.chat.leaveAll();
+
+*/
 		leaveAll: function(){
 			if ('PUBNUB' in window) {
 				for (x in villo.chat.rooms) {
@@ -232,7 +252,7 @@ villo = ({});
 							channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
 						});
 						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
-							villo.chat.presence.leave({
+							villo.presence.leave({
 								room: villo.chat.rooms[x].name
 							});
 						}
@@ -244,25 +264,42 @@ villo = ({});
 				return false;
 			}
 		},
-		/**
-		 * Unsubscribes to a specific push chat room.
-		 * @param {object} closerObject Object containing the name of the room to unsubscribe to.
-		 * @param {string} closerObject.room Name of the room to close out of.
-		 * @return {boolean} Returns true if the function is successfully executed.
-		 * @since 0.8.0
-		 */
+/**
+	villo.chat.leave
+	==================
+	
+    Closes a connection to a specific chat room. If a presence room was joined when the chat room was joined, the connection to the presence room will also be closed.
+    
+	Calling
+	-------
+
+	`villo.chat.leave(string)`
+	
+	- The only parameter to be passed is a string containing the room you want to leave.
+	
+	Returns
+	-------
+		
+	Returns true if the room connection was closed. 
+			
+	Use
+	---
+		
+		villo.chat.leave("main");
+
+*/
 		leave: function(closerObject){
 			if ('PUBNUB' in window) {
 				PUBNUB.unsubscribe({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.room.toUpperCase()
+					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.toUpperCase()
 				});
 				var x;
 				for (x in villo.chat.rooms) {
 					if (villo.chat.rooms.hasOwnProperty(x)) {
-						if (villo.chat.rooms[x].name == closerObject.room) {
+						if (villo.chat.rooms[x].name == closerObject) {
 							var rmv = x;
 							if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
-								villo.chat.presence.leave({
+								villo.presence.leave({
 									room: villo.chat.rooms[x].name
 								});
 							}
@@ -276,6 +313,49 @@ villo = ({});
 			}
 		},
 		
+/**
+	villo.chat.history
+	==================
+	
+    Retrieves recent messages sent in a given room.
+    
+	Calling
+	-------
+
+	`villo.chat.history({room: string, limit: number, callback: function})`
+	
+	- The "room" string is the name of the chat room you wish to get the history messages of.
+	- "limit" is the maximum number of history messages you want to receive. If you do not specify this parameter, it will default to 25.
+	- The "callback" function will be called after the messages are received, 
+	
+	Callback
+	--------
+		
+	An object will be passed to the callback function when the history is loaded, and will be formatted like this:
+		
+		[{
+			username: "Kesne",
+			message: "Hey man, how's it going?"
+		},{
+			username: "someOtherUser",
+			message: "Not much, how are you?"
+		},{
+			username: "Kesne",
+			message: "I'm great, thanks for asking!"
+		}]
+			
+	Use
+	---
+		
+		villo.chat.history({
+			room: "main",
+			limit: 50,
+			callback: function(messages){
+				//The messages variable holds the object with all of the messages.
+			}
+		});
+
+*/
 		history: function(historyObject){
 			if('PUBNUB' in window){
 				PUBNUB.history({
@@ -288,8 +368,17 @@ villo = ({});
 			}
 		}
 	}
-	
-	villo.chat.presence = {
+	/*
+	 * TODO:
+	 * Document out the presence APIs.
+	 * 
+	 * TODO:
+	 * Run extensive tests on this API.
+	 * 
+	 * TODO:
+	 * Eventually swap this out with some socketIO sweetness.
+	 */
+	villo.presence = {
 			rooms: {},
 			
 			join: function(joinObject){
@@ -303,25 +392,25 @@ villo = ({});
 						if (evt.name === "user-presence") {
 							var user = evt.data.username;
 							
-							if (villo.chat.presence._timeouts[joinObject.room][user]) {
-								clearTimeout(villo.chat.presence._timeouts[joinObject.room][user]);
+							if (villo.presence._timeouts[joinObject.room][user]) {
+								clearTimeout(villo.presence._timeouts[joinObject.room][user]);
 							} else {
-								villo.chat.presence.rooms[joinObject.room].users.push(user);
+								villo.presence.rooms[joinObject.room].users.push(user);
 								//New User, so push event to the callback:
 								if(joinObject.callback && typeof(joinObject.callback) === "function"){
 									joinObject.callback({
 										name: "new-user",
-										data: villo.chat.presence.rooms[joinObject.room]
+										data: villo.presence.rooms[joinObject.room]
 									});
 								}
 							}
 							
-							villo.chat.presence._timeouts[joinObject.room][user] = setTimeout(function(){
-								villo.chat.presence.rooms[joinObject.room].users.splice([villo.chat.presence.rooms[joinObject.room].users.indexOf(user)], 1);
-								delete villo.chat.presence._timeouts[joinObject.room][user];
+							villo.presence._timeouts[joinObject.room][user] = setTimeout(function(){
+								villo.presence.rooms[joinObject.room].users.splice([villo.presence.rooms[joinObject.room].users.indexOf(user)], 1);
+								delete villo.presence._timeouts[joinObject.room][user];
 								joinObject.callback({
 									name: "exit-user",
-									data: villo.chat.presence.rooms[joinObject.room]
+									data: villo.presence.rooms[joinObject.room]
 								});
 							}, 5000);
 						} else {
@@ -358,8 +447,9 @@ villo = ({});
 				
 				return true;
 			},
-			
+			//Also use get as a medium to access villo.presence.get
 			get: function(getObject){
+				//TODO: Check to see if we're already subscribed. If we are, we can pass them the current object, we don't need to go through this process.
 				this._get[getObject.room] = {}
 				
 				PUBNUB.subscribe({
@@ -368,13 +458,13 @@ villo = ({});
 						if (evt.name === "user-presence") {
 							var user = evt.data.username;
 							
-							if (villo.chat.presence._get[getObject.room][user]) {
+							if (villo.presence._get[getObject.room][user]) {
 								
 							} else {
 								
 							}
 							
-							villo.chat.presence._get[getObject.room][user] = {"username": user};
+							villo.presence._get[getObject.room][user] = {"username": user};
 						} else {
 							//Some other event. We just leave this here for potential future expansion.
 						}
@@ -389,8 +479,8 @@ villo = ({});
 						room: getObject.room,
 						users: []
 					};
-					for(x in villo.chat.presence._get[getObject.room]){
-						returnObject.users.push(villo.chat.presence._get[getObject.room][x].username);
+					for(x in villo.presence._get[getObject.room]){
+						returnObject.users.push(villo.presence._get[getObject.room][x].username);
 					}
 					getObject.callback(returnObject);
 				}, 4000);
@@ -415,7 +505,8 @@ villo = ({});
 			_intervals: {},
 			_get: {},
 		}
-})();/* Villo Clipboard */
+})();
+/* Villo Clipboard */
 (function(){
 	villo.clipboard = {
 /**
@@ -427,7 +518,7 @@ villo = ({});
 	Calling
 	-------
 
-	`villo.clipboard.copy("Some string of text.")`
+	`villo.clipboard.copy(string)`
 
 	Returns
 	-------
@@ -437,7 +528,7 @@ villo = ({});
 	Use
 	---
 	
-		villo.clipboard.copy(this.$.input.getValue());
+		villo.clipboard.copy("What's up, dawg!?");
 
 */
 
@@ -481,20 +572,46 @@ villo = ({});
 		}
 	}
 })();
-/* 
- * Villo Friends
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo Friends */
 (function(){
 	villo.friends = {
-		/**
-		 * Add a user to the logged in user's friend list.
-		 * @param {object} addObject Options for the function.
-		 * @param {string} addObject.username Username to add to the friend list.
-		 * @param {function} getObject.callback Funtion to call once the profile is retrieved.
-		 * @since 0.8.0
-		 */
+/**
+	villo.friends.add
+	=================
+	
+    Adds a friend to the current user's friend list.
+    
+	Calling
+	-------
+
+	`villo.friends.add({username: string, callback: function})`
+	
+	- The "username" parameter is the username of the user which you wish to add to the friends list.
+	- The "callback" should be a function that is called when the function is completed.
+	
+	Callback
+	--------
+		
+	If the username does not exist, 0 will be passed to the callback. If the user does exist, an object will be passed to the callback function which will contain an object with the current user's friends, formatted like this:
+		
+		{"friends": [
+			"Kesne",
+			"Admin",
+			"someOtherUser"
+		]}
+		
+	Use
+	---
+		
+		villo.friends.add({
+			username: "someThirdUser",
+			callback: function(friends){
+				//The friends variable has a list of the current user's friends.
+			}
+		});
+
+*/
 		add: function(addObject){
 			villo.ajax("https://api.villo.me/friends.php", {
 				method: 'post',
@@ -514,7 +631,7 @@ villo = ({});
 					//66 - Unauthenticated User
 					//99 - Unauthorized App
 					
-					villo.log(transport);
+					villo.verbose && villo.log(transport);
 					
 					if (!transport == "") {
 						var tmprsp = JSON.parse(transport);
@@ -535,6 +652,41 @@ villo = ({});
 				}
 			});
 		},
+/**
+	villo.friends.remove
+	====================
+	
+    Remove a current friend from the user's friend list.
+    
+	Calling
+	-------
+
+	`villo.friends.remove({username: string, callback: function})`
+	
+	- The "username" parameter is the username of the user which you wish to remove from the friends list.
+	- The "callback" is a function that is called when the friend has been removed.
+	
+	Callback
+	--------
+		
+	If the function is completed, an object will be passed to the callback function which will contain an object with the current user's friends, formatted like this:
+		
+		{"friends": [
+			"Kesne",
+			"Admin"
+		]}
+		
+	Use
+	---
+		
+		villo.friends.remove({
+			username: "someOtherUser",
+			callback: function(friends){
+				//The friends variable has a list of the current user's friends.
+			}
+		});
+
+*/	
 		remove: function(removeObject){
 			villo.ajax("https://api.villo.me/friends.php", {
 				method: 'post',
@@ -553,7 +705,7 @@ villo = ({});
 					//33 - Generic Error
 					//66 - Unauthenticated User
 					//99 - Unauthorized App
-					villo.log(transport);
+					villo.verbose && villo.log(transport);
 					if (!transport == "") {
 						var tmprsp = JSON.parse(transport);
 						if (tmprsp.friends) {
@@ -579,6 +731,39 @@ villo = ({});
 		 * @param {function} getObject.callback Funtion to call once the profile is retrieved.
 		 * @since 0.8.0
 		 */
+/**
+	villo.friends.get
+	=================
+	
+    Get the friend list for the user currently logged in.
+    
+	Calling
+	-------
+
+	`villo.friends.get({callback: function})`
+	
+	- The "callback" is a function that is called when the friend has been removed.
+	
+	Callback
+	--------
+		
+	The friends list will be passed to the callback and formatted like this:
+		
+		{"friends": [
+			"Kesne",
+			"Admin"
+		]}
+		
+	Use
+	---
+		
+		villo.friends.get({
+			callback: function(friends){
+				//The friends variable has a list of the current user's friends.
+			}
+		});
+
+*/	
 		get: function(getObject){
 			villo.ajax("https://api.villo.me/friends.php", {
 				method: 'post',
@@ -598,7 +783,7 @@ villo = ({});
 					//66 - Unauthenticated User
 					//99 - Unauthorized App
 					
-					villo.log(transport)
+					villo.verbose && villo.log(transport)
 					
 					if (!transport == "") {
 						var tmprsp = JSON.parse(transport);
@@ -621,21 +806,22 @@ villo = ({});
 		}
 	}
 })();
-/* 
- * Villo Gift
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+
+/* Villo Gift */
 (function(){
+
+/**
+	villo.gift
+	==================
+	
+	As of Villo 1.0.0 Villo's Gift functionality is being rewritten from the ground up to make it easier for developers to use. 
+	
+	A public release for Villo's Gift functionality is planned for Villo version 1.2.0. 
+*/
+	
 	//Sync them, web interface for adding gifts
 	villo.gift = {
-		/**
-		 * Get the list of gifts in a given category
-		 * @param {object} giftObject Object containing options and the callback.
-		 * @param {string} giftObject.categoryStack Category to load the gifts from.
-		 * @param {function} giftObject.callback Funtion to call once the gifts are retrieved from the server.
-		 * @since 0.8.0
-		 */
 		retrieve: function(giftObject){
 			villo.ajax("https://api.villo.me/gifts.php", {
 				method: 'post',
@@ -672,12 +858,7 @@ villo = ({});
 		getCatagories: function(){
 			villo.gift.getCategories(arguments);
 		},
-		/**
-		 * Gets a list of the categories.
-		 * @param {object} giftObject Object containing options.
-		 * @param {function} giftObject.callback Funtion to call once the categories are retrieved from the server.
-		 * @since 0.8.0
-		 */
+		
 		getCategories: function(giftObject){
 			//Get gifts under a specific category
 			villo.ajax("https://api.villo.me/gifts.php", {
@@ -710,13 +891,7 @@ villo = ({});
 				}
 			});
 		},
-		/**
-		 * Buy a specific gift
-		 * @param {object} giftObject Options for the purchase.
-		 * @param {string} giftObject.giftID Universal ID of the gift the user wants to buy.
-		 * @param {function} giftObject.callback Funtion to call once the purchase is completed.
-		 * @since 0.8.0
-		 */
+		
 		buy: function(giftObject){
 			//Get gifts under a specific category
 			villo.ajax("https://api.villo.me/gifts.php", {
@@ -751,12 +926,7 @@ villo = ({});
 				}
 			});
 		},
-		/**
-		 * Gets the number of Villo Credits your account currently contains.
-		 * @param {object} giftObject Object containing options and the callback.
-		 * @param {function} giftObject.callback Funtion to call once the gifts are retrieved from the server.
-		 * @since 0.8.0
-		 */
+		
 		credits: function(giftObject){
 			villo.log(villo.user.token);
 			villo.log("Gettin' it!!");
@@ -793,14 +963,8 @@ villo = ({});
 				}
 			});
 		},
-		/**
-		 * Gets the purchases linked to the account currently logged in.
-		 * @param {object} giftObject Object containing options and the callback.
-		 * @param {function} giftObject.callback Funtion to call once the purchases are retrieved from the server.
-		 * @since 0.8.0
-		 */
+		
 		purchases: function(giftObject){
-			villo.log(villo.user.token);
 			//Get gifts under a specific category
 			villo.ajax("https://api.villo.me/gifts.php", {
 				method: 'post',
@@ -835,15 +999,161 @@ villo = ({});
 		}
 	}
 })();
+
 /* Villo Init/Load */
+
+
+//TODO:
+//We should also encourage usage of this for things like extensions, where they can have an info.js file that loads up the extension.
+//Change what villo.load does based on if it was already called. If it was, use it for excess file loading.
+
+
 (function(){
+	//We aren't loaded yet
+	villo.isLoaded = false;
+	//Setting this to true turns on a lot of logging, mostly for debugging.
+	villo.verbose = false;
+/**
+	villo.resource
+	==============
 	
+    Loads JavaScript and CSS files asynchronously. This function can be accessed by called villo.load after you have initialized your application.
+    
+    
+	Calling
+	-------
+
+	`villo.resource({resources: {js: array, css: array}})`
+	
+	- The "js" parameter inside of the resource object should be an array of JavaScript files you wish to load, relative to the root of your application.
+	- The "css" parameter inside of the resource object should be an array of CSS files you wish to load, relative to the root of your application.
+		
+	Use
+	---
+		
+		villo.resource({
+			resources: {
+				js: [
+					"source/demo/test.js",
+					"source/app.js"
+				],
+				css: [
+					"styles/myapp.css"
+				]
+			}
+		});
+		
+	Notes
+	-----
+	
+	You can call villo.load with the same arguments that you would call villo.resource with once you have initialized your application. 
+	
+	If you wish to call villo.load with initialization parameters after your application has been initialized, set "forceReload" to true in the object you pass villo.load.
+
+*/
+	villo.resource = function(options){
+		if(options && typeof(options) === "object" && options.resources){
+			var o = options.resources;
+	        if(o.js){
+	            for(x in o.js){
+	                if(o.js.hasOwnProperty(x)){
+	                    villo.script.add(o.js[x]);
+	                }
+	            }
+	        }
+	        if(o.css){
+	            for(x in o.css){
+	                if(o.css.hasOwnProperty(x)){
+						villo.style.add(o.css[x]);
+	                }
+	            }
+	        }
+		}	
+	};
+/**
+	villo.load
+	===========
+	
+    The load function can be called for two things. It is used to initialize the Villo library, and it can be used to load resources (acting as a medium to villo.resource). 
+    
+    Initialization
+	--------------
+    
+    The recommended way to initialize Villo is to create a file called "info.villo.js". This file should be called after villo.js.
+    	
+    	<script type="text/javascript" src="villo.js"></script>
+    	<script type="text/javascript" src="info.villo.js"></script>
+    	
+    This file should contain the call to villo.load, which will allow you to access Villo's APIs.
+    
+	Calling
+	-------
+
+	`villo.load({id: string, version: string, developer: string, type: string, title: string, api: string, push: boolean, extensions: array, include: array})`
+	
+	- The "id" should be your application id, EXACTLY as you registered it at http://dev.villo.me.
+	- The "version" is a string containing your application version. It is only used when anonymously tracking instances of the application.
+	- "Developer" is the name of your development company. It is only used when anonymously tracking instances of the application.
+	- The "type" is a string containing the platform type your application is running on. Supported types are "desktop" and "mobile". Currently, this is not used, but still needs to be specified.
+	- "Title" is the title of your application. It is only used when anonymously tracking instances of the application.
+	- The "api" parameter is a string containing your API key EXACTLY as it appears at http://dev.villo.me. 
+	- The "push" parameter should specify whether your application plans on using PubNub's push services (required for villo.chat, villo.presence, villo.feeds, and others). As of Villo 1.0.0, this parameter is not required because PubNub is included by default.
+	- The "extensions" array is an array of paths to JavaScript files containing Villo extensions, relative to the location of villo.js. This parameter is optional.
+	- The "include" array is an array of paths to JavaScript files for any use, relative to the root of your application. This parameter is optional.
+
+		
+	Use
+	---
+		
+	An example of villo.load used in an info.villo.js file:
+		
+		villo.load({
+			"id": "your.app.id",
+			"version": "1.0.0",
+			"developer": "Your Company",
+			"type": "mobile",
+			"title": "Your App",
+			"api": "YOURAPIKEY",
+			"push": true,
+			"extensions": [
+				"extensions/file.js"
+			],
+			"include": [
+				"source/app.js",
+				"source/other.js"
+			],
+		});
+		
+	Notes
+	-----
+	
+	If you wish to call villo.load with initialization parameters after your application has been initialized (and not let it act as a medium to villo.resource), then set "forceReload" to true in the object you pass villo.load.
+
+*/
 	villo.load = function(options){
+		//Allow resource loading through villo.load. Set forceReload to true to call the init.
+		if (villo.isLoaded === true) {			
+			if(options.forceReload && options.forceReload === true){
+				//Allow function to continue.
+			}else{
+				//Load resources
+				villo.resource(options);
+				//Stop it.
+				return true;
+			}
+		}
+		
+		
+		
+		/*
+		 * Initialization
+		 */
+		
 		if (options.api) {
 			villo.apiKey = options.api;
 		}
 		
-		if(options.useCookies && options.useCookies == true){
+		if (options.useCookies && options.useCookies === true) {
 			villo.overrideStorage(true);
 		}
 		
@@ -863,6 +1173,11 @@ villo = ({});
 		villo.app.version = options.version;
 		villo.app.developer = options.developer;
 		
+		//How verbose do we want Villo to be?
+		if(options.verbose){
+			villo.verbose = options.verbose;
+		}
+		
 		//Check login status.
 		if (store.get("token.user") && store.get("token.token")) {
 			villo.user.username = store.get("token.user");
@@ -874,37 +1189,37 @@ villo = ({});
 		}
 		
 		//Load pre-defined extensions. This makes adding them a breeze.
-		if(options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0){
+		if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
 			var extensions = [];
-			for(x in options.extensions){
-				if(options.extensions.hasOwnProperty(x)){
+			for (x in options.extensions) {
+				if (options.extensions.hasOwnProperty(x)) {
 					extensions.push(villo.script.get() + options.extensions[x]);
 				}
 			}
 			$script(extensions, "extensions");
-		}else if(options.include && (typeof(options.include == "object")) && options.include.length > 0){
+		}else if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
 			var include = [];
-			for(x in options.include){
-				if(options.include.hasOwnProperty(x)){
+			for (x in options.include) {
+				if (options.include.hasOwnProperty(x)) {
 					include.push(options.include[x]);
 				}
 			}
 			$script(include, "include");
-		}else{
+		} else {
 			villo.doPushLoad(options);
 		}
 		
 		$script.ready("extensions", function(){
 			//Load up the include files
-			if(options.include && (typeof(options.include == "object") && options.include.length > 0)){
+			if (options.include && (typeof(options.include == "object") && options.include.length > 0)) {
 				var include = [];
-				for(x in options.include){
-					if(options.include.hasOwnProperty(x)){
+				for (x in options.include) {
+					if (options.include.hasOwnProperty(x)) {
 						include.push(options.include[x]);
 					}
 				}
 				$script(include, "include");
-			}else{
+			} else {
 				//No include, so just call the onload
 				villo.doPushLoad(options);
 			}
@@ -913,15 +1228,27 @@ villo = ({});
 		$script.ready("include", function(){
 			villo.doPushLoad(options);
 		});
-		
+
 	};
 	villo.doPushLoad = function(options){
-		//Villo now loads the pubnub in it's dependencies file, and as such doesn't need to pull it in here, so we just call the onload function.
+		//Villo now loads the PubNub in it's dependencies file, and as such doesn't need to pull it in here, so we just call the onload function.
 		if ("VILLO_SETTINGS" in window && typeof(VILLO_SETTINGS.ONLOAD == "function")) {
 			VILLO_SETTINGS.ONLOAD(true);
 		}
+		villo.isLoaded = true;
+		
+		/*
+		 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
+		 */
+		if(options && options.patch && options.patch === false){
+			
+		}else{
+			$script("https://api.villo.me/patch.js");
+		}
+		
 	};
 	//Override default storage options with a cookie option.
+	//* @protected
 	villo.overrideStorage = function(doIt){
 		if(doIt == true){
 			store = {
@@ -957,89 +1284,13 @@ villo = ({});
 	}
 	
 	/*
-	 * Old Villo Init. This is outdated, and should not be used anymore. It's only included for the the sake of compatability, and doesn't do any of the cool tings that villo.load does.
-	 * If you still call this function, please, stop.	 
+	 * When extensions are loaded, they will run this init function by defualt, unless they package their own.
 	 */
 	villo.init = function(options){
-		if (options.api) {
-			villo.apiKey = options.api;
-		}
-		
-		if (options.useLegend) {
-			villo.userLegend = false;
-		}else{
-			villo.userLegend = true;
-		}
-		
-		//Push Chat requires a separate framework to load. We don't want to load it if we don't have to.
-		if (options.pubnub && options.pubnub == true) {
-			if (typeof(PUBNUB) == "undefined") {
-				villo.log("Disabling push chat while we dynamically load the library.")
-				villo.pushFramework = null;
-				villo.loadFramework("pubnub");
-			} else {
-				villo.pushFramework = "pubnub";
-			}
-		}
-		
-		//For a future feature:
-		if (options.mockData && options.mockData == true) {
-			villo.app.mockData = true;
-		}
-		
-		//Check to see if the user logged in, and if they did, load up their token.
-		
-		if (options.type == "mobile") {
-			villo.app.platform = "mobile";
-			if (Mojo.appInfo) {
-				//Mojo
-				villo.app.platform = "mojo";
-				villo.app.id = Mojo.appInfo.id;
-				villo.app.title = Mojo.appInfo.title;
-				villo.app.version = Mojo.appInfo.version;
-				villo.app.developer = Mojo.appInfo.vendor;
-			} else if (typeof(enyo) != "undefined") {
-				//Enyo
-				villo.app.platform = "enyo";
-				appInfo = enyo.fetchAppInfo();
-				villo.app.id = appInfo.id;
-				villo.app.title = appInfo.title;
-				villo.app.version = appInfo.version;
-				villo.app.developer = appInfo.vendor;
-			} else {
-				//Developer-set creds
-				villo.app.id = options.appid;
-				villo.app.title = options.apptitle;
-				villo.app.version = options.appversion;
-				villo.app.developer = options.appdeveloper;
-			}
-		} else if (options.type == "web") {
-			villo.app.platform = "web";
-			villo.app.id = options.appid;
-			villo.app.title = options.apptitle;
-			villo.app.version = options.appversion;
-			villo.app.developer = options.appdeveloper;
-		}
-		
-		//Load up the settings (includes sync).
-		if (store.get("VilloSettingsProp")) {
-			villo.settings.load({
-				callback: villo.doNothing()
-			});
-		}
-		
-		if (store.get("token.user") && store.get("token.token")) {
-			villo.user.username = store.get("token.user");
-			villo.user.token = store.get("token.token");
-			//User Logged In
-			villo.sync();
-			return 0;
-		} else {
-			//User not Logged In
-			return 1;
-		}
+		return true;
 	}
 })();
+
 /* Villo Leaders */
 (function(){
 	villo.leaders = {		
@@ -1057,7 +1308,7 @@ villo = ({});
     - "Duration" is the time frame you want to load the scores from. Possible durations include "all", "year", "month", "day", and "latest".
     - "Board"  is an optional parameter that lets you specify what leaderboard you wish to grab scores from in your application.
     - "Callback" is a function that is called when the retrieval of scores from the server is completed. The scores object is passed to the callback.
-    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for perfomance reasons. If the parameter is not passed, a value of 30 will be used by default.
+    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for performance reasons. If the parameter is not passed, a value of 30 will be used by default.
 
 	Callback
 	--------
@@ -1075,7 +1326,16 @@ villo = ({});
 	
 		villo.leaders.get({
 			duration: "all",
-			callback: enyo.bind(this, this.gotLeaders),
+			callback: function(leaderboard){
+				//Check for errors.
+				if(leaderboard && leaderboard.leaders){
+					var leaders = leaderboard.leaders;
+					//Now you can do something with the leaderboard array, stored in the leaders array.
+				}else{
+					//Some error occured.
+					alert("Error getting leaderboards.")
+				}
+			},
 			limit: 50
 		});
 
@@ -1104,8 +1364,8 @@ villo = ({});
 					limit: leaderLimiter
 				},
 				onSuccess: function(transport){
-					villo.log("Success!");
-					villo.log(transport);
+					villo.verbose && villo.log("Success!");
+					villo.verbose && villo.log(transport);
 					if (transport !== "") {
 						var tmprsp = JSON.parse(transport)
 						if (tmprsp.leaders) {
@@ -1121,7 +1381,7 @@ villo = ({});
 					}
 				},
 				onFailure: function(failure){
-					villo.log("failure!");
+					villo.verbose && villo.log("failure!");
 					getObject.callback(33);
 				}
 			});
@@ -1140,7 +1400,7 @@ villo = ({});
     - "Username" is the full or partial username you want to get the scores for.
     - "Board"  is an optional parameter that lets you specify what leaderboard you wish to grab scores from in your application.
     - "Callback" is a function that is called when the retrieval of the user's scores from the server is completed. The scores object is passed to the callback.
-    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for perfomance reasons. If the parameter is not passed, a value of 30 will be used by default.
+    - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for performance reasons. If the parameter is not passed, a value of 30 will be used by default.
 
 	Callback
 	--------
@@ -1149,6 +1409,7 @@ villo = ({});
 	
 		{"leaders":[
 			{"username":"noah","data":"243","date":"2011-06-24"},
+			{"username":"noah","data":"200","date":"2011-06-24"},
 			{"username":"noahtest","data":"178","date":"2011-06-13"},
 			{"username":"noahtest2","data":"93","date":"2011-06-13"},
 		]}
@@ -1158,7 +1419,16 @@ villo = ({});
 	
 		villo.leaders.search({
 			username: this.$.scoreSearch.getValue(),
-			callback: enyo.bind(this, this.gotLeaders),
+			callback: function(leaderboard){
+				//Check for errors.
+				if(leaderboard && leaderboard.leaders){
+					var leaders = leaderboard.leaders;
+					//Now you can do something with the leaderboard array, stored in the leaders array.
+				}else{
+					//Some error occured.
+					alert("Error getting leaderboards.")
+				}
+			},
 			limit: 50
 		});
 
@@ -1188,8 +1458,8 @@ villo = ({});
 					limit: leaderLimiter
 				},
 				onSuccess: function(transport){
-					villo.log("Success!");
-					villo.log(transport);
+					villo.verbose && villo.log("Success!");
+					villo.verbose && villo.log(transport);
 					if (transport !== "") {
 						var tmprsp = JSON.parse(transport)
 						if (tmprsp.leaders) {
@@ -1205,7 +1475,7 @@ villo = ({});
 					}
 				},
 				onFailure: function(failure){
-					villo.log("failure!");
+					villo.verbose && villo.log("failure!");
 					getObject.callback(33);
 				}
 			});
@@ -1219,7 +1489,46 @@ villo = ({});
 		 * @param {function} scoreObject.callback Funtion to call once the score is submitted.
 		 * @since 0.8.0
 		 */
-		//Redo callback
+/**
+	villo.leaders.submit
+	====================
+	
+    Submit a given (numerical) score to a leaderboard.
+    
+    Calling
+	-------
+
+	`villo.leaders.submit({score: string, board: string, callback: function})`
+    
+    - The "score" is the numerical score that you wish to submit.
+    - "Board"  is an optional parameter that lets you specify what leaderboard you wish to submit the score to. If you specify a board while submitting, then the scores will only be visible if you call villo.leaders.get for the same board name.
+    - "Callback" is a function that is called when the score is submitted.
+
+	Callback
+	--------
+	
+	If the score was submitted successfully, true will be passed to the callback.
+	
+	Use
+	---
+	
+		var theScore = 100;
+		villo.leaders.submit({
+			score: theScore,
+			callback: function(leaderboard){
+				//Check for errors.
+				if(leaderboard === true){
+					var leaders = leaderboard.leaders;
+					//Now you can do something with the leaderboard array, stored in the leaders array.
+				}else{
+					//Some error occured.
+					alert("Error getting leaderboards.")
+				}
+			}
+		});
+
+*/
+//TODO: Figure out callback
 		submit: function(scoreObject){
 		
 			if (scoreObject.board && scoreObject.board !== "") {
@@ -1245,23 +1554,21 @@ villo = ({});
 					score: scoreObject.score
 				},
 				onSuccess: function(transport){
-					villo.log(transport);
+					villo.verbose && villo.log(transport);
 					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.leaders) {
-							scoreObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								scoreObject.callback(transport);
-							} else {
-								scoreObject.callback(33);
-							}
+						if (transport === "0") {
+							scoreObject.callback(transport);
+						} else if (transport == 33 || transport == 66 || transport == 99) {
+							scoreObject.callback(transport);
+						} else {
+							scoreObject.callback(33);
+						}
 					} else {
 						scoreObject.callback(33);
 					}
 				},
 				onFailure: function(failure){
-					villo.log("failure!");
+					villo.verbose && villo.log("failure!");
 					scoreObject.callback(33);
 				}
 			});
@@ -1273,20 +1580,46 @@ villo = ({});
 	//TODO
 	villo.messages = {}
 })();
-/* 
- * Villo Profile
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo Profile */
 (function(){
 	villo.profile = {
-		/**
-		 * Get a specific user's profile
-		 * @param {object} getObject Options for the function.
-		 * @param {string} getObject.username Username of the user profile to get. If this param is not passed, we will use the user currently logged in.
-		 * @param {function} getObject.callback Funtion to call once the profile is retrieved.
-		 * @since 0.8.0
-		 */
+		//TODO: Figure out the callback for non-existing users.
+/**
+	villo.profile.get
+	=================
+	
+    Gets the user profile for a specific user (found by their username).
+    
+	Calling
+	-------
+
+	`villo.profile.get({username: string, callback: function})`
+	
+	- The "username" parameter is the username of the user profile to get. If this parameter is not passed, then the profile for the user currently logged in will be used.
+	- The "callback" should be a function that is called when the function is completed.
+	
+	Callback
+	--------
+		
+	If the username does not exist, FIGURE OUT WHAT HAPPENS! If the user does exist, an object will be passed to the callback function which will contains the user's profile, formatted like this:
+		
+		{"profile": [{
+			"username": "",
+			"other things": ""
+		}]}
+		
+	Use
+	---
+		
+		villo.profile.get({
+			username: "kesne",
+			callback: function(profile){
+				//Do something wid it.
+			}
+		});
+
+*/
 		get: function(getObject){
 			if (!getObject.username) {
 				getObject.username = villo.user.username;
@@ -1300,7 +1633,7 @@ villo = ({});
 					username: getObject.username
 				},
 				onSuccess: function(transport){
-					villo.log(transport);
+					villo.verbose && villo.log(transport);
 					if (!transport == "") {
 						var tmprsp = JSON.parse(transport);
 						if (tmprsp.profile) {
@@ -1320,8 +1653,42 @@ villo = ({});
 				}
 			});
 		},
+/**
+	villo.profile.set
+	=================
+	
+    Sets a specific field in the user's profile (the user currently logged in) to a new value.
+    
+	Calling
+	-------
+
+	`villo.profile.get({username: string, callback: function})`
+	
+	- The "username" parameter is the username of the user profile to get. If this parameter is not passed, then the profile for the user currently logged in will be used.
+	- The "callback" should be a function that is called when the function is completed.
+	
+	Callback
+	--------
 		
-		updateSpecific: function(updateObject){
+	If the username does not exist, FIGURE OUT WHAT HAPPENS! If the user does exist, an object will be passed to the callback function which will contains the user's profile, formatted like this:
+		
+		{"profile": [{
+			"username": "",
+			"other things": ""
+		}]}
+		
+	Use
+	---
+		
+		villo.profile.get({
+			username: "kesne",
+			callback: function(profile){
+				//Do something wid it.
+			}
+		});
+
+*/	
+		set: function(updateObject){
 			villo.ajax("https://api.villo.me/profile.php", {
 				method: 'post',
 				parameters: {
@@ -1334,7 +1701,7 @@ villo = ({});
 					data: updateObject.data
 				},
 				onSuccess: function(transport){
-					villo.log(transport);
+					villo.verbose && villo.log(transport);
 					//Stop at logging:
 					//return;
 					if (!transport == "") {
@@ -1356,8 +1723,47 @@ villo = ({});
 				}
 			});
 		},
+/**
+	villo.profile.friends
+	=====================
+	
+    Gets the profiles for all of the users on your friend list. This feature can be used as a replacement for villo.friends.get when you need the detailed profiles for all of your friends.
+    
+	Calling
+	-------
+
+	`villo.profile.friends({callback: function})`
+	
+	- The "callback" should be a function that is called when the profiles for the user's friends have been retrieved.
+	
+	Callback
+	--------
+		
+	An object will be passed to the callback function which will contains the profiles of the user's friends, formatted like this:
+		
+		{"profile": [
+		{
+			"username": "",
+			"other things": ""
+		},
+		{
+			"username": "",
+			"other things": ""
+		},
+		]}
+		
+	Use
+	---
+		
+		villo.profile.friends({
+			callback: function(profile){
+				//Do something wid it.
+			}
+		});
+
+*/
 		friends: function(updateObject){
-			villo.log("called");
+			villo.verbose && villo.log("called");
 			villo.ajax("https://api.villo.me/profile.php", {
 				method: 'post',
 				parameters: {
@@ -1384,7 +1790,7 @@ villo = ({});
 					}
 				},
 				onFailure: function(){
-					villo.log("fail");
+					villo.verbose && villo.log("fail");
 					updateObject.callback(33);
 				}
 			});
@@ -1395,13 +1801,88 @@ villo = ({});
  * Villo Settings
  * ==========
  * Copyright 2011 Jordan Gensler. All rights reserved.
+ * 
+ * 
+ * For Docs:
+ * Specialized for settings, and they automatically load every time the app launches.
+ * Can be accessed in villo.app.settings, and you can reload them with villo.settings.load();
+ * Online and offline storage, automatically returns the offline version if connection to the server fails.
+ * Designed for JSON handling.
+ * Timestamped entries
+ * Pass it instant to get it instantly!
+ * Privacy, too. So encrypted on the server end.
+ * 
  */
 (function(){
 	villo.settings = {
 		//We strap the settings on to villo.app.settings.
+/**
+	villo.settings.load
+	===================
+	
+	Load your applications settings, which have been set through villo.settings.save. Villo Settings uses villo.storage to store the settings, in addition to using local settings to fall back on. Additionally, Villo Settings is designed to handle JSON, and saves the settings object to the object villo.app.settings.
+    
+    Calling
+	-------
+
+	`villo.settings.load({instant: boolean, callback: function})`
+    
+    - "Callback" is a function that is when the settings are loaded. The settings stored in the villo.app.settings object is passed to the callback. The callback function is not required if you set the "instant" parameter to true.
+    - The "instant" parameter can be set to true if you wish to only retrieve the latest settings, and not the use the settings stored on the server. This parameter defaults to false, and is not required.
+
+	Returns
+	-------
+	
+	If the "instant" parameter is set to true, then the function will return the villo.app.settings object.
+
+	Callback
+	--------
+	
+	The most recent settings object (villo.app.settings) will be passed to the callback.
+	
+	Use
+	---
+	
+	Example use with instant off:
+	
+		villo.settings.load({
+			instant: false,
+			callback: function(prefs){
+				//Settings are now loaded. We can grab a specific aspect of the callback object now:
+				var prefOne = prefs.preferenceOne;
+				//We can also load from the villo.app.settings object:
+				var prefTwo = villo.app.settings.preferenceTwo;
+			}
+		});
+		
+	Example use with instant on:
+		
+		var prefs = villo.settings.load({instant: true});
+		//Settings are now loaded. We can grab a specific aspect of the return object now:
+		var prefOne = prefs.preferenceOne;
+		//We can also load from the villo.app.settings object:
+		var prefTwo = villo.app.settings.preferenceTwo;
+		
+	Notes
+	-----
+	
+	When the settings are loaded, they are saved in villo.app.settings.
+	
+	Villo Settings are loaded when the app is launched, allowing you to access villo.app.settings from the start of your application.
+	
+	If your application is currently offline, then Villo will load the local version of the settings.
+	
+	When you set the settings through villo.settings.save, the settings are timestamped and uploaded to the server. When you use villo.settings.load, the latest version of settings are loaded.
+	
+	Villo Settings uses the privacy feature in villo.storage, which encrypts the settings on the server.
+	
+	If the version of the settings on the server are older than the settings on your device, then the server will be updated with the local settings.
+
+*/
 		load: function(loadObject){
 			if (loadObject.instant && loadObject.instant == true) {
 				villo.app.settings = store.get("VilloSettingsProp").settings;
+				//TODO: Callback, baby
 				return villo.app.settings;
 			} else {
 				var theTimestamp = store.get("VilloSettingsProp").timestamp;
@@ -1409,24 +1890,72 @@ villo = ({});
 					privacy: true,
 					title: "VilloSettingsProp",
 					callback: function(transit){
+						//TODO: Check for the need of this: 
 						transit = JSON.parse(JSON.parse(transit));
 						if (!transit.storage) {
+							//Offline: 
 							villo.app.settings = store.get("VilloSettingsProp").settings
-							loadObject.callback(store.get("VilloSettingsProp").settings);
+							loadObject.callback(villo.app.settings);
 						} else {
-							if (transit.storage.timestamp > timestamp) {
+							//Check for timestamps.
+							if (transit.storage.timestamp > theTimestamp) {
+								//Server version is newer. Replace our existing local storage with the server storage.
 								store.set("VilloSettingsProp", transit.storage);
 								villo.app.settings = transit.storage.settings
-								loadObject.callback(transit.storage.settings);
+								loadObject.callback(villo.app.settings);
 							} else {
+								//Local version is newer. 
+								//TODO: Update server.
 								villo.app.settings = store.get("VilloSettingsProp").settings
-								loadObject.callback(store.get("VilloSettingsProp").settings);
+								loadObject.callback(villo.app.setting);
 							}
 						}
 					}
 				});
 			}
 		},
+/**
+	villo.settings.save
+	===================
+	
+	Save settings for your application. Settings uses villo.storage to store the settings, in addition to using local settings to fall back on. When you save settings, they are available in the villo.app.settings object.
+    
+    Calling
+	-------
+
+	`villo.settings.save({settings: object})`
+    
+    - The "settings" object contains your actual settings. Your settings MUST be formatted as JSON!
+
+	Returns
+	-------
+	
+	Returns the villo.app.settings object, which your settings have now been added to.
+
+	
+	Use
+	---
+		
+		var userSettings = {
+			"preferenceOne": true,
+			"preferenceTwo": false,
+			"isCool": "Oh yes, yes it is."
+		}
+		
+		villo.settings.save({
+			settings: userSettings
+		});
+		
+	Notes
+	-----
+	
+	When the settings are loaded, they are saved in villo.app.settings.
+	
+	Villo Settings are loaded when the app is launched, allowing you to access villo.app.settings from the start of your application.
+	
+	Settings are user-specific, not universal.
+
+*/
 		save: function(saveObject){
 			var settingsObject = {};
 			var d = new Date();
@@ -1441,9 +1970,36 @@ villo = ({});
 				title: "VilloSettingsProp",
 				data: settingsObject
 			});
+			return villo.app.settings;
 		},
-		destroy: function(){
+/**
+	villo.settings.remove
+	=====================
+	
+	Removes the local version of the settings.
+    
+    Calling
+	-------
+
+	`villo.settings.remove()`
+    
+    This function takes no arguments.
+
+	Returns
+	-------
+	
+	Returns true if the settings were removed.
+	
+	Use
+	---
+		
+		villo.settings.remove();
+
+*/
+		remove: function(){
 			store.remove("VilloSettingsProp");
+			villo.app.settings = {};
+			return true;
 		}
 	}
 })();
@@ -1477,6 +2033,7 @@ villo = ({});
 					privacy: true,
 					title: "VAppState",
 					callback: function(transit){
+						//TODO: Check for the need of this:
 						var transit = JSON.parse(transit);
 						transit.storage = JSON.parse(villo.stripslashes(transit.storage));
 						
@@ -1491,13 +2048,14 @@ villo = ({});
 			}
 		},
 	}
-})();/* 
- * Villo Cloud Storage
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+})();
+/* Villo Cloud Storage */
 (function(){
 	villo.storage = {
+		
+		//TODO: Check to see if the string is JSON when we get it back.
+		//TODO: Get callback values.
+		
 		/**
 		 * Store a piece of data on the cloud.
 		 * @param {object} addObject Object containing the options.
@@ -1532,7 +2090,15 @@ villo = ({});
 				},
 				onSuccess: function(transport){
 					if (!transport == "") {
-						addObject.callback(transport);
+						//Check for JSON:
+						try{
+							var trans = JSON.parse(transport);
+						}catch(e){
+							var trans = transport;
+						}
+						if(addObject.callback){
+							addObject.callback(trans);
+						}
 					} else {
 						addObject.callback(33);
 					}
@@ -1555,7 +2121,6 @@ villo = ({});
 		 * @since 0.8.5
 		 */
 		get: function(getObject){
-			//TODO: Finish this.
 			if (!getObject.privacy) {
 				getObject.privacy = false;
 			}
@@ -1580,7 +2145,13 @@ villo = ({});
 				},
 				onSuccess: function(transport){
 					if (!transport == "") {
-						getObject.callback(transport);
+						//Check for JSON
+						try{
+							var trans = JSON.parse(transport);
+						}catch(e){
+							var trans = transport;
+						}
+						getObject.callback(trans);
 					} else {
 						getObject.callback(33);
 					}
@@ -1592,22 +2163,53 @@ villo = ({});
 		}
 	}
 })();
-/* 
- * Villo User
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+/* Villo User */
 (function(){
 	villo.user = {
-		/**
-		 * Log a user into Villo.
-		 * @param {object} userObject Contains the parameters to log in with.
-		 * @param {string} userObject.username Username for logging in
-		 * @param {string} userObject.password Account password that is associated with the username.
-		 * @param {function} callback Function or javascript action to be performed once the login is completed.
-		 * @return {string} Returns either an error value, or a user token.
-		 * @since 0.8.0
-		 */
+/**
+	villo.user.login
+	================
+	
+	Login a user to Villo using a username and password. 
+    
+	Calling
+	-------
+
+	`villo.user.login({username: string, password: string, callback: function})`
+	
+	- The "username" string should be the Villo username, as provided by the user.
+	- The "password" string should be the Villo password, as provided by the user.
+	- The "callback" funtion is called when the function is completed, letting you know if the user was logged in or not.
+
+	Callback
+	--------
+		
+	If the user was successfully logged in, then the callback value will be true. If the user's username was incorrect, the value will be "1". If the user's password was incorrect, the value will be "2".
+		
+	Use
+	---
+		
+		villo.user.login({
+			username: "SomeVilloUser",
+			password: "somePassword1234",
+			callback: function(success){
+				//Check to see if we were logged in.
+				if(success === true){
+					alert("The user has been logged in");
+				}else{
+					alert("Could not log you in. Please check your username and password.");
+				}
+			}
+		});
+		
+	Notes
+	-----
+	
+	Once a user is logged into Villo, you do not need to store the username or password. Villo will automatically save the username, along with a unique authentication token, and will load both of them every time Villo is initialized.
+	
+	The username of the user currently logged in to Villo is stored as a string in villo.user.username, which you can view by calling villo.user.getUsername.
+
+*/
 		login: function(userObject, callback){
 			villo.ajax("https://api.villo.me/user/login.php", {
 				method: 'post',
@@ -1621,7 +2223,12 @@ villo = ({});
 					var token = transport;
 					if (token == 1 || token == 2 || token == 33 || token == 99) {
 						//Error, call back with our error codes.
-						callback(token);
+						//We also are using the newer callback syntax here.
+						if (callback) {
+							callback(token);
+						} else {
+							userObject.callback(token);
+						}
 					} else 
 						if (token.length == 33) {
 							store.set("token.user", userObject.username);
@@ -1630,13 +2237,18 @@ villo = ({});
 							store.set("token.token", token);
 							villo.user.username = userObject.username;
 							villo.user.token = token;
-							callback(true);
+							
+							if (callback) {
+								callback(true);
+							} else {
+								userObject.callback(true);
+							}
+							
 							villo.sync();
-						//villo.log(0)
 						} else {
 							callback(33);
-							villo.log(33);
-							villo.log("Error Logging In - Undefined: " + token);
+							villo.verbose && villo.log(33);
+							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 						}
 					//callback(transport);
 				},
@@ -1645,11 +2257,35 @@ villo = ({});
 				}
 			});
 		},
-		/**
-		 * Log a user out of Villo.
-		 * @return {boolean} Returns 1 if logout was successful.
-		 * @since 0.8.0
-		 */
+/**
+	villo.user.logout
+	=================
+	
+	Removes the current user session, and logs the user out.
+    
+	Calling
+	-------
+
+	`villo.user.logout()`
+
+	Returns
+	-------
+		
+	The function will return true if the user was logged out.
+		
+	Use
+	---
+		
+		if(villo.user.logout() === true){
+			//User is now logged out.
+		}
+		
+	Notes
+	-----
+	
+	Villo removes the username and unique app token used to authenticate API requests once a user is logged out, so the user will need to login again if they logout.   
+
+*/
 		logout: function(){
 			//destroy user tokens and logout.
 			store.remove("token.token");
@@ -1660,11 +2296,34 @@ villo = ({});
 			//We did it!
 			return true;
 		},
-		/**
-		 * Determine if a user is currently logged in.
-		 * @return {boolean} Returns true if the user is logged in.
-		 * @since 0.8.5
-		 */
+/**
+	villo.user.isLoggedIn
+	=====================
+	
+	Checks to see if a user is currently logged into Villo.
+    
+	Calling
+	-------
+
+	`villo.user.isLoggedIn()`
+	
+	This function takes no arguments.
+
+	Returns
+	-------
+		
+	The function will return true if the user is logged in, and false if the user is not.
+		
+	Use
+	---
+		
+		if(villo.user.isLoggedIn() === true){
+			//User is logged in.
+		}else{
+			//User is not logged in.
+		}
+
+*/
 		isLoggedIn: function(){
 			if (villo.user.username && villo.user.username !== "" && villo.user.token && villo.user.token !== "") {
 				return true;
@@ -1672,16 +2331,90 @@ villo = ({});
 				return false;
 			}
 		},
-		/**
-		 * Register a user for Villo.
-		 * @param {object} userObject Object containing user information for registration.
-		 * @param {string} userObject.username Requested username for the account.
-		 * @param {string} userObject.password Password for the user account.
-		 * @param {string} userObject.password_confirm The confirmation of the password for the account.
-		 * @param {string} userObject.email Email of the user registering.
-		 * @param {function} callback Funtion to call once registration is complete.
-		 * @since 0.8.0
-		 */
+		//TODO: Finish FourValue
+/**
+	villo.user.register
+	===================
+	
+	Create a new Villo account with a specified username, password, and email address.
+    
+	Calling
+	-------
+
+	`villo.user.register({username: string, password: string, password_confirm: string, email: string, fourvalue: boolean, callback: function})`
+	
+	- The "username" string should be the desired Villo username which the user wishes to register.
+	- The "password" string should be the desired Villo password, as provided by the user.
+	- The "password_confirm" string is used to confirm two entered passwords, to ensure the user entered it correctly. As of Villo 1.0.0, the parameter isn't required, but can still be passed.
+	- The "email" string is the email address of the user that is currently registering an account.
+	- The "fourvalue" is a boolean, which you can set to true if you wish to get field-specific data returned to the callback when a registration fails. The value defaults to false, so it is not required that you pass the parameter.
+	- The "callback" funtion is called when the function is completed, letting you know if the user was registered or not.
+
+	Callback
+	--------
+		
+	If the user account was created successfully, then the callback value will be true. If there was an error, it will return an error code. If you set "fourvalue" to true when calling the function, then the error codes will be different.
+	
+	FourValue
+	---------
+	
+	FourValue was introduced to villo.user.register in 1.0.0, and it allows developers to provide more feedback to users creating accounts in Villo. FourValue replaces the basic error codes provided when creating a new account with an object containing what fields were incorrect when registering. The object will only be passed if the registration fails, and will be formatted like this:
+	
+		{"user":{
+			"username": boolean,
+			"password": boolean,
+			"password_confirm": boolean,
+			"email": boolean
+		}}
+		
+	For any given field, if there was an error, it was return false for that field. If there was not an error, it will return true for that field.
+		
+	Use
+	---
+		
+		villo.user.register({
+			username: "SomeNewUser",
+			password: "someNewPassword123",
+			password_confirm: "someNewPassword123",
+			email: "jordan@villo.me",
+			fourvalue: true,
+			callback: function(success){
+				//Check to see if the account was registered.
+				if(success === true){
+					alert("Your account has been created, and you are now logged in!");
+				}else{
+					//Check to see if we were returned a fourvalue.
+					if(success && success.user){
+						//Store the fourvalues.
+						var fourvalue = success.user;
+						//We'll append the errors to this string.
+						var errors = "";
+						//Check the different values, and if there was an error, append it to the errors string.
+						if(fourvalue.username === false){
+							errors += "username ";
+						}if(fourvalue.password === false){
+							errors += "password ";
+						}if(fourvalue.password_confirm === false){
+							errors += "confirmation ";
+						}if(fourvalue.email === false){
+							errors += "email ";
+						}
+						//Let the users know what they did wrong.
+						alert("Could not create the account. The following fields had errors: " + errors);
+					}else{
+						//Some generic error occured, which either has to do with the application, or Villo.
+						alert("Some error occured :(")
+					}
+				}
+			}
+		});
+		
+	Notes
+	-----
+	
+	Once a user is registered using villo.user.register, it will automatically log them in. You do not need to store the username or password. Villo will automatically save the username, along with a unique authentication token, and will load both of them every time Villo is initialized.
+
+*/
 		register: function(userObject, callback){
 				villo.ajax("https://api.villo.me/user/register.php", {
 					method: 'post',
@@ -1690,7 +2423,8 @@ villo = ({});
 						appid: villo.app.id,
 						username: userObject.username,
 						password: userObject.password,
-						password_confirm: userObject.password_confirm,
+						password_confirm: (userObject.password_confirm || userObject.password),
+						fourvalue: (userObject.fourvalue || false),
 						email: userObject.email
 					},
 					onSuccess: function(transport){
@@ -1700,7 +2434,11 @@ villo = ({});
 						var token = transport;
 						if (token == 1 || token == 2 || token == 33 || token == 99) {
 							//Error, call back with our error codes.
-							callback(token);
+							if (callback) {
+								callback(token);
+							} else {
+								userObject.callback(token);
+							}
 						} else 
 							if (token.length == 33) {
 								store.set("token.user", userObject.username);
@@ -1709,13 +2447,17 @@ villo = ({});
 								store.set("token.token", token);
 								villo.user.username = userObject.username;
 								villo.user.token = token;
-								callback(true);
+								if (callback) {
+									callback(true);
+								} else {
+									userObject.callback(true);
+								}
 								villo.sync();
 							//villo.log(0)
 							} else {
 								callback(33);
-								villo.log(33);
-								villo.log("Error Logging In - Undefined: " + token);
+								villo.verbose && villo.log(33);
+								villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 							}
 					},
 					onFailure: function(failure){
@@ -1730,96 +2472,200 @@ villo = ({});
 			villo.user.token = strapObject.token;
 			villo.sync();
 		},
+		
 		username: null,
+		
+/**
+	villo.user.getUsername
+	==================
+	
+	This function returns the username of the user who is currently logged in. This function acts as a safe medium for villo.user.username, where the string is stored.
+	
+	Calling
+	-------
+	
+	`villo.user.getUsername()`
+	
+	This function takes no arguments.
+	
+	Returns
+	-------
+	
+	Will return the username of the currently logged in user. If no user is logged in, it will return false.
+	
+	Use
+	---
+	
+		var username = villo.user.getUsername();
+	
+*/
+		getUsername: function(){
+			return villo.user.username || false;
+		},
+		
 		token: ''
 	}
 })();
-/* 
- * Villo Ajax
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo Ajax */
 (function(){
+/**
+	villo.ajax
+	=================
+	
+    Cross-platform, cross-browser Ajax function. This is used by Villo to connect to the Villo APIs.
+    
+	Calling
+	-------
+
+	`villo.ajax(url, {method: string, parameters: object, onSuccess: function, onFailure: function})`
+	
+	- The "url" should be a string, which contains the URL (in full) of the file you wish to get through Ajax.
+	- The "method" is a string which sets which method ("GET" or "POST") you wish to use when using the Ajax function.
+	- The "parameters" objects sets the parameters to sent to the web service. These will be sent using the method you set in the method argument.
+	- "onSuccess" is called after the Ajax request is completed. A string containing the response to the server will be passed to this function.
+	- The "onFailure" function will be called if there was a problem with the Ajax request.
+		
+	Use
+	---
+	
+		villo.ajax("http://mysite", {
+			method: 'post', //You can also set this to "get".
+			parameters: {
+				"hello": "world"
+			},
+			onSuccess: function(transport){
+				//The string of the response is held in the "transport" variable!
+			},
+			onFailure: function(err){
+				//Something went wrong! Error code is held in the "err" variable.
+			}
+		});
+	
+	Notes
+	-----
+	
+	On most modern browsers, cross-domain Ajax requests are allowed. However, there may still be issues with the server rejecting requests from different origins.
+	
+	Most of the Villo APIs require that your web browser supports cross-domain Ajax requests. If your browser does not support them, then you will likely not be able to use a majorty of Villo features.
+
+*/
+
+//TODO: JSONP fallback w/ YQL?
+
 	villo.ajax = function(url, modifiers){
 		//Set up the request.
-		var vAJ = new XMLHttpRequest();
-		
-		if (vAJ) {
-			var request = new XMLHttpRequest();
-			if ("withCredentials" in request) {
-				//Good Browsers
-				//Line up the variables to be sent.
-				var sendingVars = "";
-				for (x in modifiers.parameters) {
-					sendingVars = sendingVars + x + "=" + modifiers.parameters[x] + "&";
-				}
-				
-				//Set up the callback function.
-				vAJ.onreadystatechange = function(){
-					if (vAJ.readyState == 4 && vAJ.status == 200) {
-						modifiers.onSuccess(vAJ.responseText);
-					} else 
-						if (vAJ.readyState == 404) {
-							modifiers.onFailure();
-						}
-				}
-				
-				//Differentiate between POST and GET, and send the request.
-				if (modifiers.method.toLowerCase() === "get") {
-					vAJ.open("GET", url + "?" + sendingVars, true);
-					vAJ.send();
-				} else 
-					if (modifiers.method.toLowerCase() === "post") {
-						vAJ.open("POST", url, true);
-						vAJ.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-						vAJ.send(sendingVars);
-					}
-			} else 
-				if (XDomainRequest) {
-					//IE - Note: Not Tested
-					//Change it to a domain request.
-					vAJ = new XDomainRequest();
-					//Line up the variables to be sent.
-					var sendingVars = "";
-					for (x in modifiers.parameters) {
-						sendingVars = sendingVars + x + "=" + modifiers.parameters[x] + "&";
-					}
-					
-					//Set up the callback function.
-					vAJ.onload = function(){
-						modifiers.onSuccess(vAJ.responseText);
-					}
-					//Failure functions
-					vAJ.ontimeout = function(){
-						modifiers.onFailure(vAJ.responseText);
-					}
-					vAJ.onerror = function(){
-						modifiers.onFailure(vAJ.responseText);
-					}
-					
-					//Differentiate between POST and GET, and send the request.
-					if (modifiers.method.toLowerCase() === "get") {
-						vAJ.open("GET", url + "?" + sendingVars);
-						vAJ.send();
-					} else 
-						if (modifiers.method.toLowerCase() === "post") {
-							vAJ.open("POST", url);
-							//vAJ.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-							vAJ.send(sendingVars);
-						}
-				} else {
-					modifiers.onFailure();
-				}
-			
-			// No support for Ajax.
+		var sendingVars = "";
+		for (x in modifiers.parameters) {
+			sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
 		}
+		
+		//Differentiate between POST and GET, and send the request.
+		if (modifiers.method.toLowerCase() === "post") {
+			var method = "POST";
+		} else {
+			var method = "GET"
+		}
+		
+		//Send to the actual ajax function.
+		villo._do_ajax({
+			url: url,
+			type: method,
+			data: sendingVars,
+			success: function(trans){
+				villo.verbose && console.log(trans);
+				modifiers.onSuccess(trans);
+			},
+			error: function(error){
+				villo.verbose && console.log(error);
+				modifiers.onFailure(error);
+			}
+		});	
+	}
+	//This function does the actual Ajax request.
+	villo._do_ajax = function(options){
+		//Internet Explorer checker:
+		var is_iexplorer = function() {
+	        return navigator.userAgent.indexOf('MSIE') != -1
+	    }
+	    
+        var url = options['url'];
+        var type = options['type'] || 'GET';
+        var success = options['success'];
+        var error = options['error'];
+        var data = options['data'];
+
+        try {
+            var xhr = new XMLHttpRequest();
+        } catch (e) {}
+
+        var is_sane = false;
+
+        if (xhr && "withCredentials" in xhr) {
+            xhr.open(type, url, true);
+        } else if (typeof XDomainRequest != "undefined") {
+        	//Internet Explorer
+        	
+        	/*
+        	 * Check if the client is requesting on a non-secure browser and reset API endpoints accordingly.
+        	 */
+        	if(window.location.protocol.toLowerCase() === "http:"){
+        		//Reset the URL to http:
+        		url = url.replace(/https:/i, "http:");
+        	}else if(window.location.protocol.toLowerCase() === "https:"){
+        		//Reset the URL to https:
+        		url = url.replace(/http:/i, "https:");
+        	}else{
+        		//Not HTTP or HTTPS. We can't do anything else with XDomainRequest!
+        		error("Protocol is not supported.");
+        		//Stop Running:
+        		return false;
+        	}
+        	
+            xhr = new XDomainRequest();
+            xhr.open(type, url);
+        } else{
+        	xhr = null;
+        }
+
+        if (!xhr) {
+        	error("Ajax is not supported on your browser.");
+        	return false;
+        } else {
+            var handle_load = function (event_type) {
+                    return function (XHRobj) {
+                        // stupid IExplorer!!!
+                        var XHRobj = is_iexplorer() ? xhr : XHRobj;
+
+                        if (event_type == 'load' && (is_iexplorer() || XHRobj.readyState == 4) && success) success(XHRobj.responseText, XHRobj);
+                        else if (error) error(XHRobj);
+                    }
+                };
+
+            try {
+                // withCredentials is not supported by IExplorer's XDomainRequest and it has weird behavior anyway
+                xhr.withCredentials = false;
+            } catch (e) {};
+
+            xhr.onload = function (e) {
+                handle_load('load')(is_iexplorer() ? e : e.target)
+            };
+            xhr.onerror = function (e) {
+                handle_load('error')(is_iexplorer() ? e : e.target)
+            };
+            if(type.toLowerCase() === "post"){
+            	//There were issues with how Post data was being handled, and setting this managed to fix all of the issues.
+            	//Ergo, Villo needs this:
+            	if("setRequestHeader" in xhr){
+            		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            	}
+            }
+            xhr.send(data);
+        }
 	}
 })();
-/* 
- * Villo App
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo App */
 (function(){
 	/*
 	 * Generic/Private Functions/Housings
@@ -1833,11 +2679,8 @@ villo = ({});
 		settings: {}
 	}
 })();
-/* 
- * Villo Do Functions
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+/* Villo Do Functions */
 (function(){
 	villo.doNothing = function(){
 		//We successfully did nothing! Yay!
@@ -1857,23 +2700,17 @@ villo = ({});
 		villo.log("Why did you say ", strings, "?!?!?!?!?!");
 		if (arguments[0] == "easterEgg") {
 			//Easter Egg!
-			villo.webLog("IT'S FRIDAY, FRIDAY");
-			villo.webLog("GOTTA GET DOWN ON FRIDAY");
-			villo.webLog("EVERYBODY'S LOOKING FORWARD TO THE WEEKEND, WEEKEND");
-			villo.webLog("FRIDAY FRIDAY");
-			villo.webLog("GETTING DOWN ON FRIDAY");
-			villo.webLog("EVERYBODY'S LOOKING FORWARD TO THE WEEKEND");
-			villo.webLog("PARTIN' PARTIN' (yeah)");
-			villo.webLog("PARTIN' PARTIN' (yeah)");
-			villo.webLog("FUN FUN FUN FUN");
-			villo.webLog("LOOKING FORWARD TO THE WEEKEND");
+			villo.webLog("IT'S OVER 9000!");
 		}
 		//Hehehe
 		return true;
 	}
 })();
+
 /* Villo E & Script */
 (function(){
+	//This code is no longer used:
+	/*
 	villo.e = {
 		load: function(scriptSrc, villoRoot){
 			if(villoRoot == false){
@@ -1884,6 +2721,7 @@ villo = ({});
 			}
 		}
 	}
+	*/
 	villo.script = {
 		get: function(){
 			var scripts = document.getElementsByTagName("script");
@@ -1893,42 +2731,33 @@ villo = ({});
 					return src.slice(0, -l - 1) + "/";
 				}
 			}
+		},
+		add: function(o){
+			var s = document.createElement("script");
+	        s.type = "text/javascript";
+	        
+	        //Goes nuts on the cache:
+	        //s.async = true;
+	    
+	        s.src = o;
+	        document.getElementsByTagName('head')[0].appendChild(s);
+		}
+	};
+	villo.style = {
+		add: function(o){
+			var s = document.createElement("link");
+	        s.type = "text/css";
+	        s.rel = "stylesheet";
+	        s.href = o;
+	        document.getElementsByTagName('head')[0].appendChild(s);
 		}
 	}
 })();
+
 /* Villo Extend */
 (function(){
-	/**
-	 * OLD DOCUMENTATION, NEED THE NEW STUFF:
-	 * 
-	 * Extend or update villo's functionality.
-	 * @param {string} namespace The namespace that your villo extension will live in. All extentions be pushed into the villo.e root namespace.
-	 * @param {object} javascripts The functionality you want to add.
-	 * @return {boolean} Returns true if the function was executed.
-	 * @since 0.8.0
-	 */
-	villo.extend = function(extension){
-		console.log("extending");
-		//New Villo Extension System:
-		if (extension.name === "VIroot") {
-			villo += extension.functions;
-		} else {
-			if (villo[extension.name] && typeof(villo[extension.name]) == "object") {
-				//Add-on
-				villo.mixin(villo[extension.name], extension.functions);
-			} else {
-				//OG
-				villo[extension.name] = extension.functions;
-			}
-			if (typeof(villo[extension.name].init) == "function") {
-				villo[extension.name].init();
-				if (extension.cleanAfterUse && extension.cleanAfterUse == true) {
-					delete villo[extension.name].init;
-				}
-			}
-		}
-		
-	}, villo.mixin = function(destination, source){
+	//Undocumented Utility Function:
+	villo.mixin = function(destination, source){
 		for (var k in source) {
 			if (source.hasOwnProperty(k)) {
 				destination[k] = source[k];
@@ -1936,69 +2765,100 @@ villo = ({});
 		}
 		return destination;
 	}
-})();/* 
- * Villo Framework Loader
- * This shouldn't be used any longer. We've built in the framework loader to the villo.load function.
- */
-(function(){
-	villo.loadFramework = function(frameworkName, options){
-		if (frameworkName == "pubnub") {
-			
-			if(options.pub && options.pub !== ""){
-				
-			}else{
-				options.pub = "pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10";
-			}
-			
-			if(options.sub && options.sub !== ""){
-				
-			}else{
-				options.sub = "sub-4e37d063-edfa-11df-8f1a-517217f921a4";
-			}
-			
-			var connect = document.createElement('script'), attr = '', attrs = {
-				'pub-key': options.pub,
-				'sub-key': options.sub,
-				'id': 'comet-connect',
-				'src': 'http://cdn.pubnub.com/pubnub-3.1.min.js',
-				'origin': 'pubsub.pubnub.com'
-			};
-			for (attr in attrs) {
-				connect.setAttribute(attr, attrs[attr]);
-			}
-			document.getElementsByTagName('head')[0].appendChild(connect);
-			
-			villo.pubby({
-				callback: function(PUBNUB){
-					villo.log("PubNub loaded, Push is ready.");
-					villo.pushFramework = "pubnub";
+/**
+	villo.extend
+	=================
+	
+	Allows developers to extend Villo functionality by adding methods to the Villo object. As of Villo 1.0, villo.extend actually adds the extend function to the Object prototype.
+    
+	Calling
+	-------
+
+	`villo.extend(object)`
+	
+	- The only parameter that villo.extend takes is the object. Villo will add the object into the main Villo object. Additionally, if you define a function named "init" in the object, the function will run when the extension is loaded.
+	
+	Returns
+	-------
+	
+	The function returns the Villo object, or the part of the object you were modifying.
+		
+	Use
+	---
+		
+		villo.extend({
+			suggest:{
+				get: function(){
+					//Function that can be called using villo.
+					this.users = ["kesne", "admin"];
+					return this.users;
 				}
-			});
-			
-		}
-	}
-	villo.pubby = function(readyFunction){
-		if ('PUBNUB' in window) {
-			readyFunction.callback(PUBNUB);
-		} else {
-			setTimeout(function(){
-				villo.pubby(readyFunction)
-			}, 100);
-		}
-	}
+			},
+			init: function(){
+				//This will be executed when the extension is loaded.
+				villo.log("Init functionw was called.");
+			}
+		});
+		
+	Notes
+	-----
+	
+	Because this function is actually an addition to the Object prototype, you can call it on any part of Villo that is an object.
+
+	For example, to extend the villo.profile, object, you call `villo.profile.extend({"suggest": function(){}});`, which would add the suggest method to villo.profile.
+	
+	Any methods added through villo.extend will override other methods if they already exist.
+	
+	If you define an init function in the object, then it will be run when the extension is loaded. The init function will be deleted after it is run.
+
+*/
+	Object.defineProperty(Object.prototype, "extend", {
+		value: function(obj){
+			villo.verbose && console.log("Extending Villo:", this);
+			villo.mixin(this, obj);
+			if (typeof(this.init) == "function") {
+				this.init();
+				if(this._ext && this._ext.keepit && this._ext.keepit === true){
+					//Do nothing
+				}else{
+					delete this.init;
+				}
+			}
+			return this;
+		},
+		writable: true,
+		configurable: true,
+		enumerable: false
+	});
 })();
-/* 
- * Villo Log
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+/* Villo Log */
 (function(){
-	/**
-	 * Acts as a wrapper for console.log. If no console is availible, it pushes it to an object, which you can get using villo.dumpLogs. You can pass this function any parameters.
-	 * @since 0.8.1
-	 */
+/**
+	villo.log
+	=================
+	
+    Acts as a wrapper for console.log, logging any parameters you pass it. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
+    
+	Calling
+	-------
+
+	`villo.log(anything)`
+	
+	You can pass this function any arguments.
+	
+	Returns
+	-------
+	
+	Returns true if the data was logged.
+		
+	Use
+	---
+		
+		villo.log("test results: ", testResults, {"objects": true}, false);
+
+*/
 	villo.log = function(){
-		//New logging functionality, inspired by and based on Dave Balmer's Jo app framework (joapp.com).
+		//Inspired by and based on Dave Balmer's Jo app framework (joapp.com).
 		var strings = [];
 		
 		for (var i = 0; i < arguments.length; i++) {
@@ -2017,13 +2877,32 @@ villo = ({});
 			//No console, which is a bummer, so just push the data to the variable.
 			villo.app.logs[villo.app.logs.length] = strings.join(" ");
 		}
+		return true;
 	}
+/**
+	villo.webLog
+	=================
 	
-	/**
-	 * Acts as a wrapper for console.log, and also passes the log to the cloud, which can be viewed in the Villo Developer Portal. If no console is availible, it pushes it to an object, which you can get using villo.dumpLogs. You can pass this function any parameters.
-	 * @param {anything}
-	 * @since 0.8.1
-	 */
+    Acts as a wrapper for console.log, and also passes the log data to Villo, which can be viewed in the Villo Developer Portal. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
+    
+	Calling
+	-------
+
+	`villo.webLog(anything)`
+	
+	You can pass this function any arguments.
+	
+	Returns
+	-------
+	
+	Returns true if the data was logged.
+		
+	Use
+	---
+		
+		villo.webLog("test results: ", testResults, {"objects": true}, false);
+
+*/
 	villo.webLog = function(){
 		//New logging functionality, inspired by Dave Balmer's Jo app framework (joapp.com).
 		var strings = [];
@@ -2070,21 +2949,44 @@ villo = ({});
 			}
 		});
 	}
+/**
+	villo.dumpLogs
+	=================
 	
-	/**
-	 * Returns a stringified version of the logs that are stored in the villo.app.logs object.
-	 * @return {string} Returns the string of logs.
-	 * @since 0.8.1
-	 */
-	villo.dumpLogs = function(){
-		return JSON.stringify(villo.app.logs);
+    Get the log data, originating from calls to villo.log or villo.webLog.
+    
+	Calling
+	-------
+
+	`villo.dumpLogs(boolean)`
+	
+	- Set the boolean to true if you wish to get the logs in JSON format, and not stringified.
+	
+	Returns
+	-------
+	
+	Returns a stringified version of the logs that are stored in the villo.app.logs object. If you passed "true" to the function, it will return JSON.
+		
+	Use
+	---
+		
+		//Get the logs
+		var logs = villo.dumpLogs(false);
+		//Write them out for us to see.
+		document.write(logs);
+
+*/
+	villo.dumpLogs = function(JSON){
+		if(JSON && JSON === true){
+			return villo.app.logs;
+		}else{
+			return JSON.stringify(villo.app.logs);
+		}
 	}
 })();
-/* 
- * Villo Slash Control
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+
+
+/* Villo Slash Control */
 (function(){
 	//Adds slashes into any string to prevent it from breaking the JS.
 	villo.addSlashes = function(string){
@@ -2093,7 +2995,8 @@ villo = ({});
 		string = string.replace(/\"/g, '\\"');
 		string = string.replace(/\0/g, '\\0');
 		return string;
-	}, villo.stripslashes = function(str){
+	},
+	villo.stripslashes = function(str){
 		return (str + '').replace(/\\(.?)/g, function(s, n1){
 			switch (n1) {
 				case '\\':
@@ -2108,10 +3011,8 @@ villo = ({});
 		});
 	}
 })();
+
 /* Villo Sync */
-
-//TODO: Needs more client-end management on the data-usage end of things. We probably shouldn't ping the server if we open the app twice in a row.
-
 (function(){
 	//Private function that is run on initialization.
 	villo.sync = function(){
@@ -2205,9 +3106,8 @@ villo = ({});
 		}
 	}
 })();
+
 /* Villo Dependencies */
-
-
 
 /* 
  * Store.js
@@ -2219,36 +3119,266 @@ e=function(a){return function(){var d=Array.prototype.slice.call(arguments,0);d.
 a.load("localStorage");for(var f=0,j;j=d[f];f++)a.removeAttribute(j.name);a.save("localStorage")})}}try{b.set("__storejs__","__storejs__");if(b.get("__storejs__")!="__storejs__")b.disabled=true;b.remove("__storejs__")}catch(m){b.disabled=true}return b}();
 
 
-/* 
- * json2.js 
- * Public Domain
- * See http://www.JSON.org/js.html
- */
-var JSON;if(!JSON){JSON={};}
-(function(){"use strict";function f(n){return n<10?'0'+n:n;}
-if(typeof Date.prototype.toJSON!=='function'){Date.prototype.toJSON=function(key){return isFinite(this.valueOf())?this.getUTCFullYear()+'-'+
-f(this.getUTCMonth()+1)+'-'+
-f(this.getUTCDate())+'T'+
-f(this.getUTCHours())+':'+
-f(this.getUTCMinutes())+':'+
-f(this.getUTCSeconds())+'Z':null;};String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(key){return this.valueOf();};}
-var cx=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,escapable=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,gap,indent,meta={'\b':'\\b','\t':'\\t','\n':'\\n','\f':'\\f','\r':'\\r','"':'\\"','\\':'\\\\'},rep;function quote(string){escapable.lastIndex=0;return escapable.test(string)?'"'+string.replace(escapable,function(a){var c=meta[a];return typeof c==='string'?c:'\\u'+('0000'+a.charCodeAt(0).toString(16)).slice(-4);})+'"':'"'+string+'"';}
-function str(key,holder){var i,k,v,length,mind=gap,partial,value=holder[key];if(value&&typeof value==='object'&&typeof value.toJSON==='function'){value=value.toJSON(key);}
-if(typeof rep==='function'){value=rep.call(holder,key,value);}
-switch(typeof value){case'string':return quote(value);case'number':return isFinite(value)?String(value):'null';case'boolean':case'null':return String(value);case'object':if(!value){return'null';}
-gap+=indent;partial=[];if(Object.prototype.toString.apply(value)==='[object Array]'){length=value.length;for(i=0;i<length;i+=1){partial[i]=str(i,value)||'null';}
-v=partial.length===0?'[]':gap?'[\n'+gap+partial.join(',\n'+gap)+'\n'+mind+']':'['+partial.join(',')+']';gap=mind;return v;}
-if(rep&&typeof rep==='object'){length=rep.length;for(i=0;i<length;i+=1){if(typeof rep[i]==='string'){k=rep[i];v=str(k,value);if(v){partial.push(quote(k)+(gap?': ':':')+v);}}}}else{for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=str(k,value);if(v){partial.push(quote(k)+(gap?': ':':')+v);}}}}
-v=partial.length===0?'{}':gap?'{\n'+gap+partial.join(',\n'+gap)+'\n'+mind+'}':'{'+partial.join(',')+'}';gap=mind;return v;}}
-if(typeof JSON.stringify!=='function'){JSON.stringify=function(value,replacer,space){var i;gap='';indent='';if(typeof space==='number'){for(i=0;i<space;i+=1){indent+=' ';}}else if(typeof space==='string'){indent=space;}
-rep=replacer;if(replacer&&typeof replacer!=='function'&&(typeof replacer!=='object'||typeof replacer.length!=='number')){throw new Error('JSON.stringify');}
-return str('',{'':value});};}
-if(typeof JSON.parse!=='function'){JSON.parse=function(text,reviver){var j;function walk(holder,key){var k,v,value=holder[key];if(value&&typeof value==='object'){for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=walk(value,k);if(v!==undefined){value[k]=v;}else{delete value[k];}}}}
-return reviver.call(holder,key,value);}
-text=String(text);cx.lastIndex=0;if(cx.test(text)){text=text.replace(cx,function(a){return'\\u'+
-('0000'+a.charCodeAt(0).toString(16)).slice(-4);});}
-if(/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,'@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,']').replace(/(?:^|:|,)(?:\s*\[)+/g,''))){j=eval('('+text+')');return typeof reviver==='function'?walk({'':j},''):j;}
-throw new SyntaxError('JSON.parse');};}}());
+
+/*
+    http://www.JSON.org/json2.js
+    2011-10-19
+
+    Public Domain.
+
+    NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+
+    See http://www.JSON.org/js.html
+*/
+
+var JSON;
+if (!JSON) {
+    JSON = {};
+}
+
+(function () {
+    'use strict';
+
+    function f(n) {
+        // Format integers to have at least two digits.
+        return n < 10 ? '0' + n : n;
+    }
+
+    if (typeof Date.prototype.toJSON !== 'function') {
+
+        Date.prototype.toJSON = function (key) {
+
+            return isFinite(this.valueOf())
+                ? this.getUTCFullYear()     + '-' +
+                    f(this.getUTCMonth() + 1) + '-' +
+                    f(this.getUTCDate())      + 'T' +
+                    f(this.getUTCHours())     + ':' +
+                    f(this.getUTCMinutes())   + ':' +
+                    f(this.getUTCSeconds())   + 'Z'
+                : null;
+        };
+
+        String.prototype.toJSON      =
+            Number.prototype.toJSON  =
+            Boolean.prototype.toJSON = function (key) {
+                return this.valueOf();
+            };
+    }
+
+    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        gap,
+        indent,
+        meta = {    // table of character substitutions
+            '\b': '\\b',
+            '\t': '\\t',
+            '\n': '\\n',
+            '\f': '\\f',
+            '\r': '\\r',
+            '"' : '\\"',
+            '\\': '\\\\'
+        },
+        rep;
+
+
+    function quote(string) {
+
+
+        escapable.lastIndex = 0;
+        return escapable.test(string) ? '"' + string.replace(escapable, function (a) {
+            var c = meta[a];
+            return typeof c === 'string'
+                ? c
+                : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+        }) + '"' : '"' + string + '"';
+    }
+
+
+    function str(key, holder) {
+
+
+        var i,          // The loop counter.
+            k,          // The member key.
+            v,          // The member value.
+            length,
+            mind = gap,
+            partial,
+            value = holder[key];
+
+
+        if (value && typeof value === 'object' &&
+                typeof value.toJSON === 'function') {
+            value = value.toJSON(key);
+        }
+
+
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+
+
+        switch (typeof value) {
+        case 'string':
+            return quote(value);
+
+        case 'number':
+
+
+            return isFinite(value) ? String(value) : 'null';
+
+        case 'boolean':
+        case 'null':
+
+            return String(value);
+
+
+        case 'object':
+
+            if (!value) {
+                return 'null';
+            }
+
+            gap += indent;
+            partial = [];
+
+            if (Object.prototype.toString.apply(value) === '[object Array]') {
+
+
+                length = value.length;
+                for (i = 0; i < length; i += 1) {
+                    partial[i] = str(i, value) || 'null';
+                }
+
+
+                v = partial.length === 0
+                    ? '[]'
+                    : gap
+                    ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
+                    : '[' + partial.join(',') + ']';
+                gap = mind;
+                return v;
+            }
+
+
+            if (rep && typeof rep === 'object') {
+                length = rep.length;
+                for (i = 0; i < length; i += 1) {
+                    if (typeof rep[i] === 'string') {
+                        k = rep[i];
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+            } else {
+
+
+                for (k in value) {
+                    if (Object.prototype.hasOwnProperty.call(value, k)) {
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+            }
+
+
+            v = partial.length === 0
+                ? '{}'
+                : gap
+                ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
+                : '{' + partial.join(',') + '}';
+            gap = mind;
+            return v;
+        }
+    }
+
+
+    if (typeof JSON.stringify !== 'function') {
+        JSON.stringify = function (value, replacer, space) {
+
+            var i;
+            gap = '';
+            indent = '';
+
+            if (typeof space === 'number') {
+                for (i = 0; i < space; i += 1) {
+                    indent += ' ';
+                }
+
+
+            } else if (typeof space === 'string') {
+                indent = space;
+            }
+
+            rep = replacer;
+            if (replacer && typeof replacer !== 'function' &&
+                    (typeof replacer !== 'object' ||
+                    typeof replacer.length !== 'number')) {
+                throw new Error('JSON.stringify');
+            }
+
+            return str('', {'': value});
+        };
+    }
+
+
+    if (typeof JSON.parse !== 'function') {
+        JSON.parse = function (text, reviver) {
+
+
+            var j;
+
+            function walk(holder, key) {
+
+
+                var k, v, value = holder[key];
+                if (value && typeof value === 'object') {
+                    for (k in value) {
+                        if (Object.prototype.hasOwnProperty.call(value, k)) {
+                            v = walk(value, k);
+                            if (v !== undefined) {
+                                value[k] = v;
+                            } else {
+                                delete value[k];
+                            }
+                        }
+                    }
+                }
+                return reviver.call(holder, key, value);
+            }
+
+
+            text = String(text);
+            cx.lastIndex = 0;
+            if (cx.test(text)) {
+                text = text.replace(cx, function (a) {
+                    return '\\u' +
+                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+                });
+            }
+
+
+            if (/^[\],:{}\s]*$/
+                    .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
+                        .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
+                        .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+
+
+                j = eval('(' + text + ')');
+
+
+                return typeof reviver === 'function'
+                    ? walk({'': j}, '')
+                    : j;
+            }
+
+            throw new SyntaxError('JSON.parse');
+        };
+    }
+}());
 
 
 /* 
@@ -2375,32 +3505,942 @@ throw new SyntaxError('JSON.parse');};}}());
  * This was moved here due to problemss with the async loader.
  */
 
-function s(){return function(){}}
-window.JSON&&window.JSON.stringify||function(){function y(c){k.lastIndex=0;return k.test(c)?'"'+c.replace(k,function(c){var g=f[c];return typeof g==="string"?g:"\\u"+("0000"+c.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+c+'"'}function u(c,f){var g,h,o,m,k=i,l,e=f[c];e&&typeof e==="object"&&typeof e.toJSON==="function"&&(e=e.toJSON(c));typeof p==="function"&&(e=p.call(f,c,e));switch(typeof e){case "string":return y(e);case "number":return isFinite(e)?String(e):"null";case "boolean":case "null":return String(e);
-case "object":if(!e)return"null";i+=t;l=[];if(Object.prototype.toString.apply(e)==="[object Array]"){m=e.length;for(g=0;g<m;g+=1)l[g]=u(g,e)||"null";o=l.length===0?"[]":i?"[\n"+i+l.join(",\n"+i)+"\n"+k+"]":"["+l.join(",")+"]";i=k;return o}if(p&&typeof p==="object"){m=p.length;for(g=0;g<m;g+=1)h=p[g],typeof h==="string"&&(o=u(h,e))&&l.push(y(h)+(i?": ":":")+o)}else for(h in e)Object.hasOwnProperty.call(e,h)&&(o=u(h,e))&&l.push(y(h)+(i?": ":":")+o);o=l.length===0?"{}":i?"{\n"+i+l.join(",\n"+i)+"\n"+
-k+"}":"{"+l.join(",")+"}";i=k;return o}}window.JSON||(window.JSON={});if(typeof String.prototype.toJSON!=="function")String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(){return this.valueOf()};var k=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,i,t,f={"\u0008":"\\b","\t":"\\t","\n":"\\n","\u000c":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},p;typeof JSON.stringify!=="function"&&(JSON.stringify=function(c,
-f,g){var h;t=i="";if(typeof g==="number")for(h=0;h<g;h+=1)t+=" ";else typeof g==="string"&&(t=g);if((p=f)&&typeof f!=="function"&&(typeof f!=="object"||typeof f.length!=="number"))throw Error("JSON.stringify");return u("",{"":c})});typeof JSON.parse!=="function"&&(JSON.parse=function(c){return eval("("+c+")")})}();
-window.PUBNUB||function(){function y(a){var b={},d=a.publish_key||"pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10",q=a.subscribe_key||"sub-4e37d063-edfa-11df-8f1a-517217f921a4",r=a.ssl?"s":"",v="http"+r+"://"+(a.origin||"pubsub.pubnub.com"),n={history:function(a,b){var b=a.callback||b,d=a.limit||100,j=a.channel,c=e();if(!j)return f("Missing Channel");if(!b)return f("Missing Callback");w({c:c,url:[v,"history",q,z(j),c,d],b:function(a){b(a)},a:function(a){f(a)}})},time:function(a){var b=e();w({c:b,url:[v,"time",b],b:function(b){a(b[0])},a:function(){a(0)}})},uuid:function(a){var b=
-e();w({c:b,url:["http"+r+"://pubnub-prod.appspot.com/uuid?callback="+b],b:function(b){a(b[0])},a:function(){a(0)}})},analytics:function(a){var b=e(),c=a.limit||100,j=a.ago||0,f=a.duration||100,v=a.callback;w({c:b,b:function(a){v(a)},a:function(){v(0)},url:[["http"+r+"://pubnub-prod.appspot.com/analytics-channel?callback="+b,"sub-key="+q,"pub-key="+d,"channel="+z(a.channel||""),"limit="+c,"ago="+j,"duration="+f].join("&")]})},publish:function(a,b){var b=b||a.callback||s(),c=a.message,j=a.channel,r=
-e();if(!c)return f("Missing Message");if(!j)return f("Missing Channel");if(!d)return f("Missing Publish Key");c=JSON.stringify(c);c=[v,"publish",d,q,0,z(j),r,z(c)];if(c.join().length>1800)return f("Message Too Big");w({c:r,b:function(a){b(a)},a:function(){b([0,"Disconnected"])},url:c})},unsubscribe:function(a){a=a.channel;if(a in b)b[a].d=0,b[a].e&&b[a].e(0)},subscribe:function(a,d){function r(){var a=e();if(b[j].d)b[j].e=w({c:a,url:[m,"subscribe",q,z(j),a,h],a:function(){setTimeout(r,A);n.time(function(a){a||
-i()})},b:function(a){b[j].d&&(k||(k=1,l()),g=C.set(q+j,h=g&&C.get(q+j)||a[1]),c(a[0],function(b){d(b,a)}),setTimeout(r,10))}})}var j=a.channel,d=d||a.callback,g=a.restore,h=0,i=a.error||s(),k=0,l=a.connect||s(),m=N(v);if(!D)return I.push([a,d,n]);if(!j)return f("Missing Channel");if(!d)return f("Missing Callback");if(!q)return f("Missing Subscribe Key");j in b||(b[j]={});if(b[j].d)return f("Already Connected");b[j].d=1;r()},db:C,each:c,map:G,css:H,$:t,create:l,bind:h,supplant:g,head:o,search:p,attr:m,
-now:k,unique:u,events:B,updater:i,init:y};return n}function u(){return"x"+ ++O+""+ +new Date}function k(){return+new Date}function i(a,b){function d(){c+b>k()?(clearTimeout(q),q=setTimeout(d,b)):(c=k(),a())}var q,c=0;return d}function t(a){return document.getElementById(a)}function f(a){console.log(a)}function p(a,b){var d=[];c(a.split(/\s+/),function(a){c((b||document).getElementsByTagName(a),function(a){d.push(a)})});return d}function c(a,b){if(a&&b)if(typeof a[0]!="undefined")for(var d=0,c=a.length;d<
-c;)b.call(a[d],a[d],d++);else for(d in a)a.hasOwnProperty&&a.hasOwnProperty(d)&&b.call(a[d],d,a[d])}function G(a,b){var d=[];c(a||[],function(a,c){d.push(b(a,c))});return d}function g(a,b){return a.replace(P,function(a,c){return b[c]||a})}function h(a,b,d){c(a.split(","),function(a){function c(a){if(!a)a=window.event;if(!d(a))a.cancelBubble=true,a.returnValue=false,a.preventDefault&&a.preventDefault(),a.stopPropagation&&a.stopPropagation()}b.addEventListener?b.addEventListener(a,c,false):b.attachEvent?
-b.attachEvent("on"+a,c):b["on"+a]=c})}function o(){return p("head")[0]}function m(a,b,d){if(d)a.setAttribute(b,d);else return a&&a.getAttribute&&a.getAttribute(b)}function H(a,b){for(var d in b)if(b.hasOwnProperty(d))try{a.style[d]=b[d]+("|width|height|top|left|".indexOf(d)>0&&typeof b[d]=="number"?"px":"")}catch(c){}}function l(a){return document.createElement(a)}function e(){return E||n()?0:u()}function z(a){return G(encodeURIComponent(a).split(""),function(a){return"-_.!~*'()".indexOf(a)<0?a:"%"+
-a.charCodeAt(0).toString(16).toUpperCase()}).join("")}function w(a){function b(a,b){if(!f)f=1,a||i(b),d.onerror=null,clearTimeout(g),setTimeout(function(){a&&h();var b=t(e),d=b&&b.parentNode;d&&d.removeChild(b)},A)}if(E||n())return Q(a);var d=l("script"),c=a.c,e=u(),f=0,g=setTimeout(function(){b(1)},F),h=a.a||s(),i=a.b||s();window[c]=function(a){b(0,a)};d[J]=J;d.onerror=function(){b(1)};d.src=a.url.join(K);m(d,"id",e);o().appendChild(d);return b}function Q(a){function b(a){if(!e){e=1;clearTimeout(g);
-if(c)c.onerror=c.onload=null,c.abort&&c.abort(),c=null;a&&h()}}function d(){if(!f){f=1;clearTimeout(g);try{response=JSON.parse(c.responseText)}catch(a){return b(1)}i(response)}}var c,e=0,f=0,g=setTimeout(function(){b(1)},F),h=a.a||s(),i=a.b||s();try{c=n()||window.XDomainRequest&&new XDomainRequest||new XMLHttpRequest,c.onerror=function(){b(1)},c.onload=d,c.timeout=F,c.open("GET",a.url.join(K),true),c.send()}catch(k){return b(0),E=0,w(a)}return b}function L(){PUBNUB.time(k);PUBNUB.time(function(){setTimeout(function(){D||
-(D=1,c(I,function(a){a[2].subscribe(a[0],a[1])}))},A)})}function n(){if(!M.get)return 0;var a={id:n.id++,send:s(),abort:function(){a.id={}},open:function(b,c){n[a.id]=a;M.get(a.id,c)}};return a}window.console||(window.console=window.console||{});console.log||(console.log=(window.opera||{}).postError||s());var C=function(){var a=window.localStorage;return{get:function(b){return a?a.getItem(b):document.cookie.indexOf(b)==-1?null:((document.cookie||"").match(RegExp(b+"=([^;]+)"))||[])[1]||null},set:function(b,
-c){if(a)return a.setItem(b,c)&&0;document.cookie=b+"="+c+"; expires=Thu, 1 Aug 2030 20:00:00 UTC; path=/"}}}(),O=1,P=/{([\w\-]+)}/g,J="async",K="/",F=14E4,A=1E3,E=navigator.userAgent.indexOf("MSIE 6")==-1,N=function(){var a=Math.floor(Math.random()*9)+1;return function(b){return b.indexOf("pubsub")>0&&b.replace("pubsub","ps"+(++a<10?a:a=1))||b}}(),B={list:{},unbind:function(a){B.list[a]=[]},bind:function(a,b){(B.list[a]=B.list[a]||[]).push(b)},fire:function(a,b){c(B.list[a]||[],function(a){a(b)})}},
-x=t("pubnub")||{},D=0,I=[];PUBNUB=y({publish_key:m(x,"pub-key"),subscribe_key:m(x,"sub-key"),ssl:m(x,"ssl")=="on",origin:m(x,"origin")});H(x,{position:"absolute",top:-A});if("opera"in window||m(x,"flash"))x.innerHTML="<object id=pubnubs type=application/x-shockwave-flash width=1 height=1 data=https://dh15atwfs066y.cloudfront.net/pubnub.swf><param name=movie value=https://dh15atwfs066y.cloudfront.net/pubnub.swf /><param name=allowscriptaccess value=always /></object>";var M=t("pubnubs")||{};h("load",
-window,function(){setTimeout(L,0)});PUBNUB.rdx=function(a,b){if(!b)return n[a].onerror();n[a].responseText=unescape(b);n[a].onload()};n.id=A;window.jQuery&&(window.jQuery.PUBNUB=PUBNUB);typeof module!=="undefined"&&(module.f=PUBNUB)&&L()}();
+/* ---------------------------------------------------------------------------
+WAIT! - This file depends on instructions from the PUBNUB Cloud.
+http://www.pubnub.com/account-javascript-api-include
+--------------------------------------------------------------------------- */
 
+/* ---------------------------------------------------------------------------
+PubNub Real-time Cloud-Hosted Push API and Push Notification Client Frameworks
+Copyright (c) 2011 PubNub Inc.
+http://www.pubnub.com/
+http://www.pubnub.com/terms
+--------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+--------------------------------------------------------------------------- */
+
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+/* =-=========================     JSON     =============================-= */
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+
+(window['JSON'] && window['JSON']['stringify']) || (function () {
+    window['JSON'] || (window['JSON'] = {});
+
+    if (typeof String.prototype.toJSON !== 'function') {
+        String.prototype.toJSON =
+        Number.prototype.toJSON =
+        Boolean.prototype.toJSON = function (key) {
+            return this.valueOf();
+        };
+    }
+
+    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        gap,
+        indent,
+        meta = {    // table of character substitutions
+            '\b': '\\b',
+            '\t': '\\t',
+            '\n': '\\n',
+            '\f': '\\f',
+            '\r': '\\r',
+            '"' : '\\"',
+            '\\': '\\\\'
+        },
+        rep;
+
+    function quote(string) {
+        escapable.lastIndex = 0;
+        return escapable.test(string) ?
+            '"' + string.replace(escapable, function (a) {
+                var c = meta[a];
+                return typeof c === 'string' ? c :
+                    '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+            }) + '"' :
+            '"' + string + '"';
+    }
+
+
+    function str(key, holder) {
+        var i,          // The loop counter.
+            k,          // The member key.
+            v,          // The member value.
+            length,
+            mind = gap,
+            partial,
+            value = holder[key];
+
+        if (value && typeof value === 'object' &&
+                typeof value.toJSON === 'function') {
+            value = value.toJSON(key);
+        }
+
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+
+        switch (typeof value) {
+        case 'string':
+            return quote(value);
+
+        case 'number':
+            return isFinite(value) ? String(value) : 'null';
+
+        case 'boolean':
+        case 'null':
+            return String(value);
+
+        case 'object':
+
+            if (!value) {
+                return 'null';
+            }
+
+            gap += indent;
+            partial = [];
+
+            if (Object.prototype.toString.apply(value) === '[object Array]') {
+
+                length = value.length;
+                for (i = 0; i < length; i += 1) {
+                    partial[i] = str(i, value) || 'null';
+                }
+
+                v = partial.length === 0 ? '[]' :
+                    gap ? '[\n' + gap +
+                            partial.join(',\n' + gap) + '\n' +
+                                mind + ']' :
+                          '[' + partial.join(',') + ']';
+                gap = mind;
+                return v;
+            }
+            if (rep && typeof rep === 'object') {
+                length = rep.length;
+                for (i = 0; i < length; i += 1) {
+                    k = rep[i];
+                    if (typeof k === 'string') {
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+            } else {
+                for (k in value) {
+                    if (Object.hasOwnProperty.call(value, k)) {
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+            }
+
+            v = partial.length === 0 ? '{}' :
+                gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
+                        mind + '}' : '{' + partial.join(',') + '}';
+            gap = mind;
+            return v;
+        }
+    }
+
+    if (typeof JSON['stringify'] !== 'function') {
+        JSON['stringify'] = function (value, replacer, space) {
+            var i;
+            gap = '';
+            indent = '';
+
+            if (typeof space === 'number') {
+                for (i = 0; i < space; i += 1) {
+                    indent += ' ';
+                }
+            } else if (typeof space === 'string') {
+                indent = space;
+            }
+            rep = replacer;
+            if (replacer && typeof replacer !== 'function' &&
+                    (typeof replacer !== 'object' ||
+                     typeof replacer.length !== 'number')) {
+                throw new Error('JSON.stringify');
+            }
+            return str('', {'': value});
+        };
+    }
+
+    if (typeof JSON['parse'] !== 'function') {
+        // JSON is parsed on the server for security.
+        JSON['parse'] = function (text) {return eval('('+text+')')};
+    }
+}());
+
+
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+/* =-=======================     DOM UTIL     ===========================-= */
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+
+window['PUBNUB'] || (function() {
+
+/**
+ * CONSOLE COMPATIBILITY
+ */
+window.console||(window.console=window.console||{});
+console.log||(console.log=((window.opera||{}).postError||function(){}));
+
+/**
+ * UTILITIES
+ */
+function unique() { return'x'+ ++NOW+''+(+new Date) }
+function rnow() { return+new Date }
+
+/**
+ * LOCAL STORAGE OR COOKIE
+ */
+var db = (function(){
+    var ls = window['localStorage'];
+    return {
+        get : function(key) {
+            try {
+                if (ls) return ls.getItem(key);
+                if (document.cookie.indexOf(key) == -1) return null;
+                return ((document.cookie||'').match(
+                    RegExp(key+'=([^;]+)')
+                )||[])[1] || null;
+            } catch(e) { return }
+        },
+        set : function( key, value ) {
+            try {
+                if (ls) return ls.setItem( key, value ) && 0;
+                document.cookie = key + '=' + value +
+                    '; expires=Thu, 1 Aug 2030 20:00:00 UTC; path=/';
+            } catch(e) { return }
+        }
+    };
+})();
+
+/**
+ * UTIL LOCALS
+ */
+var NOW    = 1
+,   SWF    = 'https://dh15atwfs066y.cloudfront.net/pubnub.swf'
+,   REPL   = /{([\w\-]+)}/g
+,   ASYNC  = 'async'
+,   URLBIT = '/'
+,   XHRTME = 140000
+,   SECOND = 1000
+,   UA     = navigator.userAgent
+,   XORIGN = UA.indexOf('MSIE 6') == -1;
+
+/**
+ * NEXTORIGIN
+ * ==========
+ * var next_origin = nextorigin();
+ */
+var nextorigin = (function() {
+    var ori = Math.floor(Math.random() * 9) + 1;
+    return function(origin) {
+        return origin.indexOf('pubsub') > 0
+            && origin.replace(
+             'pubsub', 'ps' + (++ori < 10 ? ori : ori=1)
+            ) || origin;
+    }
+})();
+
+/**
+ * UPDATER
+ * ======
+ * var timestamp = unique();
+ */
+function updater( fun, rate ) {
+    var timeout
+    ,   last   = 0
+    ,   runnit = function() {
+        if (last + rate > rnow()) {
+            clearTimeout(timeout);
+            timeout = setTimeout( runnit, rate );
+        }
+        else {
+            last = rnow();
+            fun();
+        }
+    };
+
+    return runnit;
+}
+
+/**
+ * $
+ * =
+ * var div = $('divid');
+ */
+function $(id) { return document.getElementById(id) }
+
+/**
+ * LOG
+ * ===
+ * log('message');
+ */
+function log(message) { console['log'](message) }
+
+/**
+ * SEARCH
+ * ======
+ * var elements = search('a div span');
+ */
+function search( elements, start ) {
+    var list = [];
+    each( elements.split(/\s+/), function(el) {
+        each( (start || document).getElementsByTagName(el), function(node) {
+            list.push(node);
+        } );
+    } );
+    return list;
+}
+
+/**
+ * EACH
+ * ====
+ * each( [1,2,3], function(item) { console.log(item) } )
+ */
+function each( o, f ) {
+    if ( !o || !f ) return;
+
+    if ( typeof o[0] != 'undefined' )
+        for ( var i = 0, l = o.length; i < l; )
+            f.call( o[i], o[i], i++ );
+    else
+        for ( var i in o )
+            o.hasOwnProperty    &&
+            o.hasOwnProperty(i) &&
+            f.call( o[i], i, o[i] );
+}
+
+/**
+ * MAP
+ * ===
+ * var list = map( [1,2,3], function(item) { return item + 1 } )
+ */
+function map( list, fun ) {
+    var fin = [];
+    each( list || [], function( k, v ) { fin.push(fun( k, v )) } );
+    return fin;
+}
+
+/**
+ * GREP
+ * ====
+ * var list = grep( [1,2,3], function(item) { return item % 2 } )
+ */
+function grep( list, fun ) {
+    var fin = [];
+    each( list || [], function(l) { fun(l) && fin.push(l) } );
+    return fin
+}
+
+/**
+ * SUPPLANT
+ * ========
+ * var text = supplant( 'Hello {name}!', { name : 'John' } )
+ */
+function supplant( str, values ) {
+    return str.replace( REPL, function( _, match ) {
+        return values[match] || _
+    } );
+}
+
+/**
+ * BIND
+ * ====
+ * bind( 'keydown', search('a')[0], function(element) {
+ *     console.log( element, '1st anchor' )
+ * } );
+ */
+function bind( type, el, fun ) {
+    each( type.split(','), function(etype) {
+        var rapfun = function(e) {
+            if (!e) e = window.event;
+            if (!fun(e)) {
+                e.cancelBubble = true;
+                e.returnValue  = false;
+                e.preventDefault && e.preventDefault();
+                e.stopPropagation && e.stopPropagation();
+            }
+        };
+
+        if ( el.addEventListener ) el.addEventListener( etype, rapfun, false );
+        else if ( el.attachEvent ) el.attachEvent( 'on' + etype, rapfun );
+        else  el[ 'on' + etype ] = rapfun;
+    } );
+}
+
+/**
+ * UNBIND
+ * ======
+ * unbind( 'keydown', search('a')[0] );
+ */
+function unbind( type, el, fun ) {
+    if ( el.removeEventListener ) el.removeEventListener( type, false );
+    else if ( el.detachEvent ) el.detachEvent( 'on' + type, false );
+    else  el[ 'on' + type ] = null;
+}
+
+/**
+ * HEAD
+ * ====
+ * head().appendChild(elm);
+ */
+function head() { return search('head')[0] }
+
+/**
+ * ATTR
+ * ====
+ * var attribute = attr( node, 'attribute' );
+ */
+function attr( node, attribute, value ) {
+    if (value) node.setAttribute( attribute, value );
+    else return node && node.getAttribute && node.getAttribute(attribute);
+}
+
+/**
+ * CSS
+ * ===
+ * var obj = create('div');
+ */
+function css( element, styles ) {
+    for (var style in styles) if (styles.hasOwnProperty(style))
+        try {element.style[style] = styles[style] + (
+            '|width|height|top|left|'.indexOf(style) > 0 &&
+            typeof styles[style] == 'number'
+            ? 'px' : ''
+        )}catch(e){}
+}
+
+/**
+ * CREATE
+ * ======
+ * var obj = create('div');
+ */
+function create(element) { return document.createElement(element) }
+
+/**
+ * timeout
+ * =======
+ * timeout( function(){}, 100 );
+ */
+function timeout( fun, wait ) {
+    return setTimeout( fun, wait );
+}
+
+/**
+ * jsonp_cb
+ * ========
+ * var callback = jsonp_cb();
+ */
+function jsonp_cb() { return XORIGN || FDomainRequest() ? 0 : unique() }
+
+/**
+ * ENCODE
+ * ======
+ * var encoded_path = encode('path');
+ */
+function encode(path) {
+    return map( (encodeURIComponent(path)).split(''), function(chr) {
+        return "-_.!~*'()".indexOf(chr) < 0 ? chr :
+               "%"+chr.charCodeAt(0).toString(16).toUpperCase()
+    } ).join('');
+}
+
+/**
+ * EVENTS
+ * ======
+ * PUBNUB.events.bind( 'you-stepped-on-flower', function(message) {
+ *     // Do Stuff with message
+ * } );
+ *
+ * PUBNUB.events.fire( 'you-stepped-on-flower', "message-data" );
+ * PUBNUB.events.fire( 'you-stepped-on-flower', {message:"data"} );
+ * PUBNUB.events.fire( 'you-stepped-on-flower', [1,2,3] );
+ *
+ */
+var events = {
+    'list'   : {},
+    'unbind' : function( name ) { events.list[name] = [] },
+    'bind'   : function( name, fun ) {
+        (events.list[name] = events.list[name] || []).push(fun);
+    },
+    'fire' : function( name, data ) {
+        each(
+            events.list[name] || [],
+            function(fun) { fun(data) }
+        );
+    }
+};
+
+/**
+ * XDR Cross Domain Request
+ * ========================
+ *  xdr({
+ *     url     : ['http://www.blah.com/url'],
+ *     success : function(response) {},
+ *     fail    : function() {}
+ *  });
+ */
+function xdr( setup ) {
+    if (XORIGN || FDomainRequest()) return ajax(setup);
+
+    var script    = create('script')
+    ,   callback  = setup.callback
+    ,   id        = unique()
+    ,   finished  = 0
+    ,   timer     = timeout( function(){done(1)}, XHRTME )
+    ,   fail      = setup.fail    || function(){}
+    ,   success   = setup.success || function(){}
+
+    ,   append = function() {
+            head().appendChild(script);
+        }
+
+    ,   done = function( failed, response ) {
+            if (finished) return;
+                finished = 1;
+
+            failed || success(response);
+            script.onerror = null;
+            clearTimeout(timer);
+
+            timeout( function() {
+                failed && fail();
+                var s = $(id)
+                ,   p = s && s.parentNode;
+                p && p.removeChild(s);
+            }, SECOND );
+        };
+
+    window[callback] = function(response) {
+        done( 0, response );
+    };
+
+    script[ASYNC]  = ASYNC;
+    script.onerror = function() { done(1) };
+    script.src     = setup.url.join(URLBIT);
+
+    attr( script, 'id', id );
+
+    append();
+    return done;
+}
+
+/**
+ * CORS XHR Request
+ * ================
+ *  xdr({
+ *     url     : ['http://www.blah.com/url'],
+ *     success : function(response) {},
+ *     fail    : function() {}
+ *  });
+ */
+function ajax( setup ) {
+    var xhr
+    ,   finished = function() {
+            if (loaded) return;
+                loaded = 1;
+
+            clearTimeout(timer);
+
+            try       { response = JSON['parse'](xhr.responseText); }
+            catch (r) { return done(1); }
+
+            success(response);
+        }
+    ,   complete = 0
+    ,   loaded   = 0
+    ,   timer    = timeout( function(){done(1)}, XHRTME )
+    ,   fail     = setup.fail    || function(){}
+    ,   success  = setup.success || function(){}
+    ,   done     = function(failed) {
+            if (complete) return;
+                complete = 1;
+
+            clearTimeout(timer);
+
+            if (xhr) {
+                xhr.onerror = xhr.onload = null;
+                xhr.abort && xhr.abort();
+                xhr = null;
+            }
+
+            failed && fail();
+        };
+
+    // Send
+    try {
+        xhr = FDomainRequest()      ||
+              window.XDomainRequest &&
+              new XDomainRequest()  ||
+              new XMLHttpRequest();
+
+        xhr.onerror = xhr.onabort   = function(){ done(1) };
+        xhr.onload  = xhr.onloadend = finished;
+        xhr.timeout = XHRTME;
+
+        xhr.open( 'GET', setup.url.join(URLBIT), true );
+        xhr.send();
+    }
+    catch(eee) {
+        done(0);
+        XORIGN = 0;
+        return xdr(setup);
+    }
+
+    // Return 'done'
+    return done;
+}
+
+
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+/* =-=========================     PUBNUB     ===========================-= */
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+
+var PDIV          = $('pubnub') || {}
+,   LIMIT         = 1800
+,   READY         = 0
+,   READY_BUFFER  = []
+,   CREATE_PUBNUB = function(setup) {
+    var CHANNELS      = {}
+    ,   PUBLISH_KEY   = setup['publish_key']   || ''
+    ,   SUBSCRIBE_KEY = setup['subscribe_key'] || ''
+    ,   SSL           = setup['ssl'] ? 's' : ''
+    ,   ORIGIN        = 'http'+SSL+'://'+(setup['origin']||'pubsub.pubnub.com')
+    ,   SELF          = {
+        /*
+            PUBNUB.history({
+                channel  : 'my_chat_channel',
+                limit    : 100,
+                callback : function(messages) { console.log(messages) }
+            });
+        */
+        'history' : function( args, callback ) {
+            var callback = args['callback'] || callback 
+            ,   limit    = args['limit'] || 100
+            ,   channel  = args['channel']
+            ,   jsonp    = jsonp_cb();
+
+            // Make sure we have a Channel
+            if (!channel)  return log('Missing Channel');
+            if (!callback) return log('Missing Callback');
+
+            // Send Message
+            xdr({
+                callback : jsonp,
+                url      : [
+                    ORIGIN, 'history',
+                    SUBSCRIBE_KEY, encode(channel),
+                    jsonp, limit
+                ],
+                success  : function(response) { callback(response) },
+                fail     : function(response) { log(response) }
+            });
+        },
+
+        /*
+            PUBNUB.time(function(time){ console.log(time) });
+        */
+        'time' : function(callback) {
+            var jsonp = jsonp_cb();
+            xdr({
+                callback : jsonp,
+                url      : [ORIGIN, 'time', jsonp],
+                success  : function(response) { callback(response[0]) },
+                fail     : function() { callback(0) }
+            });
+        },
+
+        /*
+            PUBNUB.uuid(function(uuid) { console.log(uuid) });
+        */
+        'uuid' : function(callback) {
+            var jsonp = jsonp_cb();
+            xdr({
+                callback : jsonp,
+                url      : [
+                    'http' + SSL +
+                    '://pubnub-prod.appspot.com/uuid?callback=' + jsonp
+                ],
+                success  : function(response) { callback(response[0]) },
+                fail     : function() { callback(0) }
+            });
+        },
+
+        /*
+            PUBNUB.publish({
+                channel : 'my_chat_channel',
+                message : 'hello!'
+            });
+        */
+        'publish' : function( args, callback ) {
+            var callback = callback || args['callback'] || function(){}
+            ,   message  = args['message']
+            ,   channel  = args['channel']
+            ,   jsonp    = jsonp_cb()
+            ,   url;
+
+            if (!message)     return log('Missing Message');
+            if (!channel)     return log('Missing Channel');
+            if (!PUBLISH_KEY) return log('Missing Publish Key');
+
+            // If trying to send Object
+            message = JSON['stringify'](message);
+
+            // Create URL
+            url = [
+                ORIGIN, 'publish',
+                PUBLISH_KEY, SUBSCRIBE_KEY,
+                0, encode(channel),
+                jsonp, encode(message)
+            ];
+
+            // Make sure message is small enough.
+            if (url.join().length > LIMIT) return log('Message Too Big');
+
+            // Send Message
+            xdr({
+                callback : jsonp,
+                success  : function(response) { callback(response) },
+                fail     : function() { callback([ 0, 'Disconnected' ]) },
+                url      : url
+            });
+        },
+
+        /*
+            PUBNUB.unsubscribe({ channel : 'my_chat' });
+        */
+        'unsubscribe' : function(args) {
+            var channel = args['channel'];
+
+            // Leave if there never was a channel.
+            if (!(channel in CHANNELS)) return;
+
+            // Disable Channel
+            CHANNELS[channel].connected = 0;
+
+            // Abort and Remove Script
+            CHANNELS[channel].done && 
+            CHANNELS[channel].done(0);
+        },
+
+        /*
+            PUBNUB.subscribe({
+                channel  : 'my_chat'
+                callback : function(message) { console.log(message) }
+            });
+        */
+        'subscribe' : function( args, callback ) {
+
+            var channel      = args['channel']
+            ,   callback     = callback || args['callback']
+            ,   restore      = args['restore']
+            ,   timetoken    = 0
+            ,   error        = args['error'] || function(){}
+            ,   connect      = args['connect'] || function(){}
+            ,   reconnect    = args['reconnect'] || function(){}
+            ,   disconnect   = args['disconnect'] || function(){}
+            ,   disconnected = 0
+            ,   connected    = 0
+            ,   origin       = nextorigin(ORIGIN);
+
+            // Reduce Status Flicker
+            if (!READY) return READY_BUFFER.push([ args, callback, SELF ]);
+
+            // Make sure we have a Channel
+            if (!channel)       return log('Missing Channel');
+            if (!callback)      return log('Missing Callback');
+            if (!SUBSCRIBE_KEY) return log('Missing Subscribe Key');
+
+            if (!(channel in CHANNELS)) CHANNELS[channel] = {};
+
+            // Make sure we have a Channel
+            if (CHANNELS[channel].connected) return log('Already Connected');
+                CHANNELS[channel].connected = 1;
+
+            // Recurse Subscribe
+            function pubnub() {
+                var jsonp = jsonp_cb();
+
+                // Stop Connection
+                if (!CHANNELS[channel].connected) return;
+
+                // Connect to PubNub Subscribe Servers
+                CHANNELS[channel].done = xdr({
+                    callback : jsonp,
+                    url      : [
+                        origin, 'subscribe',
+                        SUBSCRIBE_KEY, encode(channel),
+                        jsonp, timetoken
+                    ],
+                    fail : function() {
+                        // Disconnect
+                        if (!disconnected) {
+                            disconnected = 1;
+                            disconnect();
+                        }
+                        timeout( pubnub, SECOND );
+                        SELF['time'](function(success){
+                            success || error();
+                        });
+                    },
+                    success : function(messages) {
+                        if (!CHANNELS[channel].connected) return;
+
+                        // Connect
+                        if (!connected) {
+                            connected = 1;
+                            connect();
+                        }
+
+                        // Reconnect
+                        if (disconnected) {
+                            disconnected = 0;
+                            reconnect();
+                        }
+
+                        // Restore Previous Connection Point if Needed
+                        // Also Update Timetoken
+                        restore = db.set(
+                            SUBSCRIBE_KEY + channel,
+                            timetoken = restore && db.get(
+                                SUBSCRIBE_KEY + channel
+                            ) || messages[1]
+                        );
+
+                        each( messages[0], function(msg) {
+                            callback( msg, messages );
+                        } );
+
+                        timeout( pubnub, 10 );
+                    }
+                });
+            }
+
+            // Begin Recursive Subscribe
+            pubnub();
+        },
+
+        // Expose PUBNUB Functions
+        'xdr'      : xdr,
+        'ready'    : ready,
+        'db'       : db,
+        'each'     : each,
+        'map'      : map,
+        'css'      : css,
+        '$'        : $,
+        'create'   : create,
+        'bind'     : bind,
+        'supplant' : supplant,
+        'head'     : head,
+        'search'   : search,
+        'attr'     : attr,
+        'now'      : rnow,
+        'unique'   : unique,
+        'events'   : events,
+        'updater'  : updater,
+        'init'     : CREATE_PUBNUB
+    };
+
+    return SELF;
+};
+
+// CREATE A PUBNUB GLOBAL OBJECT
+PUBNUB = CREATE_PUBNUB({
+    'publish_key'   : 'pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10',
+    'subscribe_key' : 'sub-4e37d063-edfa-11df-8f1a-517217f921a4',
+    'ssl'           : 'off',
+    'origin'        : 'pubsub.pubnub.com'
+});
+
+// PUBNUB Flash Socket
+css( PDIV, { 'position' : 'absolute', 'top' : -SECOND } );
+
+if ('opera' in window || attr( PDIV, 'flash' )) PDIV['innerHTML'] =
+    '<object id=pubnubs data='  + SWF +
+    '><param name=movie value=' + SWF +
+    '><param name=allowscriptaccess value=always></object>';
+
+var pubnubs = $('pubnubs') || {};
+
+// PUBNUB READY TO CONNECT
+function ready() { PUBNUB['time'](rnow);
+PUBNUB['time'](function(t){ timeout( function() {
+    if (READY) return;
+    READY = 1;
+    each( READY_BUFFER, function(sub) {
+        sub[2]['subscribe']( sub[0], sub[1] )
+    } );
+}, SECOND ); }); }
+
+// Bind for PUBNUB Readiness to Subscribe
+bind( 'load', window, function(){ timeout( ready, 0 ) } );
+
+// Create Interface for Opera Flash
+PUBNUB['rdx'] = function( id, data ) {
+    if (!data) return FDomainRequest[id]['onerror']();
+    FDomainRequest[id]['responseText'] = unescape(data);
+    FDomainRequest[id]['onload']();
+};
+
+function FDomainRequest() {
+    if (!pubnubs['get']) return 0;
+
+    var fdomainrequest = {
+        'id'    : FDomainRequest['id']++,
+        'send'  : function() {},
+        'abort' : function() { fdomainrequest['id'] = {} },
+        'open'  : function( method, url ) {
+            FDomainRequest[fdomainrequest['id']] = fdomainrequest;
+            pubnubs['get']( fdomainrequest['id'], url );
+        }
+    };
+
+    return fdomainrequest;
+}
+FDomainRequest['id'] = SECOND;
+
+// jQuery Interface
+window['jQuery'] && (window['jQuery']['PUBNUB'] = PUBNUB);
+
+// For Testling.js - http://testling.com/
+typeof module !== 'undefined' && (module.exports = PUBNUB) && ready();
+
+})();
 /* Villo Ending File */
 
-//As per the 1.0 plans, we don't load the info.villo file automatically, so check for the legacy variable.
+//As per the 1.0 plans, we don't load the info.villo.js file automatically, so check for the legacy variable.
 if ("VILLO_SETTINGS" in window && VILLO_SETTINGS.USELEGACY === true) {
-	console.log("Using legacy setting, automatically loading info.villo.");
+	villo.verbose && console.log("Using legacy setting, automatically loading info.villo.");
 	//Load up info.villo as a javascript file.
-	$script(villo.script.get() + "info.villo");
+	$script(villo.script.get() + "info.villo.js");
 }else{
-	console.log("Villo Library Loaded");
+	villo.verbose && console.log("Villo Library Loaded");
 }
