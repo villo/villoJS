@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="css/docbody.css">
+    <link rel="stylesheet" type="text/css" href="css/doc.css">
+	<title>joDoc</title>
+</head>
+<body>
+<h1><a name="villo.chat.join">villo.chat.join</a></h1>
+
+<p>Subscribes to messages in a given chat room.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_chat.js.html#villo.chat.join">villo.chat.join</a>({room: string, callback: function, presence: {enabled: boolean})</code></p>
+
+<ul>
+<li>"Room" is the name of the chat room you want to join. Rooms are app-dependent.</li>
+<li>The "callback" is called when a chat message is received. </li>
+<li>The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.presence.join</li>
+</ul>
+
+<h2>Returns</h2>
+
+<p>Returns true if the chat room has successfully been subscribed to.</p>
+
+<h2>Callback</h2>
+
+<p>An object will be passed to the callback function when a message is received in the chat room, and will be formatted like this:</p>
+
+<pre><code>{
+    username: "Kesne",
+    message: "Hey man, how's it going?"
+}
+</code></pre>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_chat.js.html#villo.chat.join">villo.chat.join</a>({
+    room: "main",
+    callback: function(message){
+        //The message variable is where the goods are.
+    }
+});
+</code></pre>
+
+<h1><a name="villo.chat.isSubscribed">villo.chat.isSubscribed</a></h1>
+
+<p>Determine if you are currently subscribed (connected) to a given chat room.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_chat.js.html#villo.chat.isSubscribed">villo.chat.isSubscribed</a>(string)</code></p>
+
+<ul>
+<li>The only parameter to be passed is a string containing the room you want to determine the subscription status of.</li>
+</ul>
+
+<h2>Returns</h2>
+
+<p>Returns true if the chat room is currently subscribed to. Returns false if the room is not subscribed to.</p>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_chat.js.html#villo.chat.isSubscribed">villo.chat.isSubscribed</a>("main");
+</code></pre>
+
+<h1><a name="villo.chat.send">villo.chat.send</a></h1>
+
+<p>Send a message into any given chat room.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_chat.js.html#villo.chat.send">villo.chat.send</a>({room: string, message: string})</code></p>
+
+<ul>
+<li>"Room" is the name of the chat room you want to join. Rooms are app-dependent, and you cannot send messages accross different applications.</li>
+<li>The "message" is a string which is a message that you want to send. You can also pass objects in the message parameter, instead of string. </li>
+</ul>
+
+<h2>Returns</h2>
+
+<p>Returns true if the message was sent. Returns false if an error occurred.</p>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_chat.js.html#villo.chat.send">villo.chat.send</a>({
+    room: "main",
+    message: "Hey man, how's it going?"
+});
+</code></pre>
+
+<h2>Notes</h2>
+
+<p>If you have joined a chat room, when a message is sent, it will be received through the callback defined in the join function call.</p>
+
+<h1><a name="villo.chat.leaveAll">villo.chat.leaveAll</a></h1>
+
+<p>Closes all of the open connections to chat rooms. If a presence room was joined when the function was loaded, the connection to the presence rooms will also be closed.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_chat.js.html#villo.chat.leaveAll">villo.chat.leaveAll</a>()</code></p>
+
+<p>This function takes no arguments.</p>
+
+<h2>Returns</h2>
+
+<p>Returns true if all of the rooms have been disconnected from. </p>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_chat.js.html#villo.chat.leaveAll">villo.chat.leaveAll</a>();
+</code></pre>
+
+<h1><a name="villo.chat.leave">villo.chat.leave</a></h1>
+
+<p>Closes a connection to a specific chat room. If a presence room was joined when the chat room was joined, the connection to the presence room will also be closed.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_chat.js.html#villo.chat.leave">villo.chat.leave</a>(string)</code></p>
+
+<ul>
+<li>The only parameter to be passed is a string containing the room you want to leave.</li>
+</ul>
+
+<h2>Returns</h2>
+
+<p>Returns true if the room connection was closed. </p>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_chat.js.html#villo.chat.leave">villo.chat.leave</a>("main");
+</code></pre>
+
+<h1><a name="villo.chat.history">villo.chat.history</a></h1>
+
+<p>Retrieves recent messages sent in a given room.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_chat.js.html#villo.chat.history">villo.chat.history</a>({room: string, limit: number, callback: function})</code></p>
+
+<ul>
+<li>The "room" string is the name of the chat room you wish to get the history messages of.</li>
+<li>"limit" is the maximum number of history messages you want to receive. If you do not specify this parameter, it will default to 25.</li>
+<li>The "callback" function will be called after the messages are received, </li>
+</ul>
+
+<h2>Callback</h2>
+
+<p>An object will be passed to the callback function when the history is loaded, and will be formatted like this:</p>
+
+<pre><code>[{
+    username: "Kesne",
+    message: "Hey man, how's it going?"
+},{
+    username: "someOtherUser",
+    message: "Not much, how are you?"
+},{
+    username: "Kesne",
+    message: "I'm great, thanks for asking!"
+}]
+</code></pre>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_chat.js.html#villo.chat.history">villo.chat.history</a>({
+    room: "main",
+    limit: 50,
+    callback: function(messages){
+        //The messages variable holds the object with all of the messages.
+    }
+});
+</code></pre>
+
+</body>
+</html>
+

@@ -1,1 +1,2 @@
-./jodoc ../core/*.js ../utils/*.js DEVELOPERGUIDE.mdown LICENSE.mdown ABOUT.mdown --output build --toc TOC.mdown --markdown Markdown.pl --template template.html
+MD=$(pwd)
+./jodoc ../core/*.js ../utils/*.js pages/LICENSE.mdown pages/ABOUT.mdown pages/DEVELOPERGUIDE.mdown --output html --toc pages/TOC.mdown --template template.html --markdown $MD/Markdown.pl 

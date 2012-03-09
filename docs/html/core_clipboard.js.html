@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="css/docbody.css">
+    <link rel="stylesheet" type="text/css" href="css/doc.css">
+	<title>joDoc</title>
+</head>
+<body>
+<h1><a name="villo.clipboard.copy">villo.clipboard.copy</a></h1>
+
+<p>Used to copy a string of text to the villo.app.clipboard object, for retrieval at some point.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="core_clipboard.js.html#villo.clipboard.copy">villo.clipboard.copy</a>(string)</code></p>
+
+<h2>Returns</h2>
+
+<p>Returns the index of the string within the villo.app.clipboard object.</p>
+
+<h2>Use</h2>
+
+<pre><code><a href="core_clipboard.js.html#villo.clipboard.copy">villo.clipboard.copy</a>("What's up, dawg!?");
+</code></pre>
+
+<h1><a name="villo.clipboard.paste">villo.clipboard.paste</a></h1>
+
+<p>Retrieves a string of text that has previously been copied.</p>
+
+<h2>   Calling</h2>
+
+<p><code><a href="core_clipboard.js.html#villo.clipboard.paste">villo.clipboard.paste</a>(index)</code></p>
+
+<ul>
+<li>The "index" argument is optional. If it is not passed, the last text copied will be returned.</li>
+</ul>
+
+<h2>Returns</h2>
+
+<p>Returns the string of text that was previously copied. If no index is defined in the call, then the last string of text copied will be returned.</p>
+
+<h2>Use</h2>
+
+<pre><code>var oldInput = <a href="core_clipboard.js.html#villo.clipboard.paste">villo.clipboard.paste</a>();
+</code></pre>
+
+</body>
+</html>
+
