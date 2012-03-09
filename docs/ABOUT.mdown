@@ -1,89 +1,10 @@
-<img src="https://api.villo.me/avatar.php?username=kesne"/>
+<img src="http://villo.me/img/villov-logo.png"/>
 
 About Villo
 ===========
 
-Villo is a JavaScript framework that aims to connect your applications to the cloud. VilloJS provides you with the necessary tools to get your apps tapped into Villo's services, and get your app Villo-Enabled.
+Villo is a social framework, allowing for interactive applications. It has user accounts, friends, chatrooms, leaderboards, profiles, could-syncing settings, and other goodies to help you make your apps more connected.
 
-Hackathon
-=========
+VilloJS is a JavaScript framework that aims to connect your applications to the cloud. VilloJS provides you with the necessary tools to get your apps tapped into Villo's services, and get your app Villo-Enabled.
 
-For the <a href="http://enyohackathon.com/" target="_blank">International Enyo Hackathon</a>, we'll be giving out prizes to the best Villo integration. Additionally, we are releasing the latest version of Villo to developers.
-
-Meet the Judges
----------------
-
-Your entries will be judged by our very special panel of judges.
-
- - Jordan Gensler: Creator of Villo, owner of Keen Studios Apps.
- - Noah Manders: Owner of webOSworld, co-owner of Villo.
- - James Saddler: Head of Marketing at Villo.
- 
-Prizes
-------
-
-To give you some insentive to use Villo in your applications, we will be giving out the following prizes to developers who integrate Villo.
-
- - Grand Prize: $100 via PayPal 
- 	- Given to the best overall integration of Villo.
- - Runner-up: $50 Amazon Gift Card
- 	- Given to the most complete (and clever!) integration of Villo.
-
-Additionally, everybody who submits an application using Villo will recieve a free Villo T-Shirt!
- 
-How to use Villo
-----------------
-
-Alongside with the release of the latest version of Villo, we're also releasing the latest extensive documentation, which you can view right on this site!
-
-For a very basic guide to help you get started, see Getting Started.
- 
-How to Submit Entries
----------------------
-
-To submit entries to Villo for the Enyo Hackathon, email a .zip archive of your application to villohackathon@gmail.com.
-
-We ask that all entries work in a Chrome browser without too many issues.
-
-If you have specific running instructions for your application, please include them in your email.
-
-Getting Started
-===============
-
-This guide will get you set up developing Villo applications using VilloJS.
-
-Registering as a Developer
---------------------------
-
-To get started developing Villo applications, you must first create a Villo developer account. You can do so by vising <a href="http://dev.villo.me" target="_blank">dev.villo.me</a>, and clicking register.
-
-If you already have an existing Villo account, you can just login to the Villo <a href="http://dev.villo.me" target="_blank">developer website</a>, and it will convert your existing account into a developer account.
-
-Downloading Villo
------------------
-
-You can download the latest version of Villo from the Villo developer website. Once you've downloaded the villo.js file, you should include it in your application.
-
-Direct download: <a href="http://dev.villo.me/files/download/villo/0.9.7/villo.js" target="_blank">click here</a>
-
-Registering your Application
-----------------------------
-
-Once you have downloaded Villo, you need to register your application to use our APIs. You can do this from <a href="http://dev.villo.me/user/apps.php" target="_blank">Tools page</a> on the developer website. Simply click "New App".
-
-When you are registering your application, select "HP WebOS (Enyo)" as your platform.
-
-Initializing Villo
-------------------
-
-Now that you've included VilloJS in your application and registered your application with Villo's API, you can start using all of Villo's APIs!
-
-We recommend that you take a look at the following APIs to get started!
-
- - villo.user.login
- - villo.user.register
-
-That's It!
-----------
-
-You're now off and running using Villo! Check out the documentation for all of our APIs.
+This documentation is for the VilloJS API.
