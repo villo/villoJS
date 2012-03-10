@@ -231,7 +231,7 @@
 	};
 	villo.doPushLoad = function(options){
 		//Villo now loads the PubNub in it's dependencies file, and as such doesn't need to pull it in here, so we just call the onload function.
-		if ("VILLO_SETTINGS" in window && typeof(VILLO_SETTINGS.ONLOAD == "function")) {
+		if ("VILLO_SETTINGS" in window && VILLO_SETTINGS.ONLOAD && typeof(VILLO_SETTINGS.ONLOAD == "function")) {
 			VILLO_SETTINGS.ONLOAD(true);
 		}
 		villo.isLoaded = true;

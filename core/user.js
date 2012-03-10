@@ -290,13 +290,21 @@
 								villo.sync();
 							//villo.log(0)
 							} else {
-								callback(33);
+								if (callback) {
+									callback(33);
+								} else {
+									userObject.callback(33);
+								}
 								villo.verbose && villo.log(33);
 								villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 							}
 					},
 					onFailure: function(failure){
-						callback(33);
+						if (callback) {
+							callback(33);
+						} else {
+							userObject.callback(33);
+						}
 					}
 				});
 		},

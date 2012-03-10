@@ -53,6 +53,7 @@
 						callback: function(message){
 							chatObject.callback(message);
 						},
+						connect: chatObject.connect || function(){},
 						error: function(e){
 							//Error connecting. PubNub will automatically attempt to reconnect.
 						}

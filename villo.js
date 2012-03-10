@@ -102,6 +102,7 @@ villo = ({});
 						callback: function(message){
 							chatObject.callback(message);
 						},
+						connect: chatObject.connect || function(){},
 						error: function(e){
 							//Error connecting. PubNub will automatically attempt to reconnect.
 						}
@@ -1232,7 +1233,7 @@ villo = ({});
 	};
 	villo.doPushLoad = function(options){
 		//Villo now loads the PubNub in it's dependencies file, and as such doesn't need to pull it in here, so we just call the onload function.
-		if ("VILLO_SETTINGS" in window && typeof(VILLO_SETTINGS.ONLOAD == "function")) {
+		if ("VILLO_SETTINGS" in window && VILLO_SETTINGS.ONLOAD && typeof(VILLO_SETTINGS.ONLOAD == "function")) {
 			VILLO_SETTINGS.ONLOAD(true);
 		}
 		villo.isLoaded = true;
@@ -2473,13 +2474,21 @@ villo = ({});
 								villo.sync();
 							//villo.log(0)
 							} else {
-								callback(33);
+								if (callback) {
+									callback(33);
+								} else {
+									userObject.callback(33);
+								}
 								villo.verbose && villo.log(33);
 								villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 							}
 					},
 					onFailure: function(failure){
-						callback(33);
+						if (callback) {
+							callback(33);
+						} else {
+							userObject.callback(33);
+						}
 					}
 				});
 		},
