@@ -1,2 +1,2 @@
 MD=$(pwd)
-./jodoc ../core/*.js ../utils/*.js pages/LICENSE.mdown pages/ABOUT.mdown pages/DEVELOPERGUIDE.mdown --output html --toc pages/TOC.mdown --template template.html --markdown $MD/Markdown.pl 
+./jodoc ../core/*.js ../utils/*.js pages/LICENSE.mdown pages/ABOUT.mdown pages/DEVELOPERGUIDE.mdown --output html --toc pages/TOC.mdown --template pages/template.html --markdown $MD/Markdown.pl 
