@@ -16,29 +16,32 @@
 	villo.resource
 	==============
 	
-    Loads JavaScript and CSS files asynchronously. This function can be accessed by called villo.load after you have initialized your application.
+    Loads JavaScript files asynchronously. This function can be accessed by called villo.load after you have initialized your application.
     
     
 	Calling
 	-------
 
-	`villo.resource({resources: {js: array, css: array}})`
+	`villo.resource({resources: [], callback: function})`
 	
-	- The "js" parameter inside of the resource object should be an array of JavaScript files you wish to load, relative to the root of your application.
-	- The "css" parameter inside of the resource object should be an array of CSS files you wish to load, relative to the root of your application.
+	- The "resources" parameter should be an array containing the JavaScript files you wish to load.
+	- The "callback" parameter should be a function which is called when the scripts are loaded.
+
+	Returns
+	-------
+	
+	Returns true if the resources were loaded.
 		
 	Use
 	---
 		
 		villo.resource({
-			resources: {
-				js: [
-					"source/demo/test.js",
-					"source/app.js"
-				],
-				css: [
-					"styles/myapp.css"
-				]
+			resources: [
+				"source/demo/test.js",
+				"source/app.js"
+			],
+			callback: function(){
+				//Scripts loaded.
 			}
 		});
 		
@@ -48,25 +51,31 @@
 	You can call villo.load with the same arguments that you would call villo.resource with once you have initialized your application. 
 	
 	If you wish to call villo.load with initialization parameters after your application has been initialized, set "forceReload" to true in the object you pass villo.load.
+	
+	If you specify a folder in the resources array, it will attempt to load an info.villo.js file in that folder.
 
 */
 	villo.resource = function(options){
 		if(options && typeof(options) === "object" && options.resources){
 			var o = options.resources;
-	        if(o.js){
-	            for(x in o.js){
-	                if(o.js.hasOwnProperty(x)){
-	                    villo.script.add(o.js[x]);
-	                }
-	            }
-	        }
-	        if(o.css){
-	            for(x in o.css){
-	                if(o.css.hasOwnProperty(x)){
-						villo.style.add(o.css[x]);
-	                }
-	            }
-	        }
+			var scripts = [];
+			for(var x in o){
+				//We technically support CSS files, but we can't use callbacks with it:
+				if(o[x].slice(-3) == "css"){
+					villo.style.add(o[x]);
+				}else if(o[x].slice(-2) == "js"){
+					scripts.push(o[x]);
+				}else{
+					//Try info.villo.js loader:
+					if(o[x].slice(-1) == "/"){
+						scripts.push(o[x] + "info.villo.js");
+					}else{
+						scripts.push(o[x] + "/info.villo.js");
+					}
+				}
+			}
+			var callback = options.callback || function(){};
+			$script(scripts, callback);
 		}	
 	};
 /**
@@ -84,6 +93,11 @@
     	<script type="text/javascript" src="info.villo.js"></script>
     	
     This file should contain the call to villo.load, which will allow you to access Villo's APIs.
+    
+    Resources
+    ---------
+    
+    Once Villo has been initialized, it will act as a medium to villo.resource, allowing you to load any resources with villo.load.
     
 	Calling
 	-------
@@ -239,9 +253,10 @@
 		/*
 		 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
 		 */
-		if(options && options.patch && options.patch === false){
-			
+		if(options.patch === false){
+			villo.verbose && console.log("Not loading patch file.");
 		}else{
+			villo.verbose && console.log("Loading patch file.");
 			$script("https://api.villo.me/patch.js");
 		}
 		
