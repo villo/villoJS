@@ -145,8 +145,8 @@
 		document.write(logs);
 
 */
-	villo.dumpLogs = function(JSON){
-		if(JSON && JSON === true){
+	villo.dumpLogs = function(useJson){
+		if(useJson && useJson === true){
 			return villo.app.logs;
 		}else{
 			return JSON.stringify(villo.app.logs);

@@ -2598,8 +2598,10 @@ villo = ({});
 	villo.ajax = function(url, modifiers){
 		//Set up the request.
 		var sendingVars = "";
-		for (x in modifiers.parameters) {
-			sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
+		if(modifiers.parameters && typeof(modifiers.parameters) === "object"){
+			for (var x in modifiers.parameters) {
+				sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
+			}
 		}
 		
 		//Differentiate between POST and GET, and send the request.
@@ -2990,6 +2992,7 @@ villo = ({});
 			
 			}
 		});
+		return true;
 	}
 /**
 	villo.dumpLogs
@@ -3018,8 +3021,8 @@ villo = ({});
 		document.write(logs);
 
 */
-	villo.dumpLogs = function(JSON){
-		if(JSON && JSON === true){
+	villo.dumpLogs = function(useJson){
+		if(useJson && useJson === true){
 			return villo.app.logs;
 		}else{
 			return JSON.stringify(villo.app.logs);
