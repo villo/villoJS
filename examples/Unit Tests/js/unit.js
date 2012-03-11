@@ -381,6 +381,51 @@ villo.extend({
 				}));
 			},
 			end: function(){
+				this.__class__.utilities.init();
+			}
+		},
+		leaders: {},
+		messages: {},
+		storage: {},
+		settings: {},
+		states: {},
+		utilities: {
+			init: function(){
+				module("Utilities");
+				this.ajax();
+			},
+			ajax: function(){
+				this.extend();
+			},
+			extend: function(){
+				test("extend test", villo.bind(this, function(){
+					villo.extend({
+						extender: {
+							working: true
+						}
+					});
+					equal(villo.extender.working, true, "We expect the extension to load.");
+					
+					villo.extender.extend({
+						notWorking: false
+					});
+					equal(villo.extender.working, true, "We expect the second sub-extension to load.");
+					
+					villo.extender.extend({
+						init: function(){
+							this.initRun = true;
+						}
+					});
+					equal(villo.extender.initRun, true, "We expect the init function to be run.");
+				}));
+			},
+			log: function(){
+				
+			},
+			webLog: function(){
+				
+			},
+			dumpLogs: function(){
 				
 			}
 		}
