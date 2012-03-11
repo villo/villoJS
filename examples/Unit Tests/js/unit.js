@@ -395,7 +395,22 @@ villo.extend({
 				this.ajax();
 			},
 			ajax: function(){
-				this.extend();
+				test("ajax test", villo.bind(this, function(){
+					stop();
+					villo.ajax("https://api.villo.me/ping.php", {
+						method: "get",
+						onSuccess: villo.bind(this, function(t){
+							start();
+							equal(t, "Hello, world!", "We expect a specific string to be returned by the server.");
+							this.extend();
+						}),
+						onFailure: villo.bind(this, function(t){
+							start();
+							ok(false);
+							this.extend();
+						})
+					});
+				}));
 			},
 			extend: function(){
 				test("extend test", villo.bind(this, function(){
@@ -417,16 +432,33 @@ villo.extend({
 						}
 					});
 					equal(villo.extender.initRun, true, "We expect the init function to be run.");
+					
+					this.log();
 				}));
 			},
 			log: function(){
-				
+				test("log test", villo.bind(this, function(){
+					var log = villo.log("Hello there!");
+					equal(log, true, "We expect the content to be logged.");
+					this.webLog();
+				}));
 			},
 			webLog: function(){
-				
+				test("webLog test", villo.bind(this, function(){
+					var log = villo.webLog("What's up?");
+					equal(log, true, "We expect the content to be logged.");
+					this.dumpLogs();
+				}));
 			},
 			dumpLogs: function(){
-				
+				//The logs that we put in:
+				test("dumpLogs test", villo.bind(this, function(){
+					var expectedLogs = [
+						"\"Hello there!\"",
+						"\"What's up?\""
+					];
+					deepEqual(villo.dumpLogs(true), expectedLogs, "We expect to get the logs we've generated previously.")
+				}));
 			}
 		}
 	},
