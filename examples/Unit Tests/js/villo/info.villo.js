@@ -12,5 +12,5 @@ villo.load({
 		//"examples/Unit Tests/js/unit.js"
 	],
 	verbose: false, //Turn on logging.
-	patch: false //Don't include Villo
+	patch: true //Don't include patch file
 });

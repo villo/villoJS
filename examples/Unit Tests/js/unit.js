@@ -328,6 +328,59 @@ villo.extend({
 				}));
 			},
 			end: function(){
+				this.__class__.resource.init();
+			}
+		},
+		resource: {
+			init: function(){
+				module("Resource");
+				this.resource();
+			},
+			resource: function(){
+				test("resource test", villo.bind(this, function(){
+					equal((villo.example || false), false, "We expect the resource to not be loaded yet.");
+					stop();
+					villo.resource({
+						resources: [
+							"js/villo/example.js"
+						],
+						callback: villo.bind(this, function(){
+							start();
+							equal((villo.example || false), true, "We expect the resource to be loaded.");
+							this.load();
+						})
+					});
+				}));
+			},
+			load: function(){
+				test("resource via load test", villo.bind(this, function(){
+					equal((villo.example2 || false), false, "We expect the resource to not be loaded yet.");
+					stop();
+					villo.load({
+						resources: [
+							"js/villo/example2.js"
+						],
+						callback: villo.bind(this, function(){
+							start();
+							equal((villo.example2 || false), true, "We expect the resource to be loaded.");
+							this.end();
+						})
+					});
+				}));
+			},
+			end: function(){
+				this.__class__.patch.init();
+			}
+		},
+		patch: {
+			init: function(){
+				module("Patch");
+				test("remote patch file test", villo.bind(this, function(){
+					equal((villo.patched || false), true, "We expect Villo to be patched.")
+					this.end();
+				}));
+			},
+			end: function(){
 				
 			}
 		}

@@ -1,0 +1,3 @@
+villo.extend({
+	example: true
+});
