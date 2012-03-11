@@ -48,8 +48,10 @@
 	villo.ajax = function(url, modifiers){
 		//Set up the request.
 		var sendingVars = "";
-		for (x in modifiers.parameters) {
-			sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
+		if(modifiers.parameters && typeof(modifiers.parameters) === "object"){
+			for (var x in modifiers.parameters) {
+				sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
+			}
 		}
 		
 		//Differentiate between POST and GET, and send the request.

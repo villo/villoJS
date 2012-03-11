@@ -116,6 +116,7 @@
 			
 			}
 		});
+		return true;
 	}
 /**
 	villo.dumpLogs
