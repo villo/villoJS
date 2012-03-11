@@ -230,15 +230,105 @@ villo.extend({
 				}));
 			},
 			friends: function(){
-				test("friends test", function(){
+				test("friends test", villo.bind(this, function(){
 					stop();
 					villo.profile.friends({
-						callback: function(f){
+						callback: villo.bind(this, function(f){
 							start();
-							equal(typeof(f.friends), "object", "We expect A friends object.");
-						}
+							equal(typeof(f.friends), "object", "We expect a friends object.");
+							this.end();
+						})
 					});
-				});
+				}));
+			},
+			end: function(){
+				this.__class__.clipboard.init();
+			}
+		},
+		clipboard: {
+			init: function(){
+				module("Clipboard");
+				this.copy();
+			},
+			copy: function(){
+				test("copy test", villo.bind(this, function(){
+					var copy = villo.clipboard.copy("What's up, dawg!?");
+					equal(typeof(copy), "number", "We expect a number to be returned.");
+					this.paste();
+				}));
+			},
+			paste: function(){
+				test("paste test", villo.bind(this, function(){
+					var paste = villo.clipboard.paste();
+					equal(paste, "What's up, dawg!?", "We expect a specific string.")
+					this.end();
+				}));
+			},
+			end: function(){
+				this.__class__.friends.init();
+			}
+		},
+		friends: {
+			init: function(){
+				module("Friends");
+				this.add();
+			},
+			add: function(){
+				test("add test", villo.bind(this, function(){
+					stop();
+					villo.friends.add({
+						username: "admin",
+						callback: villo.bind(this, function(f){
+							var added = false;
+							for(var x in f.friends){
+								if(f.friends.hasOwnProperty(x)){
+									if(f.friends[x].toLowerCase() === "admin"){
+										added = true;
+									}
+								}
+							}
+							start();
+							equal(added, true, "We expect the user to be in the friendlist.");
+							this.get();
+						})
+					});
+				}));
+			},
+			get: function(){
+				test("get test", villo.bind(this, function(){
+					stop();
+					villo.friends.get({
+						callback: villo.bind(this, function(f){
+							start();
+							equal(typeof(f), "object", "We expect the user to be in the friendlist.");
+							this.remove();
+						})
+					});
+				}));
+			},
+			remove: function(){
+				test("remove test", villo.bind(this, function(){
+					stop();
+					villo.friends.remove({
+						username: "admin",
+						callback: villo.bind(this, function(f){
+							var added = false;
+							for(var x in f.friends){
+								if(f.friends.hasOwnProperty(x)){
+									if(f.friends[x].toLowerCase() === "admin"){
+										added = true;
+									}
+								}
+							}
+							start();
+							equal(added, false, "We expect the user to be gone.");
+							this.end();
+						})
+					});
+				}));
+			},
+			end: function(){
+				
 			}
 		}
 	},
