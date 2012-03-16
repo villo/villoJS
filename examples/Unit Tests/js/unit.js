@@ -381,13 +381,37 @@ villo.extend({
 				}));
 			},
 			end: function(){
+				this.__class__.leaders.init();
+			}
+		},
+		leaders: {
+			init: function(){
+				
+			},
+			submit: function(){
+				
+			},
+			get: function(){
+				
+			},
+			search: function(){
+				
+			},
+			end: function(){
 				this.__class__.utilities.init();
 			}
 		},
-		leaders: {},
 		messages: {},
-		storage: {},
-		settings: {},
+		storage: {
+			end: function(){
+				this.__class__.settings.init();
+			}
+		},
+		settings: {
+			end: function(){
+				this.__class__.states.init();
+			}
+		},
 		states: {},
 		utilities: {
 			init: function(){
