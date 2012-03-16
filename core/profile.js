@@ -59,7 +59,9 @@
 					api: villo.apiKey,
 					appid: villo.app.id,
 					type: "get",
-					username: getObject.username
+					username: getObject.username,
+					ourUsername: villo.user.username || "Guest",
+					ourToken: villo.user.token || ""
 				},
 				onSuccess: function(transport){
 					villo.verbose && villo.log(transport);
