@@ -82,9 +82,13 @@
 */
 		load: function(loadObject){
 			if (loadObject.instant && loadObject.instant == true) {
-				villo.app.settings = store.get("VilloSettingsProp").settings;
-				//TODO: Callback, baby
-				return villo.app.settings;
+				if(store.get("VilloSettingsProp")){
+					villo.app.settings = store.get("VilloSettingsProp").settings;
+					//TODO: Callback, baby
+					return villo.app.settings;
+				}else{
+					return false;
+				}
 			} else {
 				var theTimestamp = store.get("VilloSettingsProp").timestamp;
 				villo.storage.get({

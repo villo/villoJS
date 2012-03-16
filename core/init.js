@@ -175,7 +175,7 @@
 		//Load up the settings (includes sync).
 		if (store.get("VilloSettingsProp")) {
 			villo.settings.load({
-				callback: villo.doNothing()
+				callback: villo.doNothing
 			});
 		}
 		
