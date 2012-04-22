@@ -1,6 +1,13 @@
 /* Villo User */
 (function(){
 	villo.user = {
+		/*
+		 * 
+		 */
+		propBag: {
+			"user": null,
+			"token": null
+		},
 /**
 	villo.user.login
 	================
@@ -66,10 +73,10 @@
 						}
 					} else 
 						if (token.length == 33) {
-							store.set("token.user", userObject.username);
+							store.set(villo.user.propBag.user, userObject.username);
 							//returned token has a space at the beginning. No Bueno. Let's fix that. Probably should fix this server-side at some point
 							token = token.substring(1);
-							store.set("token.token", token);
+							store.set(villo.user.propBag.token, token);
 							villo.user.username = userObject.username;
 							villo.user.token = token;
 							
@@ -123,8 +130,8 @@
 */
 		logout: function(){
 			//destroy user tokens and logout.
-			store.remove("token.token");
-			store.remove("token.user");
+			store.remove(villo.user.propBag.user);
+			store.remove(villo.user.propBag.token);
 			//Remove the variables we're working with locally.
 			villo.user.username = null;
 			villo.user.token = null;
@@ -276,10 +283,10 @@
 							}
 						} else 
 							if (token.length == 33) {
-								store.set("token.user", userObject.username);
+								store.set(villo.user.propBag.user, userObject.username);
 								//returned token has a space at the beginning. No Bueno. Let's fix that. Probably should fix this server-side at some point
 								token = token.substring(1);
-								store.set("token.token", token);
+								store.set(villo.user.propBag.token, token);
 								villo.user.username = userObject.username;
 								villo.user.token = token;
 								if (callback) {
@@ -308,15 +315,45 @@
 					}
 				});
 		},
+/**
+	villo.user.strapLogin
+	==================
+	
+	Manually loads a user account given a specific username and token.
+	
+	Calling
+	-------
+	
+	`villo.user.strapLogin({username: string, token: string})`
+	
+	- The "username" string should be the username of the account that you are loading.
+	- The "token" string should be the unique authentication token that is generated when a user logs into your application.
+	
+	Returns
+	-------
+	
+	Returns true when completed.
+	
+	Use
+	---
+	
+		villo.user.strapLogin({username: "asdf", token: "someBigTokenString"});
+		
+	Notes
+	-----
+	
+	In order to call strapLogin, you must have a valid token and username and token for your app. Every application has a different token for every user.
+	This feature is designed for applications which have multi-account support.
+	
+*/	
 		strapLogin: function(strapObject){
-			store.set("token.user", strapObject.username);
-			store.set("token.token", strapObject.token);
+			store.set(villo.user.propBag.user, strapObject.username);
+			store.set(villo.user.propBag.token, strapObject.token);
 			villo.user.username = strapObject.username;
 			villo.user.token = strapObject.token;
 			villo.sync();
+			return true;
 		},
-		
-		username: null,
 		
 /**
 	villo.user.getUsername
@@ -345,7 +382,7 @@
 		getUsername: function(){
 			return villo.user.username || false;
 		},
-		
-		token: ''
+		username: null,
+		token: ""
 	}
 })();

@@ -574,6 +574,119 @@ villo = ({});
 	}
 })();
 
+/* Villo Public Feeds */
+(function(){
+	villo.feeds = {
+		post: function(pubObject){
+			/*
+			 * Channels: 
+			 * =========
+			 * 
+			 * VILLO/FEEDS/PUBLIC
+			 * VILLO/FEEDS/USERS/USERNAME
+			 * VILLO/FEEDS/APPS/APPID
+			 */
+			/*
+			 * Actions:
+			 * ========
+			 * 
+			 * Actions aim to give developers an idea of what the feed post is about. 
+			 * Developers can define any action to differentiate posts from their own app, and handle the actions accordingly.
+			 * The default action is "user-post".
+			 * The following are reserved actions, and any post that attempts to use them will get prefixed with "custom-".
+			 * 
+			 * 	- "user-profile"
+			 * 	- "user-register"
+			 * 	- "user-login"
+			 * 	- "friend-add"
+			 * 	- "leaders-submit"
+			 * 
+			 * Additionally, the "villo-" prefix is reserved, and any post that attempts to use it will get prefixed with "custom-".
+			 * 
+			 * All actions will be converted to lowercase.
+			 */
+			villo.ajax("https://api.villo.me/feeds.php", {
+				method: 'post',
+				parameters: {
+					api: villo.apiKey,
+					appid: villo.app.id,
+					type: "post",
+					username: villo.user.username,
+					token: villo.user.token,
+					description: pubObject.description,
+					action: pubObject.action || "user-post"
+				},
+				onSuccess: function(transport){
+					if(transport === "1"){
+						//Successful:
+						pubObject.callback(true);
+					}else{
+						pubObject.callback(33);
+					}
+				},
+				onFailure: function(err){
+					pubObject.callback(33);
+				}
+			});
+		},
+		history: function(historyObject){
+			//TODO: Server-side activity log!
+			//Get the string we want to use based on the type:
+			villo.ajax("https://api.villo.me/feeds.php", {
+				method: 'post',
+				parameters: {
+					api: villo.apiKey,
+					appid: villo.app.id,
+					type: "history",
+					username: villo.user.username,
+					token: villo.user.token,
+					limit: historyObject.limit || 100,
+					historyType: historyObject.type || "public"
+				},
+				onSuccess: function(transport){
+					
+					try{
+						transport = JSON.parse(transport);
+					}catch(e){}
+					
+					if(transport && transport.feeds){
+						//Successful:
+						historyObject.callback(transport);
+					}else{
+						historyObject.callback(33);
+					}
+				},
+				onFailure: function(err){
+					historyObject.callback(33);
+				}
+			});
+		},
+		listen: function(listenObject){
+			
+			//Get the string we want to use based on the type:
+			var feedString = "VILLO/FEEDS/";
+			if(!listenObject.type){
+				listenObject.type = "public";
+			}
+			var h = listenObject.type;
+			if(h.toLowerCase() === "public"){
+				feedString += "PUBLIC";
+			}else if(h.toLowerCase() === "user" || h.toLowerCase() === "username"){
+				feedString += ("USERS/" + (listenObject.username.toUpperCase() || villo.user.getUsername().toUpperCase()));
+			}else if(h.toLowerCase() === "apps"){
+				feedString += ("APPS/" + (listenObject.appid.toUpperCase() || villo.app.id));
+			}
+			
+			PUBNUB.subscribe({
+				channel: feedString,
+				callback: function(data){
+					listenObject.callback(data);
+				}
+			});
+		}
+	};
+})();
+
 /* Villo Friends */
 (function(){
 	villo.friends = {
@@ -1003,12 +1116,6 @@ villo = ({});
 
 /* Villo Init/Load */
 
-
-//TODO:
-//We should also encourage usage of this for things like extensions, where they can have an info.js file that loads up the extension.
-//Change what villo.load does based on if it was already called. If it was, use it for excess file loading.
-
-
 (function(){
 	//We aren't loaded yet
 	villo.isLoaded = false;
@@ -1172,7 +1279,12 @@ villo = ({});
 			villo.overrideStorage(true);
 		}
 		
-		
+		//Passed App Information
+		villo.app.platform = options.platform;
+		villo.app.title = options.title;
+		villo.app.id = options.id;
+		villo.app.version = options.version;
+		villo.app.developer = options.developer;
 		
 		//Load up the settings (includes sync).
 		if (store.get("VilloSettingsProp")) {
@@ -1181,22 +1293,27 @@ villo = ({});
 			});
 		}
 		
-		//Passed App Information
-		villo.app.platform = options.platform;
-		villo.app.title = options.title;
-		villo.app.id = options.id;
-		villo.app.version = options.version;
-		villo.app.developer = options.developer;
+		/*
+		 * Set up the user propBag
+		 */
+		if(!villo.user.propBag){
+			villo.user.propBag = {}
+		}
 		
-		//How verbose do we want Villo to be?
+		villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
+		villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
+		
+		/*
+		 * Optional: Turn on logging.
+		 */
 		if(options.verbose){
 			villo.verbose = options.verbose;
 		}
 		
 		//Check login status.
-		if (store.get("token.user") && store.get("token.token")) {
-			villo.user.username = store.get("token.user");
-			villo.user.token = store.get("token.token");
+		if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
+			villo.user.username = store.get(villo.user.propBag.user);
+			villo.user.token = store.get(villo.user.propBag.token);
 			//User Logged In
 			villo.sync();
 		} else {
@@ -1830,6 +1947,40 @@ villo = ({});
 					updateObject.callback(33);
 				}
 			});
+		},
+/**
+	villo.profile.avatar
+	=====================
+	
+    Uses the Villo Avatar API to load a given users avatar.
+    
+	Calling
+	-------
+
+	`villo.profile.avatar({username: string, size: string})`
+	
+	- The "username" should be a string of the user whose avatar you wish to retrieve.
+	- The "size" should be the size of the avatar that you want. Supported sizes are "thumbnail" (64x64), "small" (200x200), and "full" (up to 800x800). By default, "full" is used.
+	
+	Returns
+	-------
+		
+	A string containing the url of the avatar (using the Villo Avatar API) will be returned.
+	
+	For example:
+		https://api.villo.me/avatar.php?username=kesne&thumbnail=true
+		
+	Use
+	---
+		
+		var avatarUrl = villo.profile.avatar({
+			username: "kesne",
+			size: "thumbnail"
+		});
+
+*/
+		avatar: function(avatarObject){
+			
 		}
 	}
 })();
@@ -2206,6 +2357,13 @@ villo = ({});
 /* Villo User */
 (function(){
 	villo.user = {
+		/*
+		 * 
+		 */
+		propBag: {
+			"user": null,
+			"token": null
+		},
 /**
 	villo.user.login
 	================
@@ -2271,10 +2429,10 @@ villo = ({});
 						}
 					} else 
 						if (token.length == 33) {
-							store.set("token.user", userObject.username);
+							store.set(villo.user.propBag.user, userObject.username);
 							//returned token has a space at the beginning. No Bueno. Let's fix that. Probably should fix this server-side at some point
 							token = token.substring(1);
-							store.set("token.token", token);
+							store.set(villo.user.propBag.token, token);
 							villo.user.username = userObject.username;
 							villo.user.token = token;
 							
@@ -2328,8 +2486,8 @@ villo = ({});
 */
 		logout: function(){
 			//destroy user tokens and logout.
-			store.remove("token.token");
-			store.remove("token.user");
+			store.remove(villo.user.propBag.user);
+			store.remove(villo.user.propBag.token);
 			//Remove the variables we're working with locally.
 			villo.user.username = null;
 			villo.user.token = null;
@@ -2481,10 +2639,10 @@ villo = ({});
 							}
 						} else 
 							if (token.length == 33) {
-								store.set("token.user", userObject.username);
+								store.set(villo.user.propBag.user, userObject.username);
 								//returned token has a space at the beginning. No Bueno. Let's fix that. Probably should fix this server-side at some point
 								token = token.substring(1);
-								store.set("token.token", token);
+								store.set(villo.user.propBag.token, token);
 								villo.user.username = userObject.username;
 								villo.user.token = token;
 								if (callback) {
@@ -2513,15 +2671,45 @@ villo = ({});
 					}
 				});
 		},
+/**
+	villo.user.strapLogin
+	==================
+	
+	Manually loads a user account given a specific username and token.
+	
+	Calling
+	-------
+	
+	`villo.user.strapLogin({username: string, token: string})`
+	
+	- The "username" string should be the username of the account that you are loading.
+	- The "token" string should be the unique authentication token that is generated when a user logs into your application.
+	
+	Returns
+	-------
+	
+	Returns true when completed.
+	
+	Use
+	---
+	
+		villo.user.strapLogin({username: "asdf", token: "someBigTokenString"});
+		
+	Notes
+	-----
+	
+	In order to call strapLogin, you must have a valid token and username and token for your app. Every application has a different token for every user.
+	This feature is designed for applications which have multi-account support.
+	
+*/	
 		strapLogin: function(strapObject){
-			store.set("token.user", strapObject.username);
-			store.set("token.token", strapObject.token);
+			store.set(villo.user.propBag.user, strapObject.username);
+			store.set(villo.user.propBag.token, strapObject.token);
 			villo.user.username = strapObject.username;
 			villo.user.token = strapObject.token;
 			villo.sync();
+			return true;
 		},
-		
-		username: null,
 		
 /**
 	villo.user.getUsername
@@ -2550,8 +2738,8 @@ villo = ({});
 		getUsername: function(){
 			return villo.user.username || false;
 		},
-		
-		token: ''
+		username: null,
+		token: ""
 	}
 })();
 
@@ -3136,7 +3324,7 @@ villo = ({});
 					}
 				});
 			} else {
-			//It hasn't been long enough since our last check in.
+				//It hasn't been long enough since our last check in.
 			}
 		} else {
 			store.set('feed', currentTime);

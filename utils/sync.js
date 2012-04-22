@@ -72,7 +72,7 @@
 					}
 				});
 			} else {
-			//It hasn't been long enough since our last check in.
+				//It hasn't been long enough since our last check in.
 			}
 		} else {
 			store.set('feed', currentTime);

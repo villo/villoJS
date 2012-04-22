@@ -240,6 +240,40 @@
 					updateObject.callback(33);
 				}
 			});
+		},
+/**
+	villo.profile.avatar
+	=====================
+	
+    Uses the Villo Avatar API to load a given users avatar.
+    
+	Calling
+	-------
+
+	`villo.profile.avatar({username: string, size: string})`
+	
+	- The "username" should be a string of the user whose avatar you wish to retrieve.
+	- The "size" should be the size of the avatar that you want. Supported sizes are "thumbnail" (64x64), "small" (200x200), and "full" (up to 800x800). By default, "full" is used.
+	
+	Returns
+	-------
+		
+	A string containing the url of the avatar (using the Villo Avatar API) will be returned.
+	
+	For example:
+		https://api.villo.me/avatar.php?username=kesne&thumbnail=true
+		
+	Use
+	---
+		
+		var avatarUrl = villo.profile.avatar({
+			username: "kesne",
+			size: "thumbnail"
+		});
+
+*/
+		avatar: function(avatarObject){
+			
 		}
 	}
 })();

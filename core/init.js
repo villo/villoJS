@@ -1,12 +1,6 @@
 
 /* Villo Init/Load */
 
-
-//TODO:
-//We should also encourage usage of this for things like extensions, where they can have an info.js file that loads up the extension.
-//Change what villo.load does based on if it was already called. If it was, use it for excess file loading.
-
-
 (function(){
 	//We aren't loaded yet
 	villo.isLoaded = false;
@@ -170,7 +164,12 @@
 			villo.overrideStorage(true);
 		}
 		
-		
+		//Passed App Information
+		villo.app.platform = options.platform;
+		villo.app.title = options.title;
+		villo.app.id = options.id;
+		villo.app.version = options.version;
+		villo.app.developer = options.developer;
 		
 		//Load up the settings (includes sync).
 		if (store.get("VilloSettingsProp")) {
@@ -179,22 +178,27 @@
 			});
 		}
 		
-		//Passed App Information
-		villo.app.platform = options.platform;
-		villo.app.title = options.title;
-		villo.app.id = options.id;
-		villo.app.version = options.version;
-		villo.app.developer = options.developer;
+		/*
+		 * Set up the user propBag
+		 */
+		if(!villo.user.propBag){
+			villo.user.propBag = {}
+		}
 		
-		//How verbose do we want Villo to be?
+		villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
+		villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
+		
+		/*
+		 * Optional: Turn on logging.
+		 */
 		if(options.verbose){
 			villo.verbose = options.verbose;
 		}
 		
 		//Check login status.
-		if (store.get("token.user") && store.get("token.token")) {
-			villo.user.username = store.get("token.user");
-			villo.user.token = store.get("token.token");
+		if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
+			villo.user.username = store.get(villo.user.propBag.user);
+			villo.user.token = store.get(villo.user.propBag.token);
 			//User Logged In
 			villo.sync();
 		} else {
