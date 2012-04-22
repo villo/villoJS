@@ -595,11 +595,12 @@ villo = ({});
 			 * The default action is "user-post".
 			 * The following are reserved actions, and any post that attempts to use them will get prefixed with "custom-".
 			 * 
-			 * 	- "user-profile"
-			 * 	- "user-register"
-			 * 	- "user-login"
-			 * 	- "friend-add"
-			 * 	- "leaders-submit"
+			 * 	- "leaders-submit",
+			 *	- "friend-add",
+			 *	- "profile-edit",
+			 *	- "app-launch",
+			 *	- "user-register",
+			 *	- "user-login"
 			 * 
 			 * Additionally, the "villo-" prefix is reserved, and any post that attempts to use it will get prefixed with "custom-".
 			 * 
@@ -629,9 +630,11 @@ villo = ({});
 				}
 			});
 		},
+		repost: function(repostObject){
+			//TODO
+			return false;
+		},
 		history: function(historyObject){
-			//TODO: Server-side activity log!
-			//Get the string we want to use based on the type:
 			villo.ajax("https://api.villo.me/feeds.php", {
 				method: 'post',
 				parameters: {
@@ -640,8 +643,9 @@ villo = ({});
 					type: "history",
 					username: villo.user.username,
 					token: villo.user.token,
-					limit: historyObject.limit || 100,
-					historyType: historyObject.type || "public"
+					limit: historyObject.limit || 50,
+					historyType: historyObject.type || "public",
+					after: historyObject.after || false
 				},
 				onSuccess: function(transport){
 					
@@ -3068,7 +3072,58 @@ villo = ({});
 		configurable: true,
 		enumerable: false
 	});
+})();(function(){
+	/*
+	 * Experimental
+	 */
+	villo.hooks = {
+		//Where we store the callbacks.
+		hooks: [
+			//Examples:
+			{
+				name: "login",
+				callback: function(){}
+			},
+			{
+				name: "account",
+				callback: function(){}
+			}
+		],
+		//The events that have been called.
+		called: {},
+		//Listen to an action
+		listen: function(setObject){
+			//Check for the name in the called object to see if we should trigger it right now.
+			//Set retroactive to false in the listen function to turn off the retroactive calling.
+			if(setObject.retroactive && setObject.retroactive === true){
+				if(this.called[setObject.name]){
+					setObject.callback(this.called[setObject.name].arguments);
+				}
+			}
+			this.hooks.push({name: setObject.name, callback: setObject.callback});
+		},
+		//Call a hook
+		call: function(callObject){
+			//Allow for retroactive calling.
+			if(callObject.retroactive && callObject.retroactive === true){
+				//Prevent it from being called multiple times.
+				var shouldAdd = true;
+				//Update with latest arguments:
+				this.called[callObject.name] = {name: callObject.name, arguments: callObject.arguments || true};
+			}
+			//Loop through hooks, trigger ones with the same name:
+			for(var x in this.hooks){
+				if(this.hooks.hasOwnProperty(x)){
+					if(this.hooks[x].name === callObject.name){
+						//Same name, trigger it!
+						this.hooks[x].callback(callObject.arguments || true);
+					}
+				}
+			}
+		},
+	}
 })();
+
 /* Villo Log */
 (function(){
 /**

@@ -4,30 +4,16 @@
 	 */
 	villo.hooks = {
 		//Where we store the callbacks.
-		hooks: [
-			//Examples:
-			{
-				name: "login",
-				callback: function(){}
-			},
-			{
-				name: "account",
-				callback: function(){}
-			}
-		],
+		hooks: [],
 		//The events that have been called.
-		called: [],
+		called: {},
 		//Listen to an action
 		listen: function(setObject){
-			//Check for the name in the called array to see if we should trigger it right now.
+			//Check for the name in the called object to see if we should trigger it right now.
 			//Set retroactive to false in the listen function to turn off the retroactive calling.
 			if(setObject.retroactive && setObject.retroactive === true){
-				for(var x in this.called){
-					if(this.called.hasOwnProperty(x)){
-						if(this.called[x].name === setObject.name){
-							setObject.callback(this.called[x].arguments);
-						}
-					}
+				if(this.called[setObject.name]){
+					setObject.callback(this.called[setObject.name].arguments);
 				}
 			}
 			this.hooks.push({name: setObject.name, callback: setObject.callback});
@@ -36,7 +22,10 @@
 		call: function(callObject){
 			//Allow for retroactive calling.
 			if(callObject.retroactive && callObject.retroactive === true){
-				this.called.push({name: callObject.name, arguments: callObject.arguments || true});
+				//Prevent it from being called multiple times.
+				var shouldAdd = true;
+				//Update with latest arguments:
+				this.called[callObject.name] = {name: callObject.name, arguments: callObject.arguments || true};
 			}
 			//Loop through hooks, trigger ones with the same name:
 			for(var x in this.hooks){
