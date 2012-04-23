@@ -6,7 +6,7 @@
 (function(){
 	villo.states = {
 		set: function(setObject, callbackFunc){
-			store.set("VAppState", setObject);
+			store.set(villo.app.propBag.states, setObject);
 			villo.storage.set({
 				privacy: true,
 				title: "VAppState",
@@ -20,9 +20,9 @@
 			if (getObject.instant && getObject.instant == true) {
 				//Don't force return, allow callback:
 				if(getObject.callback){
-					getObject.callback(store.get("VAppState"));
+					getObject.callback(store.get(villo.app.propBag.states));
 				}
-				return store.get("VAppState");
+				return store.get(villo.app.propBag.states);
 			} else {
 				villo.storage.get({
 					privacy: true,
@@ -34,7 +34,7 @@
 						
 						villo.log(transit);
 						if (!transit.storage) {
-							getObject.callback(store.get("VAppState"));
+							getObject.callback(store.get(villo.app.propBag.states));
 						} else {
 							getObject.callback(transit.storage);
 						}

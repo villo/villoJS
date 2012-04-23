@@ -171,13 +171,6 @@
 		villo.app.version = options.version;
 		villo.app.developer = options.developer;
 		
-		//Load up the settings (includes sync).
-		if (store.get("VilloSettingsProp")) {
-			villo.settings.load({
-				callback: villo.doNothing
-			});
-		}
-		
 		/*
 		 * Set up the user propBag
 		 */
@@ -187,6 +180,25 @@
 		
 		villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
 		villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
+		
+		/*
+		 * Set up the app propBag
+		 */
+		if(!villo.app.propBag){
+			villo.app.propBag = {}
+		}
+		
+		villo.app.propBag.states = "VAppState." + villo.app.id.toUpperCase();
+		villo.app.propBag.settings = "VilloSettingsProp." + villo.app.id.toUpperCase();
+		
+		/*
+		 * Load up the settings (includes sync + cloud).
+		 */
+		if (store.get(villo.app.propBag.settings)) {
+			villo.settings.load({
+				callback: villo.doNothing
+			});
+		}
 		
 		/*
 		 * Optional: Turn on logging.

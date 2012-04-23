@@ -82,15 +82,15 @@
 */
 		load: function(loadObject){
 			if (loadObject.instant && loadObject.instant == true) {
-				if(store.get("VilloSettingsProp")){
-					villo.app.settings = store.get("VilloSettingsProp").settings;
+				if(store.get(villo.app.propBag.settings)){
+					villo.app.settings = store.get(villo.app.propBag.settings).settings;
 					//TODO: Callback, baby
 					return villo.app.settings;
 				}else{
 					return false;
 				}
 			} else {
-				var theTimestamp = store.get("VilloSettingsProp").timestamp;
+				var theTimestamp = store.get(villo.app.propBag.settings).timestamp;
 				villo.storage.get({
 					privacy: true,
 					title: "VilloSettingsProp",
@@ -99,19 +99,19 @@
 						transit = JSON.parse(JSON.parse(transit));
 						if (!transit.storage) {
 							//Offline: 
-							villo.app.settings = store.get("VilloSettingsProp").settings
+							villo.app.settings = store.get(villo.app.propBag.settings).settings
 							loadObject.callback(villo.app.settings);
 						} else {
 							//Check for timestamps.
 							if (transit.storage.timestamp > theTimestamp) {
 								//Server version is newer. Replace our existing local storage with the server storage.
-								store.set("VilloSettingsProp", transit.storage);
+								store.set(villo.app.propBag.settings, transit.storage);
 								villo.app.settings = transit.storage.settings
 								loadObject.callback(villo.app.settings);
 							} else {
 								//Local version is newer. 
 								//TODO: Update server.
-								villo.app.settings = store.get("VilloSettingsProp").settings
+								villo.app.settings = store.get(villo.app.propBag.settings).settings
 								loadObject.callback(villo.app.setting);
 							}
 						}
@@ -168,7 +168,7 @@
 			var timestamp = d.getTime();
 			settingsObject.timestamp = timestamp;
 			settingsObject.settings = saveObject.settings;
-			store.set("VilloSettingsProp", settingsObject);
+			store.set(villo.app.propBag.settings, settingsObject);
 			villo.app.settings = settingsObject.settings;
 			villo.storage.set({
 				privacy: true,
@@ -202,7 +202,7 @@
 
 */
 		remove: function(){
-			store.remove("VilloSettingsProp");
+			store.remove(villo.app.propBag.settings);
 			villo.app.settings = {};
 			return true;
 		}
