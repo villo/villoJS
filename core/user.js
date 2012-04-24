@@ -87,6 +87,10 @@
 							}
 							
 							villo.sync();
+							
+							//Call the hook, retroactive account.
+							villo.hooks.call({name: "login"});
+							villo.hooks.call({name: "account", retroactive: true});
 						} else {
 							callback(33);
 							villo.verbose && villo.log(33);
@@ -135,6 +139,8 @@
 			//Remove the variables we're working with locally.
 			villo.user.username = null;
 			villo.user.token = null;
+			//Call a logout hook.
+			villo.hooks.call({name: "logout"});
 			//We did it!
 			return true;
 		},
@@ -295,7 +301,10 @@
 									userObject.callback(true);
 								}
 								villo.sync();
-							//villo.log(0)
+								
+								//Call the hook, retroactive account.
+								villo.hooks.call({name: "register"});
+								villo.hooks.call({name: "account", retroactive: true});
 							} else {
 								if (callback) {
 									callback(33);
@@ -351,6 +360,10 @@
 			store.set(villo.user.propBag.token, strapObject.token);
 			villo.user.username = strapObject.username;
 			villo.user.token = strapObject.token;
+			
+			//Call the hook, retroactive account.
+			villo.hooks.call({name: "account", retroactive: true});
+			
 			villo.sync();
 			return true;
 		},
