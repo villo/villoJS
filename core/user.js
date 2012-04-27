@@ -62,7 +62,8 @@
 					password: userObject.password
 				},
 				onSuccess: function(transport){
-					var token = transport;
+					//We occasionally have a whitespace issue, so trim it!
+					var token = villo.trim(transport);
 					if (token == 1 || token == 2 || token == 33 || token == 99) {
 						//Error, call back with our error codes.
 						//We also are using the newer callback syntax here.
@@ -72,10 +73,8 @@
 							userObject.callback(token);
 						}
 					} else 
-						if (token.length == 33) {
+						if (token.length == 32) {
 							store.set(villo.user.propBag.user, userObject.username);
-							//returned token has a space at the beginning. No Bueno. Let's fix that. Probably should fix this server-side at some point
-							token = token.substring(1);
 							store.set(villo.user.propBag.token, token);
 							villo.user.username = userObject.username;
 							villo.user.token = token;

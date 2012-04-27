@@ -2434,7 +2434,8 @@ villo = ({});
 					password: userObject.password
 				},
 				onSuccess: function(transport){
-					var token = transport;
+					//We occasionally have a whitespace issue, so trim it!
+					var token = villo.trim(transport);
 					if (token == 1 || token == 2 || token == 33 || token == 99) {
 						//Error, call back with our error codes.
 						//We also are using the newer callback syntax here.
@@ -2444,10 +2445,8 @@ villo = ({});
 							userObject.callback(token);
 						}
 					} else 
-						if (token.length == 33) {
+						if (token.length == 32) {
 							store.set(villo.user.propBag.user, userObject.username);
-							//returned token has a space at the beginning. No Bueno. Let's fix that. Probably should fix this server-side at some point
-							token = token.substring(1);
 							store.set(villo.user.propBag.token, token);
 							villo.user.username = userObject.username;
 							villo.user.token = token;
@@ -2459,6 +2458,10 @@ villo = ({});
 							}
 							
 							villo.sync();
+							
+							//Call the hook, retroactive account.
+							villo.hooks.call({name: "login"});
+							villo.hooks.call({name: "account", retroactive: true});
 						} else {
 							callback(33);
 							villo.verbose && villo.log(33);
@@ -2507,6 +2510,8 @@ villo = ({});
 			//Remove the variables we're working with locally.
 			villo.user.username = null;
 			villo.user.token = null;
+			//Call a logout hook.
+			villo.hooks.call({name: "logout"});
 			//We did it!
 			return true;
 		},
@@ -2667,7 +2672,10 @@ villo = ({});
 									userObject.callback(true);
 								}
 								villo.sync();
-							//villo.log(0)
+								
+								//Call the hook, retroactive account.
+								villo.hooks.call({name: "register"});
+								villo.hooks.call({name: "account", retroactive: true});
 							} else {
 								if (callback) {
 									callback(33);
@@ -2723,6 +2731,10 @@ villo = ({});
 			store.set(villo.user.propBag.token, strapObject.token);
 			villo.user.username = strapObject.username;
 			villo.user.token = strapObject.token;
+			
+			//Call the hook, retroactive account.
+			villo.hooks.call({name: "account", retroactive: true});
+			
 			villo.sync();
 			return true;
 		},
@@ -2833,9 +2845,47 @@ villo = ({});
 			error: function(error){
 				villo.verbose && console.log(error);
 				modifiers.onFailure(error);
-			}
+			},
+			jsonp: modifiers.jsonp || false
 		});	
 	}
+	
+	/*
+	 * Utility function that is utilized if no suitable ajax is available. 
+	 * This should not be called directly.
+	 */
+	villo.jsonp = {
+	    callbackCounter: 0,
+	    fetch: function(url, callback) {
+	        var fn = 'JSONPCallback_' + this.callbackCounter++;
+	        window[fn] = this.evalJSONP(callback);
+	        url = url.replace('=JSONPCallback', '=' + fn);
+	
+	        var scriptTag = document.createElement('SCRIPT');
+	        scriptTag.src = url;
+	        document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
+	    },
+	
+	    evalJSONP: function(callback) {
+	        return function(data) {
+	            var validJSON = false;
+		    if (typeof data == "string") {
+		        try {validJSON = JSON.parse(data);} catch (e) {
+		            /*invalid JSON*/}
+		    } else {
+		        validJSON = JSON.parse(JSON.stringify(data));
+	                window.console && console.warn(
+		            'response data was not a JSON string');
+	            }
+	            if (validJSON) {
+	                callback(validJSON);
+	            } else {
+	                throw("JSONP call returned invalid or empty JSON");
+	            }
+	        }
+	    }
+	}
+	
 	//This function does the actual Ajax request.
 	villo._do_ajax = function(options){
 		//Internet Explorer checker:
@@ -2848,38 +2898,51 @@ villo = ({});
         var success = options['success'];
         var error = options['error'];
         var data = options['data'];
+        
+        var jsonp = options['jsonp'] || false;
 
         try {
             var xhr = new XMLHttpRequest();
+            
+            //Force JSONP:
+            if (xhr && "withCredentials" in xhr && jsonp === true) {
+            	delete xhr.withCredentials;
+        	}
+        	
         } catch (e) {}
-
-        var is_sane = false;
 
         if (xhr && "withCredentials" in xhr) {
             xhr.open(type, url, true);
-        } else if (typeof XDomainRequest != "undefined") {
-        	//Internet Explorer
-        	
+        }else{
+        	//JSONP
         	/*
-        	 * Check if the client is requesting on a non-secure browser and reset API endpoints accordingly.
+        	 * This method should be used for everything that doesn't support good AJAX. 
+        	 * 
+        	 * Use YQL + GET method
+        	 * return in this method too, so that it doesn't try to process it as regular AJAX
         	 */
-        	if(window.location.protocol.toLowerCase() === "http:"){
-        		//Reset the URL to http:
-        		url = url.replace(/https:/i, "http:");
-        	}else if(window.location.protocol.toLowerCase() === "https:"){
-        		//Reset the URL to https:
-        		url = url.replace(/http:/i, "https:");
-        	}else{
-        		//Not HTTP or HTTPS. We can't do anything else with XDomainRequest!
-        		error("Protocol is not supported.");
-        		//Stop Running:
-        		return false;
-        	}
-        	
-            xhr = new XDomainRequest();
-            xhr.open(type, url);
-        } else{
-        	xhr = null;
+        	villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){
+        		
+    			//Add debugging info:
+    			try{transit.query.url = url; transit.query.data = data;}catch(e){};
+        		
+        		//See if the stuff we care about is actually there:
+        		if(transit && transit.query && transit.query.results){
+        			//YQL does some weird stuff:
+        			var results = transit.query.results;
+        			if(results.body && results.body.p){
+        				//Call success:
+        				success(results.body.p, "JSONP");
+        			}else{
+        				error(transit);
+        			}
+        		}else{
+        			//It's not there, call an error:
+        			error(transit);
+        		}
+        	});
+        	//Stop it from continuing to the regular AJAX function:
+        	return;
         }
 
         if (!xhr) {
@@ -2887,19 +2950,14 @@ villo = ({});
         	return false;
         } else {
             var handle_load = function (event_type) {
-                    return function (XHRobj) {
-                        // stupid IExplorer!!!
-                        var XHRobj = is_iexplorer() ? xhr : XHRobj;
+                return function (XHRobj) {
+                    // stupid IExplorer!!!
+                    var XHRobj = is_iexplorer() ? xhr : XHRobj;
 
-                        if (event_type == 'load' && (is_iexplorer() || XHRobj.readyState == 4) && success) success(XHRobj.responseText, XHRobj);
-                        else if (error) error(XHRobj);
-                    }
-                };
-
-            try {
-                // withCredentials is not supported by IExplorer's XDomainRequest and it has weird behavior anyway
-                xhr.withCredentials = false;
-            } catch (e) {};
+                    if (event_type == 'load' && (is_iexplorer() || XHRobj.readyState == 4) && success) success(XHRobj.responseText, XHRobj);
+                    else if (error) error(XHRobj);
+                }
+            };
 
             xhr.onload = function (e) {
                 handle_load('load')(is_iexplorer() ? e : e.target)
@@ -2907,6 +2965,7 @@ villo = ({});
             xhr.onerror = function (e) {
                 handle_load('error')(is_iexplorer() ? e : e.target)
             };
+            
             if(type.toLowerCase() === "post"){
             	//There were issues with how Post data was being handled, and setting this managed to fix all of the issues.
             	//Ergo, Villo needs this:
@@ -2934,7 +2993,12 @@ villo = ({});
 		//All logs from villo.log get dumped here.
 		logs: [],
 		//A house for the app settings.
-		settings: {}
+		settings: {},
+		//Reference to our pubnub api keys:
+		pubnub: {
+			pub: "pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10",
+			sub: "sub-4e37d063-edfa-11df-8f1a-517217f921a4"
+		}
 	}
 })();
 
@@ -3295,7 +3359,7 @@ villo = ({});
 		string = string.replace(/\"/g, '\\"');
 		string = string.replace(/\0/g, '\\0');
 		return string;
-	},
+	};
 	villo.stripslashes = function(str){
 		return (str + '').replace(/\\(.?)/g, function(s, n1){
 			switch (n1) {
@@ -3309,7 +3373,17 @@ villo = ({});
 					return n1;
 			}
 		});
-	}
+	};
+	villo.trim = function(str){
+		str = str.replace(/^\s+/, '');
+		for (var i = str.length - 1; i >= 0; i--) {
+			if (/\S/.test(str.charAt(i))) {
+				str = str.substring(0, i + 1);
+				break;
+			}
+		}
+		return str;
+	};
 })();
 
 /* Villo Sync */
@@ -3810,7 +3884,7 @@ window.JSON&&window.JSON.stringify||function(){function w(c){k.lastIndex=0;retur
 f;case "object":if(!f)return"null";i+=p;l=[];if("[object Array]"===Object.prototype.toString.apply(f)){n=f.length;for(e=0;e<n;e+=1)l[e]=t(e,f)||"null";o=0===l.length?"[]":i?"[\n"+i+l.join(",\n"+i)+"\n"+k+"]":"["+l.join(",")+"]";i=k;return o}if(m&&"object"===typeof m){n=m.length;for(e=0;e<n;e+=1)h=m[e],"string"===typeof h&&(o=t(h,f))&&l.push(w(h)+(i?": ":":")+o)}else for(h in f)Object.hasOwnProperty.call(f,h)&&(o=t(h,f))&&l.push(w(h)+(i?": ":":")+o);o=0===l.length?"{}":i?"{\n"+i+l.join(",\n"+i)+"\n"+
 k+"}":"{"+l.join(",")+"}";i=k;return o}}window.JSON||(window.JSON={});"function"!==typeof String.prototype.toJSON&&(String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(){return this.valueOf()});var k=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,i,p,g={"\u0008":"\\b","\t":"\\t","\n":"\\n","\u000c":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},m;"function"!==typeof JSON.stringify&&(JSON.stringify=function(c,
 g,e){var h;p=i="";if("number"===typeof e)for(h=0;h<e;h+=1)p+=" ";else"string"===typeof e&&(p=e);if((m=g)&&"function"!==typeof g&&("object"!==typeof g||"number"!==typeof g.length))throw Error("JSON.stringify");return t("",{"":c})});"function"!==typeof JSON.parse&&(JSON.parse=function(c){return eval("("+c+")")})}();
-window.PUBNUB||function(){function w(a){var b={},d=a.publish_key||"",s=a.subscribe_key||"",j=a.ssl?"s":"",z="http"+j+"://"+(a.origin||"pubsub.pubnub.com"),q={history:function(a,b){var b=a.callback||b,d=a.limit||100,c=a.channel,e=f();if(!c)return g("Missing Channel");if(!b)return g("Missing Callback");u({c:e,url:[z,"history",s,A(c),e,d],b:function(a){b(a)},a:function(a){g(a)}})},time:function(a){var b=f();u({c:b,url:[z,"time",b],b:function(b){a(b[0])},a:function(){a(0)}})},uuid:function(a){var b=f();
+window.PUBNUB||function(){function w(a){var b={},d=a.publish_key||"pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10",s=a.subscribe_key||"sub-4e37d063-edfa-11df-8f1a-517217f921a4",j=a.ssl?"s":"",z="http"+j+"://"+(a.origin||"pubsub.pubnub.com"),q={history:function(a,b){var b=a.callback||b,d=a.limit||100,c=a.channel,e=f();if(!c)return g("Missing Channel");if(!b)return g("Missing Callback");u({c:e,url:[z,"history",s,A(c),e,d],b:function(a){b(a)},a:function(a){g(a)}})},time:function(a){var b=f();u({c:b,url:[z,"time",b],b:function(b){a(b[0])},a:function(){a(0)}})},uuid:function(a){var b=f();
 u({c:b,url:["http"+j+"://pubnub-prod.appspot.com/uuid?callback="+b],b:function(b){a(b[0])},a:function(){a(0)}})},publish:function(a,b){var b=b||a.callback||r(),c=a.message,e=a.channel,j=f();if(!c)return g("Missing Message");if(!e)return g("Missing Channel");if(!d)return g("Missing Publish Key");c=JSON.stringify(c);c=[z,"publish",d,s,0,A(e),j,A(c)];if(1800<c.join().length)return g("Message Too Big");u({c:j,b:function(a){b(a)},a:function(){b([0,"Disconnected"])},url:c})},unsubscribe:function(a){a=a.channel;
 a in b&&(b[a].d=0,b[a].e&&b[a].e(0))},subscribe:function(a,d){function e(){var a=f();b[j].d&&(b[j].e=u({c:a,url:[t,"subscribe",s,A(j),a,i],a:function(){m||(m=1,o());setTimeout(e,x);q.time(function(a){a||k()})},b:function(a){b[j].d&&(p||(p=1,l()),m&&(m=0,n()),h=B.set(s+j,i=h&&B.get(s+j)||a[1]),c(a[0],function(b){d(b,a)}),setTimeout(e,10))}}))}var j=a.channel,d=d||a.callback,h=a.restore,i=0,k=a.error||r(),l=a.connect||r(),n=a.reconnect||r(),o=a.disconnect||r(),m=0,p=0,t=M(z);if(!C)return I.push([a,
 d,q]);if(!j)return g("Missing Channel");if(!d)return g("Missing Callback");if(!s)return g("Missing Subscribe Key");j in b||(b[j]={});if(b[j].d)return g("Already Connected");b[j].d=1;e()},xdr:u,ready:D,db:B,each:c,map:G,css:H,$:p,create:l,bind:h,supplant:e,head:o,search:m,attr:n,now:k,unique:t,events:y,updater:i,init:w};return q}function t(){return"x"+ ++N+""+ +new Date}function k(){return+new Date}function i(a,b){function d(){c+b>k()?(clearTimeout(s),s=setTimeout(d,b)):(c=k(),a())}var s,c=0;return d}
