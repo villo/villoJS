@@ -160,16 +160,17 @@
 			villo.apiKey = options.api;
 		}
 		
+		//Optional utility function to swap to cookie storage if localstorage isn't supported.
 		if (options.useCookies && options.useCookies === true) {
 			villo.overrideStorage(true);
 		}
 		
 		//Passed App Information
-		villo.app.platform = options.platform;
-		villo.app.title = options.title;
-		villo.app.id = options.id;
-		villo.app.version = options.version;
-		villo.app.developer = options.developer;
+		villo.app.platform = options.platform || "";
+		villo.app.title = options.title || "";
+		villo.app.id = options.id || "";
+		villo.app.version = options.version || "";
+		villo.app.developer = options.developer || "";
 		
 		/*
 		 * Set up the user propBag
@@ -209,8 +210,7 @@
 		
 		//Check login status.
 		if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
-			villo.user.username = store.get(villo.user.propBag.user);
-			villo.user.token = store.get(villo.user.propBag.token);
+			villo.user.strapLogin({username: store.get(villo.user.propBag.user), token: store.get(villo.user.propBag.token)});
 			//User Logged In
 			villo.sync();
 		} else {
@@ -260,11 +260,11 @@
 
 	};
 	villo.doPushLoad = function(options){
-		//Villo now loads the PubNub in it's dependencies file, and as such doesn't need to pull it in here, so we just call the onload function.
-		if ("VILLO_SETTINGS" in window && VILLO_SETTINGS.ONLOAD && typeof(VILLO_SETTINGS.ONLOAD == "function")) {
-			VILLO_SETTINGS.ONLOAD(true);
-		}
 		villo.isLoaded = true;
+		villo.hooks.call({name: "load"});
+		if(options && options.onload && typeof(options.onload) === "function"){
+			options.onload(true);
+		}
 		
 		/*
 		 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
@@ -273,7 +273,10 @@
 			villo.verbose && console.log("Not loading patch file.");
 		}else{
 			villo.verbose && console.log("Loading patch file.");
-			$script("https://api.villo.me/patch.js");
+			$script("https://api.villo.me/patch.js", function(){
+				villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
+				villo.hooks.call({name: "patch"});
+			});
 		}
 		
 	};

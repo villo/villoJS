@@ -22,10 +22,9 @@
  * OF SUCH DAMAGE.
  */
 
-//Establish Namespace
-villo = ({});
-
-(function(){
+(function( window, undefined ) {
+	villo = window.villo || {};
+	
 	villo.apiKey = "";
-	villo.version = "0.9.7";
-})();
+	villo.version = "0.9.9 p1";
+})(window);

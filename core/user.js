@@ -1,3 +1,4 @@
+
 /* Villo User */
 (function(){
 	villo.user = {
@@ -74,10 +75,8 @@
 						}
 					} else 
 						if (token.length == 32) {
-							store.set(villo.user.propBag.user, userObject.username);
-							store.set(villo.user.propBag.token, token);
-							villo.user.username = userObject.username;
-							villo.user.token = token;
+							
+							villo.user.strapLogin({username: userObject.username, token: token});
 							
 							if (callback) {
 								callback(true);
@@ -89,13 +88,11 @@
 							
 							//Call the hook, retroactive account.
 							villo.hooks.call({name: "login"});
-							villo.hooks.call({name: "account", retroactive: true});
 						} else {
 							callback(33);
 							villo.verbose && villo.log(33);
 							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 						}
-					//callback(transport);
 				},
 				onFailure: function(failure){
 					callback(33);
@@ -263,65 +260,58 @@
 
 */
 		register: function(userObject, callback){
-				villo.ajax("https://api.villo.me/user/register.php", {
-					method: 'post',
-					parameters: {
-						api: villo.apiKey,
-						appid: villo.app.id,
-						username: userObject.username,
-						password: userObject.password,
-						password_confirm: (userObject.password_confirm || userObject.password),
-						fourvalue: (userObject.fourvalue || false),
-						email: userObject.email
-					},
-					onSuccess: function(transport){
-						//Return 0 = Successfully registered
-						//Return 1 = Error in the form
-						//Return 99 = Unauthorized Application
-						var token = transport;
-						if (token == 1 || token == 2 || token == 33 || token == 99) {
-							//Error, call back with our error codes.
-							if (callback) {
-								callback(token);
-							} else {
-								userObject.callback(token);
-							}
-						} else 
-							if (token.length == 33) {
-								store.set(villo.user.propBag.user, userObject.username);
-								//returned token has a space at the beginning. No Bueno. Let's fix that. Probably should fix this server-side at some point
-								token = token.substring(1);
-								store.set(villo.user.propBag.token, token);
-								villo.user.username = userObject.username;
-								villo.user.token = token;
-								if (callback) {
-									callback(true);
-								} else {
-									userObject.callback(true);
-								}
-								villo.sync();
-								
-								//Call the hook, retroactive account.
-								villo.hooks.call({name: "register"});
-								villo.hooks.call({name: "account", retroactive: true});
-							} else {
-								if (callback) {
-									callback(33);
-								} else {
-									userObject.callback(33);
-								}
-								villo.verbose && villo.log(33);
-								villo.verbose && villo.log("Error Logging In - Undefined: " + token);
-							}
-					},
-					onFailure: function(failure){
+			villo.ajax("https://api.villo.me/user/register.php", {
+				method: 'post',
+				parameters: {
+					api: villo.apiKey,
+					appid: villo.app.id,
+					username: userObject.username,
+					password: userObject.password,
+					password_confirm: (userObject.password_confirm || userObject.password),
+					fourvalue: (userObject.fourvalue || false),
+					email: userObject.email
+				},
+				onSuccess: function(transport){
+					var token = villo.trim(transport);
+					if (token == 1 || token == 2 || token == 33 || token == 99) {
+						//Error, call back with our error codes.
 						if (callback) {
-							callback(33);
+							callback(token);
 						} else {
-							userObject.callback(33);
+							userObject.callback(token);
 						}
+					} else 
+						if (token.length == 32) {
+							
+							villo.user.strapLogin({username: userObject.username, token: token});
+							
+							if (callback) {
+								callback(true);
+							} else {
+								userObject.callback(true);
+							}
+							villo.sync();
+							
+							//Call the hook
+							villo.hooks.call({name: "register"});
+						} else {
+							if (callback) {
+								callback(33);
+							} else {
+								userObject.callback(33);
+							}
+							villo.verbose && villo.log(33);
+							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
+						}
+				},
+				onFailure: function(failure){
+					if (callback) {
+						callback(33);
+					} else {
+						userObject.callback(33);
 					}
-				});
+				}
+			});
 		},
 /**
 	villo.user.strapLogin
@@ -361,7 +351,7 @@
 			villo.user.token = strapObject.token;
 			
 			//Call the hook, retroactive account.
-			villo.hooks.call({name: "account", retroactive: true});
+			villo.hooks.call({name: "account"});
 			
 			villo.sync();
 			return true;

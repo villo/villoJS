@@ -43,8 +43,6 @@
 
 */
 
-//TODO: JSONP fallback w/ YQL?
-
 	villo.ajax = function(url, modifiers){
 		//Set up the request.
 		var sendingVars = "";
@@ -93,7 +91,6 @@
 	        scriptTag.src = url;
 	        document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
 	    },
-	
 	    evalJSONP: function(callback) {
 	        return function(data) {
 	            var validJSON = false;

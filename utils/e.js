@@ -1,19 +1,6 @@
 
 /* Villo E & Script */
 (function(){
-	//This code is no longer used:
-	/*
-	villo.e = {
-		load: function(scriptSrc, villoRoot){
-			if(villoRoot == false){
-				//Load this up from the main app root.
-				$script(scriptSrc);
-			}else{
-				$script(villo.script.get() + scriptSrc);
-			}
-		}
-	}
-	*/
 	villo.script = {
 		get: function(){
 			var scripts = document.getElementsByTagName("script");

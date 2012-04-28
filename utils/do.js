@@ -1,10 +1,12 @@
 
 /* Villo Do Functions */
 (function(){
+	
 	villo.doNothing = function(){
 		//We successfully did nothing! Yay!
 		return true;
-	}, 
+	};
+	
 	villo.doSomething = function(){
 		var strings = [];
 		
@@ -16,12 +18,11 @@
 			}
 		}
 		
-		villo.log("Why did you say ", strings, "?!?!?!?!?!");
+		villo.log("You said", strings);
 		if (arguments[0] == "easterEgg") {
 			//Easter Egg!
-			villo.webLog("IT'S OVER 9000!");
+			villo.webLog("Suit up!");
 		}
-		//Hehehe
 		return true;
 	}
 })();

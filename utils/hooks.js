@@ -21,9 +21,9 @@
 		//Call a hook
 		call: function(callObject){
 			//Allow for retroactive calling.
-			if(callObject.retroactive && callObject.retroactive === true){
-				//Prevent it from being called multiple times.
-				var shouldAdd = true;
+			if(callObject.retroactive && callObject.retroactive === false){
+				//Don't add retroactive calling.
+			}else{
 				//Update with latest arguments:
 				this.called[callObject.name] = {name: callObject.name, arguments: callObject.arguments || true};
 			}

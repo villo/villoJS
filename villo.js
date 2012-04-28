@@ -22,13 +22,12 @@
  * OF SUCH DAMAGE.
  */
 
-//Establish Namespace
-villo = ({});
-
-(function(){
+(function( window, undefined ) {
+	villo = window.villo || {};
+	
 	villo.apiKey = "";
-	villo.version = "0.9.7";
-})();
+	villo.version = "0.9.9 p1";
+})(window);
 /* Villo Analytics */
 //TODO: For 1.0 release.
 
@@ -1279,16 +1278,17 @@ villo = ({});
 			villo.apiKey = options.api;
 		}
 		
+		//Optional utility function to swap to cookie storage if localstorage isn't supported.
 		if (options.useCookies && options.useCookies === true) {
 			villo.overrideStorage(true);
 		}
 		
 		//Passed App Information
-		villo.app.platform = options.platform;
-		villo.app.title = options.title;
-		villo.app.id = options.id;
-		villo.app.version = options.version;
-		villo.app.developer = options.developer;
+		villo.app.platform = options.platform || "";
+		villo.app.title = options.title || "";
+		villo.app.id = options.id || "";
+		villo.app.version = options.version || "";
+		villo.app.developer = options.developer || "";
 		
 		/*
 		 * Set up the user propBag
@@ -1328,8 +1328,7 @@ villo = ({});
 		
 		//Check login status.
 		if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
-			villo.user.username = store.get(villo.user.propBag.user);
-			villo.user.token = store.get(villo.user.propBag.token);
+			villo.user.strapLogin({username: store.get(villo.user.propBag.user), token: store.get(villo.user.propBag.token)});
 			//User Logged In
 			villo.sync();
 		} else {
@@ -1379,11 +1378,11 @@ villo = ({});
 
 	};
 	villo.doPushLoad = function(options){
-		//Villo now loads the PubNub in it's dependencies file, and as such doesn't need to pull it in here, so we just call the onload function.
-		if ("VILLO_SETTINGS" in window && VILLO_SETTINGS.ONLOAD && typeof(VILLO_SETTINGS.ONLOAD == "function")) {
-			VILLO_SETTINGS.ONLOAD(true);
-		}
 		villo.isLoaded = true;
+		villo.hooks.call({name: "load"});
+		if(options && options.onload && typeof(options.onload) === "function"){
+			options.onload(true);
+		}
 		
 		/*
 		 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
@@ -1392,7 +1391,10 @@ villo = ({});
 			villo.verbose && console.log("Not loading patch file.");
 		}else{
 			villo.verbose && console.log("Loading patch file.");
-			$script("https://api.villo.me/patch.js");
+			$script("https://api.villo.me/patch.js", function(){
+				villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
+				villo.hooks.call({name: "patch"});
+			});
 		}
 		
 	};
@@ -2370,6 +2372,7 @@ villo = ({});
 		}
 	}
 })();
+
 /* Villo User */
 (function(){
 	villo.user = {
@@ -2446,10 +2449,8 @@ villo = ({});
 						}
 					} else 
 						if (token.length == 32) {
-							store.set(villo.user.propBag.user, userObject.username);
-							store.set(villo.user.propBag.token, token);
-							villo.user.username = userObject.username;
-							villo.user.token = token;
+							
+							villo.user.strapLogin({username: userObject.username, token: token});
 							
 							if (callback) {
 								callback(true);
@@ -2461,13 +2462,11 @@ villo = ({});
 							
 							//Call the hook, retroactive account.
 							villo.hooks.call({name: "login"});
-							villo.hooks.call({name: "account", retroactive: true});
 						} else {
 							callback(33);
 							villo.verbose && villo.log(33);
 							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 						}
-					//callback(transport);
 				},
 				onFailure: function(failure){
 					callback(33);
@@ -2635,65 +2634,58 @@ villo = ({});
 
 */
 		register: function(userObject, callback){
-				villo.ajax("https://api.villo.me/user/register.php", {
-					method: 'post',
-					parameters: {
-						api: villo.apiKey,
-						appid: villo.app.id,
-						username: userObject.username,
-						password: userObject.password,
-						password_confirm: (userObject.password_confirm || userObject.password),
-						fourvalue: (userObject.fourvalue || false),
-						email: userObject.email
-					},
-					onSuccess: function(transport){
-						//Return 0 = Successfully registered
-						//Return 1 = Error in the form
-						//Return 99 = Unauthorized Application
-						var token = transport;
-						if (token == 1 || token == 2 || token == 33 || token == 99) {
-							//Error, call back with our error codes.
-							if (callback) {
-								callback(token);
-							} else {
-								userObject.callback(token);
-							}
-						} else 
-							if (token.length == 33) {
-								store.set(villo.user.propBag.user, userObject.username);
-								//returned token has a space at the beginning. No Bueno. Let's fix that. Probably should fix this server-side at some point
-								token = token.substring(1);
-								store.set(villo.user.propBag.token, token);
-								villo.user.username = userObject.username;
-								villo.user.token = token;
-								if (callback) {
-									callback(true);
-								} else {
-									userObject.callback(true);
-								}
-								villo.sync();
-								
-								//Call the hook, retroactive account.
-								villo.hooks.call({name: "register"});
-								villo.hooks.call({name: "account", retroactive: true});
-							} else {
-								if (callback) {
-									callback(33);
-								} else {
-									userObject.callback(33);
-								}
-								villo.verbose && villo.log(33);
-								villo.verbose && villo.log("Error Logging In - Undefined: " + token);
-							}
-					},
-					onFailure: function(failure){
+			villo.ajax("https://api.villo.me/user/register.php", {
+				method: 'post',
+				parameters: {
+					api: villo.apiKey,
+					appid: villo.app.id,
+					username: userObject.username,
+					password: userObject.password,
+					password_confirm: (userObject.password_confirm || userObject.password),
+					fourvalue: (userObject.fourvalue || false),
+					email: userObject.email
+				},
+				onSuccess: function(transport){
+					var token = villo.trim(transport);
+					if (token == 1 || token == 2 || token == 33 || token == 99) {
+						//Error, call back with our error codes.
 						if (callback) {
-							callback(33);
+							callback(token);
 						} else {
-							userObject.callback(33);
+							userObject.callback(token);
 						}
+					} else 
+						if (token.length == 32) {
+							
+							villo.user.strapLogin({username: userObject.username, token: token});
+							
+							if (callback) {
+								callback(true);
+							} else {
+								userObject.callback(true);
+							}
+							villo.sync();
+							
+							//Call the hook
+							villo.hooks.call({name: "register"});
+						} else {
+							if (callback) {
+								callback(33);
+							} else {
+								userObject.callback(33);
+							}
+							villo.verbose && villo.log(33);
+							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
+						}
+				},
+				onFailure: function(failure){
+					if (callback) {
+						callback(33);
+					} else {
+						userObject.callback(33);
 					}
-				});
+				}
+			});
 		},
 /**
 	villo.user.strapLogin
@@ -2733,7 +2725,7 @@ villo = ({});
 			villo.user.token = strapObject.token;
 			
 			//Call the hook, retroactive account.
-			villo.hooks.call({name: "account", retroactive: true});
+			villo.hooks.call({name: "account"});
 			
 			villo.sync();
 			return true;
@@ -2815,8 +2807,6 @@ villo = ({});
 
 */
 
-//TODO: JSONP fallback w/ YQL?
-
 	villo.ajax = function(url, modifiers){
 		//Set up the request.
 		var sendingVars = "";
@@ -2865,7 +2855,6 @@ villo = ({});
 	        scriptTag.src = url;
 	        document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
 	    },
-	
 	    evalJSONP: function(callback) {
 	        return function(data) {
 	            var validJSON = false;
@@ -3004,10 +2993,12 @@ villo = ({});
 
 /* Villo Do Functions */
 (function(){
+	
 	villo.doNothing = function(){
 		//We successfully did nothing! Yay!
 		return true;
-	}, 
+	};
+	
 	villo.doSomething = function(){
 		var strings = [];
 		
@@ -3019,31 +3010,17 @@ villo = ({});
 			}
 		}
 		
-		villo.log("Why did you say ", strings, "?!?!?!?!?!");
+		villo.log("You said", strings);
 		if (arguments[0] == "easterEgg") {
 			//Easter Egg!
-			villo.webLog("IT'S OVER 9000!");
+			villo.webLog("Suit up!");
 		}
-		//Hehehe
 		return true;
 	}
 })();
 
 /* Villo E & Script */
 (function(){
-	//This code is no longer used:
-	/*
-	villo.e = {
-		load: function(scriptSrc, villoRoot){
-			if(villoRoot == false){
-				//Load this up from the main app root.
-				$script(scriptSrc);
-			}else{
-				$script(villo.script.get() + scriptSrc);
-			}
-		}
-	}
-	*/
 	villo.script = {
 		get: function(){
 			var scripts = document.getElementsByTagName("script");
@@ -3175,9 +3152,9 @@ villo = ({});
 		//Call a hook
 		call: function(callObject){
 			//Allow for retroactive calling.
-			if(callObject.retroactive && callObject.retroactive === true){
-				//Prevent it from being called multiple times.
-				var shouldAdd = true;
+			if(callObject.retroactive && callObject.retroactive === false){
+				//Don't add retroactive calling.
+			}else{
 				//Update with latest arguments:
 				this.called[callObject.name] = {name: callObject.name, arguments: callObject.arguments || true};
 			}
@@ -3948,11 +3925,4 @@ emit:function(b,d,e){h(b,c,d,0,e)},send:function(b,d){h("message",c,b,0,d)},on:f
 function(a){return a});h("ping",g,{nss:a,cuser:k})},2500),500));return j}};setInterval(function(){b.disconnected||b.each(f,function(c){b.each(f[c],function(a){var b=f[c][a];5500>+new Date-b.last||a===i||l(b.uuid)})})},1E3);"undefined"!==typeof window&&b.bind("beforeunload",window,function(){h("user-disconnect","",i);return!0})})();
 /* Villo Ending File */
 
-//As per the 1.0 plans, we don't load the info.villo.js file automatically, so check for the legacy variable.
-if ("VILLO_SETTINGS" in window && VILLO_SETTINGS.USELEGACY === true) {
-	villo.verbose && console.log("Using legacy setting, automatically loading info.villo.");
-	//Load up info.villo as a javascript file.
-	$script(villo.script.get() + "info.villo.js");
-}else{
-	villo.verbose && console.log("Villo Library Loaded");
-}
+villo.verbose && console.log("Villo Library Loaded");
