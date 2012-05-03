@@ -633,6 +633,35 @@
 			//TODO
 			return false;
 		},
+		search: function(searchObject){
+			villo.ajax("https://api.villo.me/feeds.php", {
+				method: 'post',
+				parameters: {
+					api: villo.apiKey,
+					appid: villo.app.id,
+					type: "search",
+					username: villo.user.username,
+					token: villo.user.token,
+					limit: searchObject.limit || 50,
+					term: searchObject.term
+				},
+				onSuccess: function(transport){
+					try{
+						transport = JSON.parse(transport);
+					}catch(e){}
+					
+					if(transport && transport.feeds){
+						//Successful:
+						searchObject.callback(transport);
+					}else{
+						searchObject.callback(33);
+					}
+				},
+				onFailure: function(err){
+					searchObject.callback(33);
+				}
+			});
+		},
 		history: function(historyObject){
 			villo.ajax("https://api.villo.me/feeds.php", {
 				method: 'post',
@@ -647,7 +676,6 @@
 					after: historyObject.after || false
 				},
 				onSuccess: function(transport){
-					
 					try{
 						transport = JSON.parse(transport);
 					}catch(e){}
@@ -665,7 +693,6 @@
 			});
 		},
 		listen: function(listenObject){
-			
 			//Get the string we want to use based on the type:
 			var feedString = "VILLO/FEEDS/";
 			if(!listenObject.type){
