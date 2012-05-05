@@ -633,6 +633,10 @@
 			//TODO
 			return false;
 		},
+		get: function(){
+			//TODO
+			return false;
+		},
 		search: function(searchObject){
 			villo.ajax("https://api.villo.me/feeds.php", {
 				method: 'post',
@@ -3086,7 +3090,11 @@
 	villo.mixin = function(destination, source){
 		for (var k in source) {
 			if (source.hasOwnProperty(k)) {
-				destination[k] = source[k];
+				if(destination[k]){
+					villo.mixin(destination[k], source[k]);
+				}else{
+					destination[k] = source[k];
+				}
 			}
 		}
 		return destination;
