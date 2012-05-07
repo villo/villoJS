@@ -5,7 +5,7 @@ cd ./core
 cat core.js analytics.js bridge.js chat.js clipboard.js feeds.js friends.js gift.js init.js leaders.js messages.js presence.js profile.js settings.js states.js storage.js user.js > ../villo.js
 
 cd ../utils
-cat ajax.js app.js do.js e.js extend.js hooks.js log.js slashes.js sync.js dependencies.js end.js >> ../villo.js
+cat ajax.js app.js do.js e.js extend.js hooks.js log.js lang.js sync.js dependencies.js end.js >> ../villo.js
 
 cd ..
 

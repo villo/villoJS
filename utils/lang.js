@@ -1,12 +1,12 @@
 
 /* Villo Slash Control */
 //Adds slashes into any string to prevent it from breaking the JS.
-villo.addSlashes = function(string){
-	string = string.replace(/\\/g, '\\\\');
-	string = string.replace(/\'/g, '\\\'');
-	string = string.replace(/\"/g, '\\"');
-	string = string.replace(/\0/g, '\\0');
-	return string;
+villo.addSlashes = function(str){
+	str = str.replace(/\\/g, '\\\\');
+	str = str.replace(/\'/g, '\\\'');
+	str = str.replace(/\"/g, '\\"');
+	str = str.replace(/\0/g, '\\0');
+	return str;
 };
 villo.stripslashes = function(str){
 	return (str + '').replace(/\\(.?)/g, function(s, n1){
@@ -31,4 +31,7 @@ villo.trim = function(str){
 		}
 	}
 	return str;
+};
+villo.cap = function(str) {
+	return str.slice(0, 1).toUpperCase() + str.slice(1);
 };

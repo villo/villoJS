@@ -74,3 +74,4 @@ Object.defineProperty(Object.prototype, "extend", {
 	configurable: true,
 	enumerable: false
 });
+

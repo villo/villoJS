@@ -9,7 +9,7 @@ cd .\core
 copy core.js + analytics.js + bridge.js + chat.js + clipboard.js + feeds.js + friends.js + gift.js + init.js + leaders.js + messages.js + presence.js + profile.js + settings.js + states.js + storage.js + user.js ..\villo_core.js
 
 cd ..\utils
-copy ajax.js + app.js + do.js + e.js + extend.js + hooks.js + log.js + slashes.js + sync.js + dependencies.js + end.js ..\villo_utils.js
+copy ajax.js + app.js + do.js + e.js + extend.js + hooks.js + log.js + lang.js + sync.js + dependencies.js + end.js ..\villo_utils.js
 
 cd ..
 
