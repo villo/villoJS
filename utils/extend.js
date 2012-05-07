@@ -1,15 +1,14 @@
 
 /* Villo Extend */
-(function(){
-	//Undocumented Utility Function:
-	villo.mixin = function(destination, source){
-		for (var k in source) {
-			if (source.hasOwnProperty(k)) {
-				destination[k] = source[k];
-			}
+//Undocumented Utility Function:
+villo.mixin = function(destination, source){
+	for (var k in source) {
+		if (source.hasOwnProperty(k)) {
+			destination[k] = source[k];
 		}
-		return destination;
 	}
+	return destination;
+}
 /**
 	villo.extend
 	=================
@@ -57,22 +56,21 @@
 	If you define an init function in the object, then it will be run when the extension is loaded. The init function will be deleted after it is run.
 
 */
-	Object.defineProperty(Object.prototype, "extend", {
-		value: function(obj){
-			villo.verbose && console.log("Extending Villo:", this);
-			villo.mixin(this, obj);
-			if (typeof(this.init) == "function") {
-				this.init();
-				if(this._ext && this._ext.keepit && this._ext.keepit === true){
-					//Do nothing
-				}else{
-					delete this.init;
-				}
+Object.defineProperty(Object.prototype, "extend", {
+	value: function(obj){
+		villo.verbose && console.log("Extending Villo:", this);
+		villo.mixin(this, obj);
+		if (typeof(this.init) == "function") {
+			this.init();
+			if(this._ext && this._ext.keepit && this._ext.keepit === true){
+				//Do nothing
+			}else{
+				delete this.init;
 			}
-			return this;
-		},
-		writable: true,
-		configurable: true,
-		enumerable: false
-	});
-})();
+		}
+		return this;
+	},
+	writable: true,
+	configurable: true,
+	enumerable: false
+});

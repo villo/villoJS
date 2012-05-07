@@ -1,6 +1,5 @@
 
 /* Villo Log */
-(function(){
 /**
 	villo.log
 	=================
@@ -25,28 +24,28 @@
 		villo.log("test results: ", testResults, {"objects": true}, false);
 
 */
-	villo.log = function(){
-		//Inspired by and based on Dave Balmer's Jo app framework (joapp.com).
-		var strings = [];
-		
-		for (var i = 0; i < arguments.length; i++) {
-			if (typeof(arguments[i] == "object")) {
-				strings.push(JSON.stringify(arguments[i]));
-			} else {
-				strings.push(arguments[i]);
-			}
-		}
-		
-		if (console && console.log) {
-			console.log(strings.join(" "));
-			//We also push to the variable, just to be sure.
-			villo.app.logs[villo.app.logs.length] = strings.join(" ");
+villo.log = function(){
+	//Inspired by and based on Dave Balmer's Jo app framework (joapp.com).
+	var strings = [];
+	
+	for (var i = 0; i < arguments.length; i++) {
+		if (typeof(arguments[i] == "object")) {
+			strings.push(JSON.stringify(arguments[i]));
 		} else {
-			//No console, which is a bummer, so just push the data to the variable.
-			villo.app.logs[villo.app.logs.length] = strings.join(" ");
+			strings.push(arguments[i]);
 		}
-		return true;
 	}
+	
+	if (console && console.log) {
+		console.log(strings.join(" "));
+		//We also push to the variable, just to be sure.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	} else {
+		//No console, which is a bummer, so just push the data to the variable.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	}
+	return true;
+}
 /**
 	villo.webLog
 	=================
@@ -71,53 +70,53 @@
 		villo.webLog("test results: ", testResults, {"objects": true}, false);
 
 */
-	villo.webLog = function(){
-		//New logging functionality, inspired by Dave Balmer's Jo app framework (joapp.com).
-		var strings = [];
-		
-		for (var i = 0; i < arguments.length; i++) {
-			if (typeof(arguments[i] == "object")) {
-				strings.push(JSON.stringify(arguments[i]));
-			} else {
-				strings.push(arguments[i]);
-			}
-		}
-		
-		if (console && console.log) {
-			console.log(strings.join(" "));
-			//We also push to the variable, just to be sure.
-			villo.app.logs[villo.app.logs.length] = strings.join(" ");
+villo.webLog = function(){
+	//New logging functionality, inspired by Dave Balmer's Jo app framework (joapp.com).
+	var strings = [];
+	
+	for (var i = 0; i < arguments.length; i++) {
+		if (typeof(arguments[i] == "object")) {
+			strings.push(JSON.stringify(arguments[i]));
 		} else {
-			//No console, which is a bummer, so just push the data to the variable.
-			villo.app.logs[villo.app.logs.length] = strings.join(" ");
+			strings.push(arguments[i]);
 		}
-		
-		if (villo.user.username && villo.user.username !== '') {
-			var logName = villo.user.username;
-		} else {
-			var logName = "Guest";
-		}
-		
-		theLog = strings.join(" ")
-		
-		villo.ajax("http://api.villo.me/log.php", {
-			method: 'post',
-			parameters: {
-				api: villo.apiKey,
-				type: "log",
-				username: logName,
-				appid: villo.app.id,
-				log: theLog
-			},
-			onSuccess: function(transport){
-			
-			},
-			onFailure: function(failure){
-			
-			}
-		});
-		return true;
 	}
+	
+	if (console && console.log) {
+		console.log(strings.join(" "));
+		//We also push to the variable, just to be sure.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	} else {
+		//No console, which is a bummer, so just push the data to the variable.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	}
+	
+	if (villo.user.username && villo.user.username !== '') {
+		var logName = villo.user.username;
+	} else {
+		var logName = "Guest";
+	}
+	
+	theLog = strings.join(" ")
+	
+	villo.ajax("http://api.villo.me/log.php", {
+		method: 'post',
+		parameters: {
+			api: villo.apiKey,
+			type: "log",
+			username: logName,
+			appid: villo.app.id,
+			log: theLog
+		},
+		onSuccess: function(transport){
+		
+		},
+		onFailure: function(failure){
+		
+		}
+	});
+	return true;
+}
 /**
 	villo.dumpLogs
 	=================
@@ -145,12 +144,11 @@
 		document.write(logs);
 
 */
-	villo.dumpLogs = function(useJson){
-		if(useJson && useJson === true){
-			return villo.app.logs;
-		}else{
-			return JSON.stringify(villo.app.logs);
-		}
+villo.dumpLogs = function(useJson){
+	if(useJson && useJson === true){
+		return villo.app.logs;
+	}else{
+		return JSON.stringify(villo.app.logs);
 	}
-})();
+}
 
