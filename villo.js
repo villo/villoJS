@@ -31,26 +31,10 @@
 /* Villo Analytics */
 //TODO: For 1.0 release.
 
-/* Villo Bridge */
-(function(){
-/*
- * Villo Bridge allows for accelerated Villo development, giving developers a simple method for viewing Villo content.
- */
-
-	
-	//TODO: 
-	//iFrames?
-	//Cross-origin?
-	//Security?
-	//Pass Div + iFrame set content
-	
-	
-})();
-
+/* Villo Bridge: Removed from roadmap */
 /* Villo Push Chat */
-(function(){
-	villo.chat = {
-		rooms: [],
+villo.chat = {
+	rooms: [],
 
 /**
 	villo.chat.join
@@ -93,47 +77,47 @@
 		});
 
 */
-		join: function(chatObject){
+	join: function(chatObject){
+		//FIXME
+		if ('PUBNUB' in window) {
 			//FIXME
-			if ('PUBNUB' in window) {
-				//FIXME
-				if (villo.chat.isSubscribed(chatObject.room) == false) {
-					PUBNUB.subscribe({
-						channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + chatObject.room.toUpperCase(),
-						callback: function(message){
-							chatObject.callback(message);
-						},
-						connect: chatObject.connect || function(){},
-						error: function(e){
-							//Error connecting. PubNub will automatically attempt to reconnect.
-						}
-					});
-					
-					//FIXME: This is all handled inline now:
-					if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled == true){
-						villo.presence.join({
-							room: chatObject.room,
-							callback: (chatObject.presence.callback || "")
-						});
-						villo.chat.rooms.push({
-							"name": chatObject.room.toUpperCase(),
-							"presence": true
-						});
-					}else{
-						villo.chat.rooms.push({
-							"name": chatObject.room.toUpperCase(),
-							"presence": false
-						});
+			if (villo.chat.isSubscribed(chatObject.room) == false) {
+				PUBNUB.subscribe({
+					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + chatObject.room.toUpperCase(),
+					callback: function(message){
+						chatObject.callback(message);
+					},
+					connect: chatObject.connect || function(){},
+					error: function(e){
+						//Error connecting. PubNub will automatically attempt to reconnect.
 					}
-					
-					return true;
-				} else {
-					return true;
+				});
+				
+				//FIXME: This is all handled inline now:
+				if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled == true){
+					villo.presence.join({
+						room: chatObject.room,
+						callback: (chatObject.presence.callback || "")
+					});
+					villo.chat.rooms.push({
+						"name": chatObject.room.toUpperCase(),
+						"presence": true
+					});
+				}else{
+					villo.chat.rooms.push({
+						"name": chatObject.room.toUpperCase(),
+						"presence": false
+					});
 				}
+				
+				return true;
 			} else {
-				return false;
+				return true;
 			}
-		},
+		} else {
+			return false;
+		}
+	},
 /**
 	villo.chat.isSubscribed
 	=======================
@@ -159,17 +143,17 @@
 
 */
 
-		isSubscribed: function(roomString){
-			var c = false;
-			for (x in villo.chat.rooms) {
-				if (villo.chat.rooms.hasOwnProperty(x)) {
-					if (villo.chat.rooms[x].name.toUpperCase() == roomString.toUpperCase()) {
-						c = true;
-					}
+	isSubscribed: function(roomString){
+		var c = false;
+		for (x in villo.chat.rooms) {
+			if (villo.chat.rooms.hasOwnProperty(x)) {
+				if (villo.chat.rooms[x].name.toUpperCase() == roomString.toUpperCase()) {
+					c = true;
 				}
 			}
-			return c;
-		},
+		}
+		return c;
+	},
 /**
 	villo.chat.send
 	==================
@@ -203,26 +187,26 @@
 	If you have joined a chat room, when a message is sent, it will be received through the callback defined in the join function call.
 
 */
-		send: function(messageObject){
-			if ('PUBNUB' in window) {
-				//Build the JSON to push to the server.
-				var pushMessage = {
-					"username": villo.user.username,
-					"message": messageObject.message
-				};
-				if(!messageObject.room){
-					messageObject.room = villo.chat.rooms[0].name;
-				}
-				PUBNUB.publish({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + messageObject.room.toUpperCase(),
-					message: pushMessage
-				});
-				return true;
-			} else {
-				return false;
+	send: function(messageObject){
+		if ('PUBNUB' in window) {
+			//Build the JSON to push to the server.
+			var pushMessage = {
+				"username": villo.user.username,
+				"message": messageObject.message
+			};
+			if(!messageObject.room){
+				messageObject.room = villo.chat.rooms[0].name;
 			}
-			
-		},
+			PUBNUB.publish({
+				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + messageObject.room.toUpperCase(),
+				message: pushMessage
+			});
+			return true;
+		} else {
+			return false;
+		}
+		
+	},
 /**
 	villo.chat.leaveAll
 	==================
@@ -247,26 +231,26 @@
 		villo.chat.leaveAll();
 
 */
-		leaveAll: function(){
-			if ('PUBNUB' in window) {
-				for (x in villo.chat.rooms) {
-					if (villo.chat.rooms.hasOwnProperty(x)) {
-						PUBNUB.unsubscribe({
-							channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
+	leaveAll: function(){
+		if ('PUBNUB' in window) {
+			for (x in villo.chat.rooms) {
+				if (villo.chat.rooms.hasOwnProperty(x)) {
+					PUBNUB.unsubscribe({
+						channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
+					});
+					if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
+						villo.presence.leave({
+							room: villo.chat.rooms[x].name
 						});
-						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
-							villo.presence.leave({
-								room: villo.chat.rooms[x].name
-							});
-						}
 					}
 				}
-				villo.chat.rooms = [];
-				return true;
-			} else {
-				return false;
 			}
-		},
+			villo.chat.rooms = [];
+			return true;
+		} else {
+			return false;
+		}
+	},
 /**
 	villo.chat.leave
 	==================
@@ -291,30 +275,30 @@
 		villo.chat.leave("main");
 
 */
-		leave: function(closerObject){
-			if ('PUBNUB' in window) {
-				PUBNUB.unsubscribe({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.toUpperCase()
-				});
-				var x;
-				for (x in villo.chat.rooms) {
-					if (villo.chat.rooms.hasOwnProperty(x)) {
-						if (villo.chat.rooms[x].name == closerObject) {
-							var rmv = x;
-							if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
-								villo.presence.leave({
-									room: villo.chat.rooms[x].name
-								});
-							}
+	leave: function(closerObject){
+		if ('PUBNUB' in window) {
+			PUBNUB.unsubscribe({
+				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.toUpperCase()
+			});
+			var x;
+			for (x in villo.chat.rooms) {
+				if (villo.chat.rooms.hasOwnProperty(x)) {
+					if (villo.chat.rooms[x].name == closerObject) {
+						var rmv = x;
+						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
+							villo.presence.leave({
+								room: villo.chat.rooms[x].name
+							});
 						}
 					}
 				}
-				villo.chat.rooms.splice(rmv, 1);
-				return true;
-			} else {
-				return false;
 			}
-		},
+			villo.chat.rooms.splice(rmv, 1);
+			return true;
+		} else {
+			return false;
+		}
+	},
 		
 /**
 	villo.chat.history
@@ -359,22 +343,20 @@
 		});
 
 */
-		history: function(historyObject){
-			if('PUBNUB' in window){
-				PUBNUB.history({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + historyObject.room.toUpperCase(),
-					limit: (historyObject.limit || 25),
-					callback: function(data){
-						historyObject.callback(data);
-					}
-				});
-			}
+	history: function(historyObject){
+		if('PUBNUB' in window){
+			PUBNUB.history({
+				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + historyObject.room.toUpperCase(),
+				limit: (historyObject.limit || 25),
+				callback: function(data){
+					historyObject.callback(data);
+				}
+			});
 		}
 	}
-})();
+};
 /* Villo Clipboard */
-(function(){
-	villo.clipboard = {
+villo.clipboard = {
 /**
 	villo.clipboard.copy
 	====================
@@ -398,11 +380,11 @@
 
 */
 
-		copy: function(string){
-			var newIndex = villo.app.clipboard.length;
-			villo.app.clipboard[newIndex] = string;
-			return newIndex;
-		},         
+	copy: function(string){
+		var newIndex = villo.app.clipboard.length;
+		villo.app.clipboard[newIndex] = string;
+		return newIndex;
+	},         
 /**
 	villo.clipboard.paste
 	=====================
@@ -428,168 +410,164 @@
 
 */
 
-		paste: function(index){
-			if (index) {
-				return villo.app.clipboard[index];
-			} else {
-				var lastIndex = villo.app.clipboard.length;
-				return villo.app.clipboard[lastIndex - 1];
-			}
+	paste: function(index){
+		if (index) {
+			return villo.app.clipboard[index];
+		} else {
+			var lastIndex = villo.app.clipboard.length;
+			return villo.app.clipboard[lastIndex - 1];
 		}
 	}
-})();
+};
 
 /* Villo Public Feeds */
-(function(){
-	villo.feeds = {
-		post: function(pubObject){
-			/*
-			 * Channels: 
-			 * =========
-			 * 
-			 * VILLO/FEEDS/PUBLIC
-			 * VILLO/FEEDS/USERS/USERNAME
-			 * VILLO/FEEDS/APPS/APPID
-			 */
-			/*
-			 * Actions:
-			 * ========
-			 * 
-			 * Actions aim to give developers an idea of what the feed post is about. 
-			 * Developers can define any action to differentiate posts from their own app, and handle the actions accordingly.
-			 * The default action is "user-post".
-			 * The following are reserved actions, and any post that attempts to use them will get prefixed with "custom-".
-			 * 
-			 * 	- "leaders-submit",
-			 *	- "friend-add",
-			 *	- "profile-edit",
-			 *	- "app-launch",
-			 *	- "user-register",
-			 *	- "user-login"
-			 * 
-			 * Additionally, the "villo-" prefix is reserved, and any post that attempts to use it will get prefixed with "custom-".
-			 * 
-			 * All actions will be converted to lowercase.
-			 */
-			villo.ajax("https://api.villo.me/feeds.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: "post",
-					username: villo.user.username,
-					token: villo.user.token,
-					description: pubObject.description,
-					action: pubObject.action || "user-post"
-				},
-				onSuccess: function(transport){
-					if(transport === "1"){
-						//Successful:
-						pubObject.callback(true);
-					}else{
-						pubObject.callback(33);
-					}
-				},
-				onFailure: function(err){
+villo.feeds = {
+	post: function(pubObject){
+		/*
+		 * Channels: 
+		 * =========
+		 * 
+		 * VILLO/FEEDS/PUBLIC
+		 * VILLO/FEEDS/USERS/USERNAME
+		 * VILLO/FEEDS/APPS/APPID
+		 */
+		/*
+		 * Actions:
+		 * ========
+		 * 
+		 * Actions aim to give developers an idea of what the feed post is about. 
+		 * Developers can define any action to differentiate posts from their own app, and handle the actions accordingly.
+		 * The default action is "user-post".
+		 * The following are reserved actions, and any post that attempts to use them will get prefixed with "custom-".
+		 * 
+		 * 	- "leaders-submit",
+		 *	- "friend-add",
+		 *	- "profile-edit",
+		 *	- "app-launch",
+		 *	- "user-register",
+		 *	- "user-login"
+		 * 
+		 * Additionally, the "villo-" prefix is reserved, and any post that attempts to use it will get prefixed with "custom-".
+		 * 
+		 * All actions will be converted to lowercase.
+		 */
+		villo.ajax("https://api.villo.me/feeds.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "post",
+				username: villo.user.username,
+				token: villo.user.token,
+				description: pubObject.description,
+				action: pubObject.action || "user-post"
+			},
+			onSuccess: function(transport){
+				if(transport === "1"){
+					//Successful:
+					pubObject.callback(true);
+				}else{
 					pubObject.callback(33);
 				}
-			});
-		},
-		repost: function(repostObject){
-			//TODO
-			return false;
-		},
-		get: function(){
-			//TODO
-			return false;
-		},
-		search: function(searchObject){
-			villo.ajax("https://api.villo.me/feeds.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: "search",
-					username: villo.user.username,
-					token: villo.user.token,
-					limit: searchObject.limit || 50,
-					term: searchObject.term
-				},
-				onSuccess: function(transport){
-					try{
-						transport = JSON.parse(transport);
-					}catch(e){}
-					
-					if(transport && transport.feeds){
-						//Successful:
-						searchObject.callback(transport);
-					}else{
-						searchObject.callback(33);
-					}
-				},
-				onFailure: function(err){
+			},
+			onFailure: function(err){
+				pubObject.callback(33);
+			}
+		});
+	},
+	repost: function(repostObject){
+		//TODO
+		return false;
+	},
+	get: function(){
+		//TODO
+		return false;
+	},
+	search: function(searchObject){
+		villo.ajax("https://api.villo.me/feeds.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "search",
+				username: villo.user.username,
+				token: villo.user.token,
+				limit: searchObject.limit || 50,
+				term: searchObject.term
+			},
+			onSuccess: function(transport){
+				try{
+					transport = JSON.parse(transport);
+				}catch(e){}
+				
+				if(transport && transport.feeds){
+					//Successful:
+					searchObject.callback(transport);
+				}else{
 					searchObject.callback(33);
 				}
-			});
-		},
-		history: function(historyObject){
-			villo.ajax("https://api.villo.me/feeds.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: "history",
-					username: villo.user.username,
-					token: villo.user.token,
-					limit: historyObject.limit || 50,
-					historyType: historyObject.type || "public",
-					after: historyObject.after || false
-				},
-				onSuccess: function(transport){
-					try{
-						transport = JSON.parse(transport);
-					}catch(e){}
-					
-					if(transport && transport.feeds){
-						//Successful:
-						historyObject.callback(transport);
-					}else{
-						historyObject.callback(33);
-					}
-				},
-				onFailure: function(err){
+			},
+			onFailure: function(err){
+				searchObject.callback(33);
+			}
+		});
+	},
+	history: function(historyObject){
+		villo.ajax("https://api.villo.me/feeds.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "history",
+				username: villo.user.username,
+				token: villo.user.token,
+				limit: historyObject.limit || 50,
+				historyType: historyObject.type || "public",
+				after: historyObject.after || false
+			},
+			onSuccess: function(transport){
+				try{
+					transport = JSON.parse(transport);
+				}catch(e){}
+				
+				if(transport && transport.feeds){
+					//Successful:
+					historyObject.callback(transport);
+				}else{
 					historyObject.callback(33);
 				}
-			});
-		},
-		listen: function(listenObject){
-			//Get the string we want to use based on the type:
-			var feedString = "VILLO/FEEDS/";
-			if(!listenObject.type){
-				listenObject.type = "public";
+			},
+			onFailure: function(err){
+				historyObject.callback(33);
 			}
-			var h = listenObject.type;
-			if(h.toLowerCase() === "public"){
-				feedString += "PUBLIC";
-			}else if(h.toLowerCase() === "user" || h.toLowerCase() === "username"){
-				feedString += ("USERS/" + (listenObject.username.toUpperCase() || villo.user.getUsername().toUpperCase()));
-			}else if(h.toLowerCase() === "apps"){
-				feedString += ("APPS/" + (listenObject.appid.toUpperCase() || villo.app.id));
-			}
-			
-			PUBNUB.subscribe({
-				channel: feedString,
-				callback: function(data){
-					listenObject.callback(data);
-				}
-			});
+		});
+	},
+	listen: function(listenObject){
+		//Get the string we want to use based on the type:
+		var feedString = "VILLO/FEEDS/";
+		if(!listenObject.type){
+			listenObject.type = "public";
 		}
-	};
-})();
+		var h = listenObject.type;
+		if(h.toLowerCase() === "public"){
+			feedString += "PUBLIC";
+		}else if(h.toLowerCase() === "user" || h.toLowerCase() === "username"){
+			feedString += ("USERS/" + (listenObject.username.toUpperCase() || villo.user.getUsername().toUpperCase()));
+		}else if(h.toLowerCase() === "apps"){
+			feedString += ("APPS/" + (listenObject.appid.toUpperCase() || villo.app.id));
+		}
+		
+		PUBNUB.subscribe({
+			channel: feedString,
+			callback: function(data){
+				listenObject.callback(data);
+			}
+		});
+	}
+};
 
 /* Villo Friends */
-(function(){
-	villo.friends = {
+villo.friends = {
 /**
 	villo.friends.add
 	=================
@@ -626,46 +604,46 @@
 		});
 
 */
-		add: function(addObject){
-			villo.ajax("https://api.villo.me/friends.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: "add",
-					username: villo.user.username,
-					token: villo.user.token,
-					addUsername: addObject.username
-				},
-				onSuccess: function(transport){
-					//Return Vales
-					//transport.friends - Success
-					//0 - Bad Username
-					//33 - Generic Error
-					//66 - Unauthenticated User
-					//99 - Unauthorized App
-					
-					villo.verbose && villo.log(transport);
-					
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.friends) {
-							addObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								addObject.callback(transport);
-							} else {
-								addObject.callback(33);
-							}
-					} else {
-						addObject.callback(33);
-					}
-				},
-				onFailure: function(){
+	add: function(addObject){
+		villo.ajax("https://api.villo.me/friends.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "add",
+				username: villo.user.username,
+				token: villo.user.token,
+				addUsername: addObject.username
+			},
+			onSuccess: function(transport){
+				//Return Vales
+				//transport.friends - Success
+				//0 - Bad Username
+				//33 - Generic Error
+				//66 - Unauthenticated User
+				//99 - Unauthorized App
+				
+				villo.verbose && villo.log(transport);
+				
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.friends) {
+						addObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							addObject.callback(transport);
+						} else {
+							addObject.callback(33);
+						}
+				} else {
 					addObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(){
+				addObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.friends.remove
 	====================
@@ -701,50 +679,44 @@
 		});
 
 */	
-		remove: function(removeObject){
-			villo.ajax("https://api.villo.me/friends.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: "remove",
-					username: villo.user.username,
-					token: villo.user.token,
-					removeUsername: removeObject.username
-				},
-				onSuccess: function(transport){
-					//Return Vales
-					//transport.friends - Success
-					//0 - Bad Username
-					//33 - Generic Error
-					//66 - Unauthenticated User
-					//99 - Unauthorized App
-					villo.verbose && villo.log(transport);
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.friends) {
-							removeObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								removeObject.callback(transport);
-							} else {
-								removeObject.callback(33);
-							}
-					} else {
-						removeObject.callback(33);
-					}
-				},
-				onFailure: function(){
+	remove: function(removeObject){
+		villo.ajax("https://api.villo.me/friends.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "remove",
+				username: villo.user.username,
+				token: villo.user.token,
+				removeUsername: removeObject.username
+			},
+			onSuccess: function(transport){
+				//Return Vales
+				//transport.friends - Success
+				//0 - Bad Username
+				//33 - Generic Error
+				//66 - Unauthenticated User
+				//99 - Unauthorized App
+				villo.verbose && villo.log(transport);
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.friends) {
+						removeObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							removeObject.callback(transport);
+						} else {
+							removeObject.callback(33);
+						}
+				} else {
 					removeObject.callback(33);
 				}
-			});
-		},
-		/**
-		 * Get the currently logged in user's friend list.
-		 * @param {object} getObject Options for the function.
-		 * @param {function} getObject.callback Funtion to call once the profile is retrieved.
-		 * @since 0.8.0
-		 */
+			},
+			onFailure: function(){
+				removeObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.friends.get
 	=================
@@ -778,52 +750,50 @@
 		});
 
 */	
-		get: function(getObject){
-			villo.ajax("https://api.villo.me/friends.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: "get",
-					username: villo.user.username,
-					token: villo.user.token
-				},
-				onSuccess: function(transport){
+	get: function(getObject){
+		villo.ajax("https://api.villo.me/friends.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "get",
+				username: villo.user.username,
+				token: villo.user.token
+			},
+			onSuccess: function(transport){
+			
+				//Return Vales
+				//JSON - Success
+				//0 - Bad Username
+				//33 - Generic Error
+				//66 - Unauthenticated User
+				//99 - Unauthorized App
 				
-					//Return Vales
-					//JSON - Success
-					//0 - Bad Username
-					//33 - Generic Error
-					//66 - Unauthenticated User
-					//99 - Unauthorized App
-					
-					villo.verbose && villo.log(transport)
-					
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.friends) {
-							getObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								getObject.callback(transport);
-							} else {
-								getObject.callback(33);
-							}
-					} else {
-						getObject.callback(33);
-					}
-				},
-				onFailure: function(){
+				villo.verbose && villo.log(transport)
+				
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.friends) {
+						getObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							getObject.callback(transport);
+						} else {
+							getObject.callback(33);
+						}
+				} else {
 					getObject.callback(33);
 				}
-			});
-		}
+			},
+			onFailure: function(){
+				getObject.callback(33);
+			}
+		});
 	}
-})();
+}
 
 
 /* Villo Gift */
-(function(){
 
 /**
 	villo.gift
@@ -835,192 +805,190 @@
 */
 	
 	//Sync them, web interface for adding gifts
-	villo.gift = {
-		retrieve: function(giftObject){
-			villo.ajax("https://api.villo.me/gifts.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: 'specific',
-					category: giftObject.categoryStack
-				},
-				onSuccess: function(transport){
-					villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.gifts) {
-							giftObject.callback(tmprsp);
-						} else {
-							if (transport == 33 || transport == 66 || transport == 99) {
-								giftObject.callback(transport);
-							} else {
-								giftObject.callback(33);
-							}
-						}
+villo.gift = {
+	retrieve: function(giftObject){
+		villo.ajax("https://api.villo.me/gifts.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: 'specific',
+				category: giftObject.categoryStack
+			},
+			onSuccess: function(transport){
+				villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.gifts) {
+						giftObject.callback(tmprsp);
 					} else {
-						giftObject.callback(99);
-					}
-				},
-				onFailure: function(failure){
-					villo.log("failure!");
-					giftObject.callback(33);
-				}
-			});
-		},
-		//The original shipping version of Villo had a typo. We fix it here.
-		getCatagories: function(){
-			villo.gift.getCategories(arguments);
-		},
-		
-		getCategories: function(giftObject){
-			//Get gifts under a specific category
-			villo.ajax("https://api.villo.me/gifts.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: 'category'
-				},
-				onSuccess: function(transport){
-					villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.gifts) {
-							giftObject.callback(tmprsp);
-						} else {
-							if (transport == 33 || transport == 66 || transport == 99) {
-								giftObject.callback(transport);
-							} else {
-								giftObject.callback(33);
-							}
-						}
-					} else {
-						giftObject.callback(33);
-					}
-				},
-				onFailure: function(failure){
-					villo.log("failure!");
-					giftObject.callback(33);
-				}
-			});
-		},
-		
-		buy: function(giftObject){
-			//Get gifts under a specific category
-			villo.ajax("https://api.villo.me/gifts.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: 'buy',
-					username: villo.user.username,
-					token: villo.user.token,
-					buyID: giftObject.giftID
-				},
-				onSuccess: function(transport){
-					villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.gifts) {
-							giftObject.callback(tmprsp);
-						}
 						if (transport == 33 || transport == 66 || transport == 99) {
 							giftObject.callback(transport);
 						} else {
 							giftObject.callback(33);
 						}
-					} else {
-						giftObject.callback(33);
 					}
-				},
-				onFailure: function(failure){
-					villo.log("failure!");
-					giftObject.callback(33);
+				} else {
+					giftObject.callback(99);
 				}
-			});
-		},
-		
-		credits: function(giftObject){
-			villo.log(villo.user.token);
-			villo.log("Gettin' it!!");
-			//Get gifts under a specific category
-			villo.ajax("https://api.villo.me/gifts.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: 'checkCredit',
-					username: villo.user.username,
-					token: villo.user.token
-				},
-				onSuccess: function(transport){
-					villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.gifts) {
-							villo.credits = tmprsp.gifts.data;
-							giftObject.callback(tmprsp);
-						}
+			},
+			onFailure: function(failure){
+				villo.log("failure!");
+				giftObject.callback(33);
+			}
+		});
+	},
+	//The original shipping version of Villo had a typo. We fix it here.
+	getCatagories: function(){
+		villo.gift.getCategories(arguments);
+	},
+	
+	getCategories: function(giftObject){
+		//Get gifts under a specific category
+		villo.ajax("https://api.villo.me/gifts.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: 'category'
+			},
+			onSuccess: function(transport){
+				villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.gifts) {
+						giftObject.callback(tmprsp);
+					} else {
 						if (transport == 33 || transport == 66 || transport == 99) {
 							giftObject.callback(transport);
 						} else {
 							giftObject.callback(33);
 						}
+					}
+				} else {
+					giftObject.callback(33);
+				}
+			},
+			onFailure: function(failure){
+				villo.log("failure!");
+				giftObject.callback(33);
+			}
+		});
+	},
+	
+	buy: function(giftObject){
+		//Get gifts under a specific category
+		villo.ajax("https://api.villo.me/gifts.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: 'buy',
+				username: villo.user.username,
+				token: villo.user.token,
+				buyID: giftObject.giftID
+			},
+			onSuccess: function(transport){
+				villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.gifts) {
+						giftObject.callback(tmprsp);
+					}
+					if (transport == 33 || transport == 66 || transport == 99) {
+						giftObject.callback(transport);
 					} else {
 						giftObject.callback(33);
 					}
-				},
-				onFailure: function(failure){
-					villo.log("failure!");
+				} else {
 					giftObject.callback(33);
 				}
-			});
-		},
-		
-		purchases: function(giftObject){
-			//Get gifts under a specific category
-			villo.ajax("https://api.villo.me/gifts.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: 'purchases',
-					username: villo.user.username,
-					token: villo.user.token
-				},
-				onSuccess: function(transport){
-					villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.gifts) {
-							villo.credits = tmprsp.gifts.data;
-							giftObject.callback(tmprsp);
-						}
-						if (transport == 33 || transport == 66 || transport == 99) {
-							giftObject.callback(transport);
-						} else {
-							giftObject.callback(33);
-						}
+			},
+			onFailure: function(failure){
+				villo.log("failure!");
+				giftObject.callback(33);
+			}
+		});
+	},
+	
+	credits: function(giftObject){
+		villo.log(villo.user.token);
+		villo.log("Gettin' it!!");
+		//Get gifts under a specific category
+		villo.ajax("https://api.villo.me/gifts.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: 'checkCredit',
+				username: villo.user.username,
+				token: villo.user.token
+			},
+			onSuccess: function(transport){
+				villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.gifts) {
+						villo.credits = tmprsp.gifts.data;
+						giftObject.callback(tmprsp);
+					}
+					if (transport == 33 || transport == 66 || transport == 99) {
+						giftObject.callback(transport);
 					} else {
 						giftObject.callback(33);
 					}
-				},
-				onFailure: function(failure){
+				} else {
 					giftObject.callback(33);
 				}
-			});
-		}
+			},
+			onFailure: function(failure){
+				villo.log("failure!");
+				giftObject.callback(33);
+			}
+		});
+	},
+	
+	purchases: function(giftObject){
+		//Get gifts under a specific category
+		villo.ajax("https://api.villo.me/gifts.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: 'purchases',
+				username: villo.user.username,
+				token: villo.user.token
+			},
+			onSuccess: function(transport){
+				villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.gifts) {
+						villo.credits = tmprsp.gifts.data;
+						giftObject.callback(tmprsp);
+					}
+					if (transport == 33 || transport == 66 || transport == 99) {
+						giftObject.callback(transport);
+					} else {
+						giftObject.callback(33);
+					}
+				} else {
+					giftObject.callback(33);
+				}
+			},
+			onFailure: function(failure){
+				giftObject.callback(33);
+			}
+		});
 	}
-})();
+}
 
 /* Villo Init/Load */
 
-(function(){
-	//We aren't loaded yet
-	villo.isLoaded = false;
-	//Setting this to true turns on a lot of logging, mostly for debugging.
-	villo.verbose = false;
+//We aren't loaded yet
+villo.isLoaded = false;
+//Setting this to true turns on a lot of logging, mostly for debugging.
+villo.verbose = false;
 /**
 	villo.resource
 	==============
@@ -1064,29 +1032,29 @@
 	If you specify a folder in the resources array, it will attempt to load an info.villo.js file in that folder.
 
 */
-	villo.resource = function(options){
-		if(options && typeof(options) === "object" && options.resources){
-			var o = options.resources;
-			var scripts = [];
-			for(var x in o){
-				//We technically support CSS files, but we can't use callbacks with it:
-				if(o[x].slice(-3) == "css"){
-					villo.style.add(o[x]);
-				}else if(o[x].slice(-2) == "js"){
-					scripts.push(o[x]);
+villo.resource = function(options){
+	if(options && typeof(options) === "object" && options.resources){
+		var o = options.resources;
+		var scripts = [];
+		for(var x in o){
+			//We technically support CSS files, but we can't use callbacks with it:
+			if(o[x].slice(-3) == "css"){
+				villo.style.add(o[x]);
+			}else if(o[x].slice(-2) == "js"){
+				scripts.push(o[x]);
+			}else{
+				//Try info.villo.js loader:
+				if(o[x].slice(-1) == "/"){
+					scripts.push(o[x] + "info.villo.js");
 				}else{
-					//Try info.villo.js loader:
-					if(o[x].slice(-1) == "/"){
-						scripts.push(o[x] + "info.villo.js");
-					}else{
-						scripts.push(o[x] + "/info.villo.js");
-					}
+					scripts.push(o[x] + "/info.villo.js");
 				}
 			}
-			var callback = options.callback || function(){};
-			$script(scripts, callback);
-		}	
-	};
+		}
+		var callback = options.callback || function(){};
+		$script(scripts, callback);
+	}	
+};
 /**
 	villo.load
 	===========
@@ -1152,96 +1120,105 @@
 	If you wish to call villo.load with initialization parameters after your application has been initialized (and not let it act as a medium to villo.resource), then set "forceReload" to true in the object you pass villo.load.
 
 */
-	villo.load = function(options){
-		//Allow resource loading through villo.load. Set forceReload to true to call the init.
-		if (villo.isLoaded === true) {			
-			if(options.forceReload && options.forceReload === true){
-				//Allow function to continue.
-			}else{
-				//Load resources
-				villo.resource(options);
-				//Stop it.
-				return true;
+villo.load = function(options){
+	//Allow resource loading through villo.load. Set forceReload to true to call the init.
+	if (villo.isLoaded === true) {			
+		if(options.forceReload && options.forceReload === true){
+			//Allow function to continue.
+		}else{
+			//Load resources
+			villo.resource(options);
+			//Stop it.
+			return true;
+		}
+	}
+	
+	
+	
+	/*
+	 * Initialization
+	 */
+	
+	if (options.api) {
+		villo.apiKey = options.api;
+	}
+	
+	//Passed App Information
+	villo.app.platform = options.platform || "";
+	villo.app.title = options.title || "";
+	villo.app.id = options.id || "";
+	villo.app.version = options.version || "";
+	villo.app.developer = options.developer || "";
+	
+	/*
+	 * Set up the user propBag
+	 */
+	if(!villo.user.propBag){
+		villo.user.propBag = {}
+	}
+	
+	villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
+	villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
+	
+	/*
+	 * Set up the app propBag
+	 */
+	if(!villo.app.propBag){
+		villo.app.propBag = {}
+	}
+	
+	villo.app.propBag.states = "VAppState." + villo.app.id.toUpperCase();
+	villo.app.propBag.settings = "VilloSettingsProp." + villo.app.id.toUpperCase();
+	
+	/*
+	 * Load up the settings (includes sync + cloud).
+	 */
+	if (store.get(villo.app.propBag.settings)) {
+		villo.settings.load({
+			callback: villo.doNothing
+		});
+	}
+	
+	/*
+	 * Optional: Turn on logging.
+	 */
+	if(options.verbose){
+		villo.verbose = options.verbose;
+	}
+	
+	//Check login status.
+	if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
+		villo.user.strapLogin({username: store.get(villo.user.propBag.user), token: store.get(villo.user.propBag.token)});
+		//User Logged In
+		villo.sync();
+	} else {
+		//User not Logged In
+	}
+	
+	//Load pre-defined extensions. This makes adding them a breeze.
+	if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
+		var extensions = [];
+		for (x in options.extensions) {
+			if (options.extensions.hasOwnProperty(x)) {
+				extensions.push(villo.script.get() + options.extensions[x]);
 			}
 		}
-		
-		
-		
-		/*
-		 * Initialization
-		 */
-		
-		if (options.api) {
-			villo.apiKey = options.api;
-		}
-		
-		//Optional utility function to swap to cookie storage if localstorage isn't supported.
-		if (options.useCookies && options.useCookies === true) {
-			villo.overrideStorage(true);
-		}
-		
-		//Passed App Information
-		villo.app.platform = options.platform || "";
-		villo.app.title = options.title || "";
-		villo.app.id = options.id || "";
-		villo.app.version = options.version || "";
-		villo.app.developer = options.developer || "";
-		
-		/*
-		 * Set up the user propBag
-		 */
-		if(!villo.user.propBag){
-			villo.user.propBag = {}
-		}
-		
-		villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
-		villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
-		
-		/*
-		 * Set up the app propBag
-		 */
-		if(!villo.app.propBag){
-			villo.app.propBag = {}
-		}
-		
-		villo.app.propBag.states = "VAppState." + villo.app.id.toUpperCase();
-		villo.app.propBag.settings = "VilloSettingsProp." + villo.app.id.toUpperCase();
-		
-		/*
-		 * Load up the settings (includes sync + cloud).
-		 */
-		if (store.get(villo.app.propBag.settings)) {
-			villo.settings.load({
-				callback: villo.doNothing
-			});
-		}
-		
-		/*
-		 * Optional: Turn on logging.
-		 */
-		if(options.verbose){
-			villo.verbose = options.verbose;
-		}
-		
-		//Check login status.
-		if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
-			villo.user.strapLogin({username: store.get(villo.user.propBag.user), token: store.get(villo.user.propBag.token)});
-			//User Logged In
-			villo.sync();
-		} else {
-			//User not Logged In
-		}
-		
-		//Load pre-defined extensions. This makes adding them a breeze.
-		if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
-			var extensions = [];
-			for (x in options.extensions) {
-				if (options.extensions.hasOwnProperty(x)) {
-					extensions.push(villo.script.get() + options.extensions[x]);
-				}
+		$script(extensions, "extensions");
+	}else if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
+		var include = [];
+		for (x in options.include) {
+			if (options.include.hasOwnProperty(x)) {
+				include.push(options.include[x]);
 			}
-			$script(extensions, "extensions");
-		}else if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
+		}
+		$script(include, "include");
+	} else {
+		villo.doPushLoad(options);
+	}
+	
+	$script.ready("extensions", function(){
+		//Load up the include files
+		if (options.include && (typeof(options.include == "object") && options.include.length > 0)) {
 			var include = [];
 			for (x in options.include) {
 				if (options.include.hasOwnProperty(x)) {
@@ -1250,98 +1227,48 @@
 			}
 			$script(include, "include");
 		} else {
+			//No include, so just call the onload
 			villo.doPushLoad(options);
 		}
-		
-		$script.ready("extensions", function(){
-			//Load up the include files
-			if (options.include && (typeof(options.include == "object") && options.include.length > 0)) {
-				var include = [];
-				for (x in options.include) {
-					if (options.include.hasOwnProperty(x)) {
-						include.push(options.include[x]);
-					}
-				}
-				$script(include, "include");
-			} else {
-				//No include, so just call the onload
-				villo.doPushLoad(options);
-			}
-		});
-		
-		$script.ready("include", function(){
-			villo.doPushLoad(options);
-		});
+	});
+	
+	$script.ready("include", function(){
+		villo.doPushLoad(options);
+	});
 
-	};
-	villo.doPushLoad = function(options){
-		villo.isLoaded = true;
-		villo.hooks.call({name: "load"});
-		if(options && options.onload && typeof(options.onload) === "function"){
-			options.onload(true);
-		}
-		
-		/*
-		 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
-		 */
-		if(options.patch === false){
-			villo.verbose && console.log("Not loading patch file.");
-		}else{
-			villo.verbose && console.log("Loading patch file.");
-			$script("https://api.villo.me/patch.js", function(){
-				villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
-				villo.hooks.call({name: "patch"});
-			});
-		}
-		
-	};
-	//Override default storage options with a cookie option.
-	//* @protected
-	villo.overrideStorage = function(doIt){
-		if(doIt == true){
-			store = {
-				set: function(name, value, days){
-					if (days) {
-						var date = new Date();
-						date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-						var expires = "; expires=" + date.toGMTString();
-					} else {
-						var expires = "";
-					}
-					document.cookie = name+"="+value+expires+"; path=/";
-				},
-				get: function(name){
-					var nameEQ = name + "=";
-					var ca = document.cookie.split(';');
-					for(var i=0;i < ca.length;i++) {
-						var c = ca[i];
-						while (c.charAt(0) == ' ') {
-							c = c.substring(1, c.length);
-						}
-						if (c.indexOf(nameEQ) == 0) {
-							return c.substring(nameEQ.length, c.length);
-						}
-					}
-					return null;
-				},
-				remove: function(name) {
-					store.set(name,"",-1);
-				}
-			}
-		}
+};
+
+villo.doPushLoad = function(options){
+	villo.isLoaded = true;
+	villo.hooks.call({name: "load"});
+	if(options && options.onload && typeof(options.onload) === "function"){
+		options.onload(true);
 	}
 	
 	/*
-	 * When extensions are loaded, they will run this init function by defualt, unless they package their own.
+	 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
 	 */
-	villo.init = function(options){
-		return true;
+	if(options.patch === false){
+		villo.verbose && console.log("Not loading patch file.");
+	}else{
+		villo.verbose && console.log("Loading patch file.");
+		$script("https://api.villo.me/patch.js", function(){
+			villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
+			villo.hooks.call({name: "patch"});
+		});
 	}
-})();
+	
+};
+
+/*
+ * When extensions are loaded, they will run this init function by defualt, unless they package their own.
+ */
+villo.init = function(options){
+	return true;
+};
 
 /* Villo Leaders */
-(function(){
-	villo.leaders = {		
+villo.leaders = {		
 /**
 	villo.leaders.get
 	=================
@@ -1388,52 +1315,52 @@
 		});
 
 */
-		get: function(getObject){
-			if (getObject.board && getObject.board !== "") {
-				var leaderBoardName = getObject.board;
-			} else {
-				var leaderBoardName = villo.app.title;
-			}
-			
-			if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
-				var leaderLimiter = getObject.limit;
-			}else{
-				var leaderLimiter = 30;
-			}
-			
-			villo.ajax("https://api.villo.me/leaders.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					type: getObject.duration,
-					username: villo.user.username,
-					appName: leaderBoardName,
-					appid: villo.app.id,
-					limit: leaderLimiter
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log("Success!");
-					villo.verbose && villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.leaders) {
-							getObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								getObject.callback(transport);
-							} else {
-								getObject.callback(33);
-							}
-					} else {
-						getObject.callback(33);
-					}
-				},
-				onFailure: function(failure){
-					villo.verbose && villo.log("failure!");
+	get: function(getObject){
+		if (getObject.board && getObject.board !== "") {
+			var leaderBoardName = getObject.board;
+		} else {
+			var leaderBoardName = villo.app.title;
+		}
+		
+		if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
+			var leaderLimiter = getObject.limit;
+		}else{
+			var leaderLimiter = 30;
+		}
+		
+		villo.ajax("https://api.villo.me/leaders.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				type: getObject.duration,
+				username: villo.user.username,
+				appName: leaderBoardName,
+				appid: villo.app.id,
+				limit: leaderLimiter
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log("Success!");
+				villo.verbose && villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.leaders) {
+						getObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							getObject.callback(transport);
+						} else {
+							getObject.callback(33);
+						}
+				} else {
 					getObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(failure){
+				villo.verbose && villo.log("failure!");
+				getObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.leaders.search
 	====================
@@ -1481,53 +1408,53 @@
 		});
 
 */
-		search: function(getObject){
-			if (getObject.board && getObject.board !== "") {
-				var leaderBoardName = getObject.board;
-			} else {
-				var leaderBoardName = villo.app.title;
-			}
-			
-			if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
-				var leaderLimiter = getObject.limit;
-			}else{
-				var leaderLimiter = 30;
-			}
-			
-			villo.ajax("https://api.villo.me/leaders.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					type: "search",
-					username: villo.user.username,
-					appName: leaderBoardName,
-					appid: villo.app.id,
-					usersearch: getObject.username,
-					limit: leaderLimiter
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log("Success!");
-					villo.verbose && villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.leaders) {
-							getObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								getObject.callback(transport);
-							} else {
-								getObject.callback(33);
-							}
-					} else {
-						getObject.callback(33);
-					}
-				},
-				onFailure: function(failure){
-					villo.verbose && villo.log("failure!");
+	search: function(getObject){
+		if (getObject.board && getObject.board !== "") {
+			var leaderBoardName = getObject.board;
+		} else {
+			var leaderBoardName = villo.app.title;
+		}
+		
+		if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
+			var leaderLimiter = getObject.limit;
+		}else{
+			var leaderLimiter = 30;
+		}
+		
+		villo.ajax("https://api.villo.me/leaders.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				type: "search",
+				username: villo.user.username,
+				appName: leaderBoardName,
+				appid: villo.app.id,
+				usersearch: getObject.username,
+				limit: leaderLimiter
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log("Success!");
+				villo.verbose && villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.leaders) {
+						getObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							getObject.callback(transport);
+						} else {
+							getObject.callback(33);
+						}
+				} else {
 					getObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(failure){
+				villo.verbose && villo.log("failure!");
+				getObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.leaders.submit
 	====================
@@ -1567,64 +1494,187 @@
 		});
 
 */
-//TODO: Figure out callback
-		submit: function(scoreObject){
+	submit: function(scoreObject){
+	
+		if (scoreObject.board && scoreObject.board !== "") {
+			var leaderBoardName = scoreObject.board;
+		} else {
+			var leaderBoardName = villo.app.title;
+		}
+		if (villo.user.username == "" || !villo.user.username || (scoreObject.anon && scoreObject.anon == true)) {
+			var leaderBoardUsername = "Guest"
+		} else {
+			var leaderBoardUsername = villo.user.username;
+		}
 		
-			if (scoreObject.board && scoreObject.board !== "") {
-				var leaderBoardName = scoreObject.board;
-			} else {
-				var leaderBoardName = villo.app.title;
-			}
-			if (villo.user.username == "" || !villo.user.username || (scoreObject.anon && scoreObject.anon == true)) {
-				var leaderBoardUsername = "Guest"
-			} else {
-				var leaderBoardUsername = villo.user.username;
-			}
-			
-			villo.ajax("https://api.villo.me/leaders.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					type: "submit",
-					username: leaderBoardUsername,
-					token: villo.user.token,
-					appName: leaderBoardName,
-					appid: villo.app.id,
-					score: scoreObject.score
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log(transport);
-					if (transport !== "") {
-						if (transport === "0") {
-							//Submitted!
-							scoreObject.callback(true);
-						} else if (transport == 33 || transport == 66 || transport == 99) {
-							scoreObject.callback(transport);
-						} else {
-							scoreObject.callback(33);
-						}
+		villo.ajax("https://api.villo.me/leaders.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				type: "submit",
+				username: leaderBoardUsername,
+				token: villo.user.token,
+				appName: leaderBoardName,
+				appid: villo.app.id,
+				score: scoreObject.score
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log(transport);
+				if (transport !== "") {
+					if (transport === "0") {
+						//Submitted!
+						scoreObject.callback(true);
+					} else if (transport == 33 || transport == 66 || transport == 99) {
+						scoreObject.callback(transport);
 					} else {
 						scoreObject.callback(33);
 					}
-				},
-				onFailure: function(failure){
-					villo.verbose && villo.log("failure!");
+				} else {
 					scoreObject.callback(33);
 				}
-			});
-		}
+			},
+			onFailure: function(failure){
+				villo.verbose && villo.log("failure!");
+				scoreObject.callback(33);
+			}
+		});
 	}
-})();
+};
+
 /* Villo Messages */
-(function(){
-	//TODO
-	villo.messages = {}
-})();
+villo.messages = {}
+
+villo.presence = {
+	rooms: {},
+
+	join: function(joinObject){
+		this.rooms[joinObject.room] = {users: []};
+
+		this._timeouts[joinObject.room] = {};
+
+		PUBNUB.subscribe({
+			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + joinObject.room.toUpperCase() + "",
+			callback: function(evt){
+				if (evt.name === "user-presence") {
+					var user = evt.data.username;
+
+					if (villo.presence._timeouts[joinObject.room][user]) {
+						clearTimeout(villo.presence._timeouts[joinObject.room][user]);
+					} else {
+						villo.presence.rooms[joinObject.room].users.push(user);
+						//New User, so push event to the callback:
+						if(joinObject.callback && typeof(joinObject.callback) === "function"){
+							joinObject.callback({
+								name: "new-user",
+								data: villo.presence.rooms[joinObject.room]
+							});
+						}
+					}
+
+					villo.presence._timeouts[joinObject.room][user] = setTimeout(function(){
+						villo.presence.rooms[joinObject.room].users.splice([villo.presence.rooms[joinObject.room].users.indexOf(user)], 1);
+						delete villo.presence._timeouts[joinObject.room][user];
+						joinObject.callback({
+							name: "exit-user",
+							data: villo.presence.rooms[joinObject.room]
+						});
+					}, 5000);
+				} else {
+					//Some other event. We just leave this here for potential future expansion.
+				}
+			}
+		});
+
+		/*
+		 * Announce our first presence, then keep announcing it.
+		 */
+
+		PUBNUB.publish({
+			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + joinObject.room.toUpperCase(),
+			message: {
+				name: 'user-presence',
+				data: {
+					username: villo.user.username,
+				}
+			}
+		});
+
+		this._intervals[joinObject.room] = window.setInterval(function(){
+			PUBNUB.publish({
+				channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + joinObject.room.toUpperCase(),
+				message: {
+					name: 'user-presence',
+					data: {
+						username: villo.user.username,
+					}
+				}
+			});
+		}, 3000);
+
+		return true;
+	},
+	//Also use get as a medium to access villo.presence.get
+	get: function(getObject){
+		//TODO: Check to see if we're already subscribed. If we are, we can pass them the current object, we don't need to go through this process.
+		this._get[getObject.room] = {}
+
+		PUBNUB.subscribe({
+			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + getObject.room.toUpperCase(),
+			callback: function(evt){
+				if (evt.name === "user-presence") {
+					var user = evt.data.username;
+
+					if (villo.presence._get[getObject.room][user]) {
+
+					} else {
+
+					}
+
+					villo.presence._get[getObject.room][user] = {"username": user};
+				} else {
+					//Some other event. We just leave this here for potential future expansion.
+				}
+			}
+		});
+
+		window.setTimeout(function(){
+			PUBNUB.unsubscribe({
+				channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + getObject.room.toUpperCase(),
+			});
+			var returnObject = {
+				room: getObject.room,
+				users: []
+			};
+			for(x in villo.presence._get[getObject.room]){
+				returnObject.users.push(villo.presence._get[getObject.room][x].username);
+			}
+			getObject.callback(returnObject);
+		}, 4000);
+	},
+
+	leave: function(leaveObject){
+		PUBNUB.unsubscribe({
+			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + leaveObject.room.toUpperCase(),
+		});
+		clearInterval(this._intervals[leaveObject.room]);
+		delete this._intervals[leaveObject.room];
+		delete this._timeouts[leaveObject.room];
+		delete this.rooms[leaveObject.room];
+		return true;
+	},
+
+	/*
+	 * @private
+	 * These are the private variables, they should only be referenced by the Villo framework itself.
+	 */
+	_timeouts: {},
+	_intervals: {},
+	_get: {},
+}
 
 /* Villo Profile */
-(function(){
-	villo.profile = {
-		//TODO: Figure out the callback for non-existing users.
+villo.profile = {
+	//TODO: Figure out the callback for non-existing users.
 /**
 	villo.profile.get
 	=================
@@ -1671,41 +1721,41 @@
 		});
 
 */
-		get: function(getObject){
-			if (!getObject.username) {
-				getObject.username = villo.user.username;
-			}
-			villo.ajax("https://api.villo.me/profile.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: "get",
-					username: getObject.username,
-					ourUsername: villo.user.username || "Guest",
-					ourToken: villo.user.token || ""
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log(transport);
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.profile) {
-							getObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								getObject.callback(transport);
-							} else {
-								getObject.callback(33);
-							}
-					} else {
-						getObject.callback(33);
-					}
-				},
-				onFailure: function(){
+	get: function(getObject){
+		if (!getObject.username) {
+			getObject.username = villo.user.username;
+		}
+		villo.ajax("https://api.villo.me/profile.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "get",
+				username: getObject.username,
+				ourUsername: villo.user.username || "Guest",
+				ourToken: villo.user.token || ""
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log(transport);
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.profile) {
+						getObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							getObject.callback(transport);
+						} else {
+							getObject.callback(33);
+						}
+				} else {
 					getObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(){
+				getObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.profile.set
 	=================
@@ -1738,41 +1788,41 @@
 		});
 
 */	
-		set: function(updateObject){
-			villo.ajax("https://api.villo.me/profile.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					username: villo.user.username,
-					token: villo.user.token,
-					type: "specific",
-					field: updateObject.field,
-					data: updateObject.data
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log(transport);
-					//Stop at logging:
-					//return;
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.profile) {
-							updateObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								updateObject.callback(transport);
-							} else {
-								updateObject.callback(33);
-							}
-					} else {
-						updateObject.callback(33);
-					}
-				},
-				onFailure: function(){
+	set: function(updateObject){
+		villo.ajax("https://api.villo.me/profile.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				username: villo.user.username,
+				token: villo.user.token,
+				type: "specific",
+				field: updateObject.field,
+				data: updateObject.data
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log(transport);
+				//Stop at logging:
+				//return;
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.profile) {
+						updateObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							updateObject.callback(transport);
+						} else {
+							updateObject.callback(33);
+						}
+				} else {
 					updateObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(){
+				updateObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.profile.friends
 	=====================
@@ -1830,39 +1880,39 @@
 		});
 
 */
-		friends: function(updateObject){
-			villo.verbose && villo.log("called");
-			villo.ajax("https://api.villo.me/profile.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					username: villo.user.username,
-					token: villo.user.token,
-					type: "friends",
-				},
-				onSuccess: function(transport){
-					////Stop at logging:
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.friends) {
-							updateObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								updateObject.callback(transport);
-							} else {
-								updateObject.callback(33);
-							}
-					} else {
-						updateObject.callback(33);
-					}
-				},
-				onFailure: function(){
-					villo.verbose && villo.log("fail");
+	friends: function(updateObject){
+		villo.verbose && villo.log("called");
+		villo.ajax("https://api.villo.me/profile.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				username: villo.user.username,
+				token: villo.user.token,
+				type: "friends",
+			},
+			onSuccess: function(transport){
+				////Stop at logging:
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.friends) {
+						updateObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							updateObject.callback(transport);
+						} else {
+							updateObject.callback(33);
+						}
+				} else {
 					updateObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(){
+				villo.verbose && villo.log("fail");
+				updateObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.profile.avatar
 	=====================
@@ -1894,11 +1944,10 @@
 		});
 
 */
-		avatar: function(avatarObject){
-			
-		}
+	avatar: function(avatarObject){
+		
 	}
-})();
+};
 /* 
  * Villo Settings
  * ==========
@@ -1915,9 +1964,8 @@
  * Privacy, too. So encrypted on the server end.
  * 
  */
-(function(){
-	villo.settings = {
-		//We strap the settings on to villo.app.settings.
+villo.settings = {
+	//We strap the settings on to villo.app.settings.
 /**
 	villo.settings.load
 	===================
@@ -1981,45 +2029,45 @@
 	If the version of the settings on the server are older than the settings on your device, then the server will be updated with the local settings.
 
 */
-		load: function(loadObject){
-			if (loadObject.instant && loadObject.instant == true) {
-				if(store.get(villo.app.propBag.settings)){
-					villo.app.settings = store.get(villo.app.propBag.settings).settings;
-					//TODO: Callback, baby
-					return villo.app.settings;
-				}else{
-					return false;
-				}
-			} else {
-				var theTimestamp = store.get(villo.app.propBag.settings).timestamp;
-				villo.storage.get({
-					privacy: true,
-					title: "VilloSettingsProp",
-					callback: function(transit){
-						//TODO: Check for the need of this: 
-						transit = JSON.parse(JSON.parse(transit));
-						if (!transit.storage) {
-							//Offline: 
-							villo.app.settings = store.get(villo.app.propBag.settings).settings
+	load: function(loadObject){
+		if (loadObject.instant && loadObject.instant == true) {
+			if(store.get(villo.app.propBag.settings)){
+				villo.app.settings = store.get(villo.app.propBag.settings).settings;
+				//TODO: Callback, baby
+				return villo.app.settings;
+			}else{
+				return false;
+			}
+		} else {
+			var theTimestamp = store.get(villo.app.propBag.settings).timestamp;
+			villo.storage.get({
+				privacy: true,
+				title: "VilloSettingsProp",
+				callback: function(transit){
+					//TODO: Check for the need of this: 
+					transit = JSON.parse(JSON.parse(transit));
+					if (!transit.storage) {
+						//Offline: 
+						villo.app.settings = store.get(villo.app.propBag.settings).settings
+						loadObject.callback(villo.app.settings);
+					} else {
+						//Check for timestamps.
+						if (transit.storage.timestamp > theTimestamp) {
+							//Server version is newer. Replace our existing local storage with the server storage.
+							store.set(villo.app.propBag.settings, transit.storage);
+							villo.app.settings = transit.storage.settings
 							loadObject.callback(villo.app.settings);
 						} else {
-							//Check for timestamps.
-							if (transit.storage.timestamp > theTimestamp) {
-								//Server version is newer. Replace our existing local storage with the server storage.
-								store.set(villo.app.propBag.settings, transit.storage);
-								villo.app.settings = transit.storage.settings
-								loadObject.callback(villo.app.settings);
-							} else {
-								//Local version is newer. 
-								//TODO: Update server.
-								villo.app.settings = store.get(villo.app.propBag.settings).settings
-								loadObject.callback(villo.app.setting);
-							}
+							//Local version is newer. 
+							//TODO: Update server.
+							villo.app.settings = store.get(villo.app.propBag.settings).settings
+							loadObject.callback(villo.app.setting);
 						}
 					}
-				});
-			}
-		},
+				}
+			});
+		}
+	},
 /**
 	villo.settings.save
 	===================
@@ -2062,22 +2110,22 @@
 	Settings are user-specific, not universal.
 
 */
-		save: function(saveObject){
-			var settingsObject = {};
-			var d = new Date();
-			//Universal Timestamp Win
-			var timestamp = d.getTime();
-			settingsObject.timestamp = timestamp;
-			settingsObject.settings = saveObject.settings;
-			store.set(villo.app.propBag.settings, settingsObject);
-			villo.app.settings = settingsObject.settings;
-			villo.storage.set({
-				privacy: true,
-				title: "VilloSettingsProp",
-				data: settingsObject
-			});
-			return villo.app.settings;
-		},
+	save: function(saveObject){
+		var settingsObject = {};
+		var d = new Date();
+		//Universal Timestamp Win
+		var timestamp = d.getTime();
+		settingsObject.timestamp = timestamp;
+		settingsObject.settings = saveObject.settings;
+		store.set(villo.app.propBag.settings, settingsObject);
+		villo.app.settings = settingsObject.settings;
+		villo.storage.set({
+			privacy: true,
+			title: "VilloSettingsProp",
+			data: settingsObject
+		});
+		return villo.app.settings;
+	},
 /**
 	villo.settings.remove
 	=====================
@@ -2102,184 +2150,178 @@
 		villo.settings.remove();
 
 */
-		remove: function(){
-			store.remove(villo.app.propBag.settings);
-			villo.app.settings = {};
-			return true;
-		}
+	remove: function(){
+		store.remove(villo.app.propBag.settings);
+		villo.app.settings = {};
+		return true;
 	}
-})();
+}
 /* 
  * Villo App States
  * ==========
  * Copyright 2011 Jordan Gensler. All rights reserved.
  */
-(function(){
-	villo.states = {
-		set: function(setObject, callbackFunc){
-			store.set(villo.app.propBag.states, setObject);
-			villo.storage.set({
+villo.states = {
+	set: function(setObject, callbackFunc){
+		store.set(villo.app.propBag.states, setObject);
+		villo.storage.set({
+			privacy: true,
+			title: "VAppState",
+			data: setObject,
+			callback: function(transit){
+				//callbackFunc(transit);
+			}
+		});
+	},
+	get: function(getObject){
+		if (getObject.instant && getObject.instant == true) {
+			//Don't force return, allow callback:
+			if(getObject.callback){
+				getObject.callback(store.get(villo.app.propBag.states));
+			}
+			return store.get(villo.app.propBag.states);
+		} else {
+			villo.storage.get({
 				privacy: true,
 				title: "VAppState",
-				data: setObject,
 				callback: function(transit){
-					//callbackFunc(transit);
-				}
-			});
-		},
-		get: function(getObject){
-			if (getObject.instant && getObject.instant == true) {
-				//Don't force return, allow callback:
-				if(getObject.callback){
-					getObject.callback(store.get(villo.app.propBag.states));
-				}
-				return store.get(villo.app.propBag.states);
-			} else {
-				villo.storage.get({
-					privacy: true,
-					title: "VAppState",
-					callback: function(transit){
-						//TODO: Check for the need of this:
-						var transit = JSON.parse(transit);
-						transit.storage = JSON.parse(villo.stripslashes(transit.storage));
-						
-						villo.log(transit);
-						if (!transit.storage) {
-							getObject.callback(store.get(villo.app.propBag.states));
-						} else {
-							getObject.callback(transit.storage);
-						}
-					}
-				});
-			}
-		},
-	}
-})();
-/* Villo Cloud Storage */
-(function(){
-	villo.storage = {
-		
-		//TODO: Check to see if the string is JSON when we get it back.
-		//TODO: Get callback values.
-		
-		/**
-		 * Store a piece of data on the cloud.
-		 * @param {object} addObject Object containing the options.
-		 * @param {boolean} addObject.privacy Can either be set to true or false. If you set it to true, the data will only be able to be accessed in the app that you set it in, and will be encrypted on the database using AES-256 encryption.
-		 * @param {string} addObject.title The title of the data that you want to store.
-		 * @param {string} addObject.data The data that you want to store on the database. You can also pass an object and we will stringify it for you.
-		 * @param {string} addObject.callback Function to be called when the data is set on the server.
-		 * @since 0.8.5
-		 */
-		set: function(addObject){
-			//The managing of update vs new content is handled on the server
-			if (!addObject.privacy) {
-				addObject.privacy = false;
-			}
-			if (typeof(addObject.data) == "object") {
-				//We'll be nice and stringify the data for them.
-				addObject.data = JSON.stringify(addObject.data);
-			}
-			villo.ajax("https://api.villo.me/storage.php", {
-				method: 'post',
-				parameters: {
-					//This is one hell of a beefy server call.
-					api: villo.apiKey,
-					appid: villo.app.id,
-					app: villo.app.title,
-					type: "store",
-					username: villo.user.username,
-					token: villo.user.token,
-					privacy: addObject.privacy,
-					title: addObject.title,
-					data: addObject.data
-				},
-				onSuccess: function(transport){
-					if (!transport == "") {
-						//Check for JSON:
-						try{
-							var trans = JSON.parse(transport);
-						}catch(e){
-							var trans = transport;
-						}
-						if(addObject.callback){
-							addObject.callback(trans);
-						}
+					//TODO: Check for the need of this:
+					var transit = JSON.parse(transit);
+					transit.storage = JSON.parse(villo.stripslashes(transit.storage));
+					
+					villo.log(transit);
+					if (!transit.storage) {
+						getObject.callback(store.get(villo.app.propBag.states));
 					} else {
-						addObject.callback(33);
+						getObject.callback(transit.storage);
 					}
-				},
-				onFailure: function(){
-					addObject.callback(33);
-				}
-			});
-		},
-		/**
-		 * Get a piece of data that is stored on the cloud.
-		 * @param {object} getObject Object containing the options.
-		 * @param {boolean} getObject.privacy If the data on the server is set to "private" you need to set this to true in order to access and decrypt it.
-		 * @param {string} getObject.title The title of the data that you want to store.
-		 * @param {string} getObject.data The data that you want to store on the database. You can also pass an object and we will stringify it for you.
-		 * @param {string} getObject.callback Function to be called when the data is set on the server.
-		 * @param {object} getObject.external If you are accessing an external app's public data, include this object..
-		 * @param {string} getObject.external.appTitle The title of the external app you are recieving data from.
-		 * @param {string} getObject.external.appID The appID of the external app you are recieving data from.
-		 * @since 0.8.5
-		 */
-		get: function(getObject){
-			if (!getObject.privacy) {
-				getObject.privacy = false;
-			}
-			if (getObject.external) {
-				var storeGetTitle = getObject.external.appTitle;
-				var storeGetAppID = getObject.external.appID;
-			} else {
-				var storeGetTitle = villo.app.title;
-				var storeGetAppID = villo.app.id;
-			}
-			villo.ajax("https://api.villo.me/storage.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: storeGetAppID,
-					app: storeGetTitle,
-					type: "retrieve",
-					username: villo.user.username,
-					token: villo.user.token,
-					title: getObject.title,
-					privacy: getObject.privacy
-				},
-				onSuccess: function(transport){
-					if (!transport == "") {
-						//Check for JSON
-						try{
-							var trans = JSON.parse(transport);
-						}catch(e){
-							var trans = transport;
-						}
-						getObject.callback(trans);
-					} else {
-						getObject.callback(33);
-					}
-				},
-				onFailure: function(){
-					getObject.callback(33);
 				}
 			});
 		}
+	},
+}
+/* Villo Cloud Storage */
+villo.storage = {
+	
+	//TODO: Check to see if the string is JSON when we get it back.
+	//TODO: Get callback values.
+	
+	/**
+	 * Store a piece of data on the cloud.
+	 * @param {object} addObject Object containing the options.
+	 * @param {boolean} addObject.privacy Can either be set to true or false. If you set it to true, the data will only be able to be accessed in the app that you set it in, and will be encrypted on the database using AES-256 encryption.
+	 * @param {string} addObject.title The title of the data that you want to store.
+	 * @param {string} addObject.data The data that you want to store on the database. You can also pass an object and we will stringify it for you.
+	 * @param {string} addObject.callback Function to be called when the data is set on the server.
+	 * @since 0.8.5
+	 */
+	set: function(addObject){
+		//The managing of update vs new content is handled on the server
+		if (!addObject.privacy) {
+			addObject.privacy = false;
+		}
+		if (typeof(addObject.data) == "object") {
+			//We'll be nice and stringify the data for them.
+			addObject.data = JSON.stringify(addObject.data);
+		}
+		villo.ajax("https://api.villo.me/storage.php", {
+			method: 'post',
+			parameters: {
+				//This is one hell of a beefy server call.
+				api: villo.apiKey,
+				appid: villo.app.id,
+				app: villo.app.title,
+				type: "store",
+				username: villo.user.username,
+				token: villo.user.token,
+				privacy: addObject.privacy,
+				title: addObject.title,
+				data: addObject.data
+			},
+			onSuccess: function(transport){
+				if (!transport == "") {
+					//Check for JSON:
+					try{
+						var trans = JSON.parse(transport);
+					}catch(e){
+						var trans = transport;
+					}
+					if(addObject.callback){
+						addObject.callback(trans);
+					}
+				} else {
+					addObject.callback(33);
+				}
+			},
+			onFailure: function(){
+				addObject.callback(33);
+			}
+		});
+	},
+	/**
+	 * Get a piece of data that is stored on the cloud.
+	 * @param {object} getObject Object containing the options.
+	 * @param {boolean} getObject.privacy If the data on the server is set to "private" you need to set this to true in order to access and decrypt it.
+	 * @param {string} getObject.title The title of the data that you want to store.
+	 * @param {string} getObject.data The data that you want to store on the database. You can also pass an object and we will stringify it for you.
+	 * @param {string} getObject.callback Function to be called when the data is set on the server.
+	 * @param {object} getObject.external If you are accessing an external app's public data, include this object..
+	 * @param {string} getObject.external.appTitle The title of the external app you are recieving data from.
+	 * @param {string} getObject.external.appID The appID of the external app you are recieving data from.
+	 * @since 0.8.5
+	 */
+	get: function(getObject){
+		if (!getObject.privacy) {
+			getObject.privacy = false;
+		}
+		if (getObject.external) {
+			var storeGetTitle = getObject.external.appTitle;
+			var storeGetAppID = getObject.external.appID;
+		} else {
+			var storeGetTitle = villo.app.title;
+			var storeGetAppID = villo.app.id;
+		}
+		villo.ajax("https://api.villo.me/storage.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: storeGetAppID,
+				app: storeGetTitle,
+				type: "retrieve",
+				username: villo.user.username,
+				token: villo.user.token,
+				title: getObject.title,
+				privacy: getObject.privacy
+			},
+			onSuccess: function(transport){
+				if (!transport == "") {
+					//Check for JSON
+					try{
+						var trans = JSON.parse(transport);
+					}catch(e){
+						var trans = transport;
+					}
+					getObject.callback(trans);
+				} else {
+					getObject.callback(33);
+				}
+			},
+			onFailure: function(){
+				getObject.callback(33);
+			}
+		});
 	}
-})();
+}
 
 /* Villo User */
-(function(){
-	villo.user = {
-		/*
-		 * 
-		 */
-		propBag: {
-			"user": null,
-			"token": null
-		},
+villo.user = {
+	/*
+	 * 
+	 */
+	propBag: {
+		"user": null,
+		"token": null
+	},
 /**
 	villo.user.login
 	================
@@ -2324,52 +2366,52 @@
 	The username of the user currently logged in to Villo is stored as a string in villo.user.username, which you can view by calling villo.user.getUsername.
 
 */
-		login: function(userObject, callback){
-			villo.ajax("https://api.villo.me/user/login.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					username: userObject.username,
-					password: userObject.password
-				},
-				onSuccess: function(transport){
-					//We occasionally have a whitespace issue, so trim it!
-					var token = villo.trim(transport);
-					if (token == 1 || token == 2 || token == 33 || token == 99) {
-						//Error, call back with our error codes.
-						//We also are using the newer callback syntax here.
+	login: function(userObject, callback){
+		villo.ajax("https://api.villo.me/user/login.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				username: userObject.username,
+				password: userObject.password
+			},
+			onSuccess: function(transport){
+				//We occasionally have a whitespace issue, so trim it!
+				var token = villo.trim(transport);
+				if (token == 1 || token == 2 || token == 33 || token == 99) {
+					//Error, call back with our error codes.
+					//We also are using the newer callback syntax here.
+					if (callback) {
+						callback(token);
+					} else {
+						userObject.callback(token);
+					}
+				} else 
+					if (token.length == 32) {
+						
+						villo.user.strapLogin({username: userObject.username, token: token});
+						
 						if (callback) {
-							callback(token);
+							callback(true);
 						} else {
-							userObject.callback(token);
+							userObject.callback(true);
 						}
-					} else 
-						if (token.length == 32) {
-							
-							villo.user.strapLogin({username: userObject.username, token: token});
-							
-							if (callback) {
-								callback(true);
-							} else {
-								userObject.callback(true);
-							}
-							
-							villo.sync();
-							
-							//Call the hook, retroactive account.
-							villo.hooks.call({name: "login"});
-						} else {
-							callback(33);
-							villo.verbose && villo.log(33);
-							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
-						}
-				},
-				onFailure: function(failure){
-					callback(33);
-				}
-			});
-		},
+						
+						villo.sync();
+						
+						//Call the hook, retroactive account.
+						villo.hooks.call({name: "login"});
+					} else {
+						callback(33);
+						villo.verbose && villo.log(33);
+						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
+					}
+			},
+			onFailure: function(failure){
+				callback(33);
+			}
+		});
+	},
 /**
 	villo.user.logout
 	=================
@@ -2399,18 +2441,18 @@
 	Villo removes the username and unique app token used to authenticate API requests once a user is logged out, so the user will need to login again if they logout.   
 
 */
-		logout: function(){
-			//destroy user tokens and logout.
-			store.remove(villo.user.propBag.user);
-			store.remove(villo.user.propBag.token);
-			//Remove the variables we're working with locally.
-			villo.user.username = null;
-			villo.user.token = null;
-			//Call a logout hook.
-			villo.hooks.call({name: "logout"});
-			//We did it!
-			return true;
-		},
+	logout: function(){
+		//destroy user tokens and logout.
+		store.remove(villo.user.propBag.user);
+		store.remove(villo.user.propBag.token);
+		//Remove the variables we're working with locally.
+		villo.user.username = null;
+		villo.user.token = null;
+		//Call a logout hook.
+		villo.hooks.call({name: "logout"});
+		//We did it!
+		return true;
+	},
 /**
 	villo.user.isLoggedIn
 	=====================
@@ -2439,14 +2481,14 @@
 		}
 
 */
-		isLoggedIn: function(){
-			if (villo.user.username && villo.user.username !== "" && villo.user.token && villo.user.token !== "") {
-				return true;
-			} else {
-				return false;
-			}
-		},
-		//TODO: Finish FourValue
+	isLoggedIn: function(){
+		if (villo.user.username && villo.user.username !== "" && villo.user.token && villo.user.token !== "") {
+			return true;
+		} else {
+			return false;
+		}
+	},
+//TODO: Finish FourValue
 /**
 	villo.user.register
 	===================
@@ -2530,60 +2572,60 @@
 	Once a user is registered using villo.user.register, it will automatically log them in. You do not need to store the username or password. Villo will automatically save the username, along with a unique authentication token, and will load both of them every time Villo is initialized.
 
 */
-		register: function(userObject, callback){
-			villo.ajax("https://api.villo.me/user/register.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					username: userObject.username,
-					password: userObject.password,
-					password_confirm: (userObject.password_confirm || userObject.password),
-					fourvalue: (userObject.fourvalue || false),
-					email: userObject.email
-				},
-				onSuccess: function(transport){
-					var token = villo.trim(transport);
-					if (token == 1 || token == 2 || token == 33 || token == 99) {
-						//Error, call back with our error codes.
-						if (callback) {
-							callback(token);
-						} else {
-							userObject.callback(token);
-						}
-					} else 
-						if (token.length == 32) {
-							
-							villo.user.strapLogin({username: userObject.username, token: token});
-							
-							if (callback) {
-								callback(true);
-							} else {
-								userObject.callback(true);
-							}
-							villo.sync();
-							
-							//Call the hook
-							villo.hooks.call({name: "register"});
-						} else {
-							if (callback) {
-								callback(33);
-							} else {
-								userObject.callback(33);
-							}
-							villo.verbose && villo.log(33);
-							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
-						}
-				},
-				onFailure: function(failure){
+	register: function(userObject, callback){
+		villo.ajax("https://api.villo.me/user/register.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				username: userObject.username,
+				password: userObject.password,
+				password_confirm: (userObject.password_confirm || userObject.password),
+				fourvalue: (userObject.fourvalue || false),
+				email: userObject.email
+			},
+			onSuccess: function(transport){
+				var token = villo.trim(transport);
+				if (token == 1 || token == 2 || token == 33 || token == 99) {
+					//Error, call back with our error codes.
 					if (callback) {
-						callback(33);
+						callback(token);
 					} else {
-						userObject.callback(33);
+						userObject.callback(token);
 					}
+				} else 
+					if (token.length == 32) {
+						
+						villo.user.strapLogin({username: userObject.username, token: token});
+						
+						if (callback) {
+							callback(true);
+						} else {
+							userObject.callback(true);
+						}
+						villo.sync();
+						
+						//Call the hook
+						villo.hooks.call({name: "register"});
+					} else {
+						if (callback) {
+							callback(33);
+						} else {
+							userObject.callback(33);
+						}
+						villo.verbose && villo.log(33);
+						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
+					}
+			},
+			onFailure: function(failure){
+				if (callback) {
+					callback(33);
+				} else {
+					userObject.callback(33);
 				}
-			});
-		},
+			}
+		});
+	},
 /**
 	villo.user.strapLogin
 	==================
@@ -2615,18 +2657,18 @@
 	This feature is designed for applications which have multi-account support.
 	
 */	
-		strapLogin: function(strapObject){
-			store.set(villo.user.propBag.user, strapObject.username);
-			store.set(villo.user.propBag.token, strapObject.token);
-			villo.user.username = strapObject.username;
-			villo.user.token = strapObject.token;
-			
-			//Call the hook, retroactive account.
-			villo.hooks.call({name: "account"});
-			
-			villo.sync();
-			return true;
-		},
+	strapLogin: function(strapObject){
+		store.set(villo.user.propBag.user, strapObject.username);
+		store.set(villo.user.propBag.token, strapObject.token);
+		villo.user.username = strapObject.username;
+		villo.user.token = strapObject.token;
+		
+		//Call the hook, retroactive account.
+		villo.hooks.call({name: "account"});
+		
+		villo.sync();
+		return true;
+	},
 		
 /**
 	villo.user.getUsername
@@ -2652,16 +2694,14 @@
 		var username = villo.user.getUsername();
 	
 */
-		getUsername: function(){
-			return villo.user.username || false;
-		},
-		username: null,
-		token: ""
-	}
-})();
+	getUsername: function(){
+		return villo.user.username || false;
+	},
+	username: null,
+	token: ""
+}
 
 /* Villo Ajax */
-(function(){
 /**
 	villo.ajax
 	=================
@@ -2704,263 +2744,253 @@
 
 */
 
-	villo.ajax = function(url, modifiers){
-		//Set up the request.
-		var sendingVars = "";
-		if(modifiers.parameters && typeof(modifiers.parameters) === "object"){
-			for (var x in modifiers.parameters) {
-				sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
-			}
+villo.ajax = function(url, modifiers){
+	//Set up the request.
+	var sendingVars = "";
+	if(modifiers.parameters && typeof(modifiers.parameters) === "object"){
+		for (var x in modifiers.parameters) {
+			sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
 		}
-		
-		//Differentiate between POST and GET, and send the request.
-		if (modifiers.method.toLowerCase() === "post") {
-			var method = "POST";
-		} else {
-			var method = "GET"
-		}
-		
-		//Send to the actual ajax function.
-		villo._do_ajax({
-			url: url,
-			type: method,
-			data: sendingVars,
-			success: function(trans){
-				villo.verbose && console.log(trans);
-				modifiers.onSuccess(trans);
-			},
-			error: function(error){
-				villo.verbose && console.log(error);
-				modifiers.onFailure(error);
-			},
-			jsonp: modifiers.jsonp || false
-		});	
 	}
 	
-	/*
-	 * Utility function that is utilized if no suitable ajax is available. 
-	 * This should not be called directly.
-	 */
-	villo.jsonp = {
-	    callbackCounter: 0,
-	    fetch: function(url, callback) {
-	        var fn = 'JSONPCallback_' + this.callbackCounter++;
-	        window[fn] = this.evalJSONP(callback);
-	        url = url.replace('=JSONPCallback', '=' + fn);
-	
-	        var scriptTag = document.createElement('SCRIPT');
-	        scriptTag.src = url;
-	        document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
-	    },
-	    evalJSONP: function(callback) {
-	        return function(data) {
-	            var validJSON = false;
-		    if (typeof data == "string") {
-		        try {validJSON = JSON.parse(data);} catch (e) {
-		            /*invalid JSON*/}
-		    } else {
-		        validJSON = JSON.parse(JSON.stringify(data));
-	                window.console && console.warn(
-		            'response data was not a JSON string');
-	            }
-	            if (validJSON) {
-	                callback(validJSON);
-	            } else {
-	                throw("JSONP call returned invalid or empty JSON");
-	            }
-	        }
-	    }
+	//Differentiate between POST and GET, and send the request.
+	if (modifiers.method.toLowerCase() === "post") {
+		var method = "POST";
+	} else {
+		var method = "GET"
 	}
 	
-	//This function does the actual Ajax request.
-	villo._do_ajax = function(options){
-		//Internet Explorer checker:
-		var is_iexplorer = function() {
-	        return navigator.userAgent.indexOf('MSIE') != -1
-	    }
-	    
-        var url = options['url'];
-        var type = options['type'] || 'GET';
-        var success = options['success'];
-        var error = options['error'];
-        var data = options['data'];
-        
-        var jsonp = options['jsonp'] || false;
-
-        try {
-            var xhr = new XMLHttpRequest();
-            
-            //Force JSONP:
-            if (xhr && "withCredentials" in xhr && jsonp === true) {
-            	delete xhr.withCredentials;
-        	}
-        	
-        } catch (e) {}
-
-        if (xhr && "withCredentials" in xhr) {
-            xhr.open(type, url, true);
-        }else{
-        	//JSONP
-        	/*
-        	 * This method should be used for everything that doesn't support good AJAX. 
-        	 * 
-        	 * Use YQL + GET method
-        	 * return in this method too, so that it doesn't try to process it as regular AJAX
-        	 */
-        	villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){
-        		
-    			//Add debugging info:
-    			try{transit.query.url = url; transit.query.data = data;}catch(e){};
-        		
-        		//See if the stuff we care about is actually there:
-        		if(transit && transit.query && transit.query.results){
-        			//YQL does some weird stuff:
-        			var results = transit.query.results;
-        			if(results.body && results.body.p){
-        				//Call success:
-        				success(results.body.p, "JSONP");
-        			}else{
-        				error(transit);
-        			}
-        		}else{
-        			//It's not there, call an error:
-        			error(transit);
-        		}
-        	});
-        	//Stop it from continuing to the regular AJAX function:
-        	return;
-        }
-
-        if (!xhr) {
-        	error("Ajax is not supported on your browser.");
-        	return false;
-        } else {
-            var handle_load = function (event_type) {
-                return function (XHRobj) {
-                    // stupid IExplorer!!!
-                    var XHRobj = is_iexplorer() ? xhr : XHRobj;
-
-                    if (event_type == 'load' && (is_iexplorer() || XHRobj.readyState == 4) && success) success(XHRobj.responseText, XHRobj);
-                    else if (error) error(XHRobj);
-                }
-            };
-
-            xhr.onload = function (e) {
-                handle_load('load')(is_iexplorer() ? e : e.target)
-            };
-            xhr.onerror = function (e) {
-                handle_load('error')(is_iexplorer() ? e : e.target)
-            };
-            
-            if(type.toLowerCase() === "post"){
-            	//There were issues with how Post data was being handled, and setting this managed to fix all of the issues.
-            	//Ergo, Villo needs this:
-            	if("setRequestHeader" in xhr){
-            		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            	}
-            }
-            xhr.send(data);
-        }
-	}
-})();
-
-/* Villo App */
-(function(){
-	/*
-	 * Generic/Private Functions/Housings
-	 */
-	villo.app = {
-		propBag: {
-			"states": null,
-			"settings": null
+	//Send to the actual ajax function.
+	villo._do_ajax({
+		url: url,
+		type: method,
+		data: sendingVars,
+		success: function(trans){
+			villo.verbose && console.log(trans);
+			modifiers.onSuccess(trans);
 		},
-		//Villo.clipboard for copy and paste.
-		clipboard: [],
-		//All logs from villo.log get dumped here.
-		logs: [],
-		//A house for the app settings.
-		settings: {},
-		//Reference to our pubnub api keys:
-		pubnub: {
-			pub: "pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10",
-			sub: "sub-4e37d063-edfa-11df-8f1a-517217f921a4"
-		}
+		error: function(error){
+			villo.verbose && console.log(error);
+			modifiers.onFailure(error);
+		},
+		jsonp: modifiers.jsonp || false
+	});	
+}
+
+/*
+ * Utility function that is utilized if no suitable ajax is available. 
+ * This should not be called directly.
+ */
+villo.jsonp = {
+    callbackCounter: 0,
+    fetch: function(url, callback) {
+        var fn = 'JSONPCallback_' + this.callbackCounter++;
+        window[fn] = this.evalJSONP(callback);
+        url = url.replace('=JSONPCallback', '=' + fn);
+
+        var scriptTag = document.createElement('SCRIPT');
+        scriptTag.src = url;
+        document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
+    },
+    evalJSONP: function(callback) {
+        return function(data) {
+            var validJSON = false;
+	    if (typeof data == "string") {
+	        try {validJSON = JSON.parse(data);} catch (e) {
+	            /*invalid JSON*/}
+	    } else {
+	        validJSON = JSON.parse(JSON.stringify(data));
+                window.console && console.warn(
+	            'response data was not a JSON string');
+            }
+            if (validJSON) {
+                callback(validJSON);
+            } else {
+                throw("JSONP call returned invalid or empty JSON");
+            }
+        }
+    }
+}
+
+//This function does the actual Ajax request.
+villo._do_ajax = function(options){
+	//Internet Explorer checker:
+	var is_iexplorer = function() {
+        return navigator.userAgent.indexOf('MSIE') != -1
+    }
+    
+    var url = options['url'];
+    var type = options['type'] || 'GET';
+    var success = options['success'];
+    var error = options['error'];
+    var data = options['data'];
+    
+    var jsonp = options['jsonp'] || false;
+
+    try {
+        var xhr = new XMLHttpRequest();
+        
+        //Force JSONP:
+        if (xhr && "withCredentials" in xhr && jsonp === true) {
+        	delete xhr.withCredentials;
+    	}
+    	
+    } catch (e) {}
+
+    if (xhr && "withCredentials" in xhr) {
+        xhr.open(type, url, true);
+    }else{
+    	//JSONP
+    	/*
+    	 * This method should be used for everything that doesn't support good AJAX. 
+    	 * 
+    	 * Use YQL + GET method
+    	 * return in this method too, so that it doesn't try to process it as regular AJAX
+    	 */
+    	villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){
+    		
+			//Add debugging info:
+			try{transit.query.url = url; transit.query.data = data;}catch(e){};
+    		
+    		//See if the stuff we care about is actually there:
+    		if(transit && transit.query && transit.query.results){
+    			//YQL does some weird stuff:
+    			var results = transit.query.results;
+    			if(results.body && results.body.p){
+    				//Call success:
+    				success(results.body.p, "JSONP");
+    			}else{
+    				error(transit);
+    			}
+    		}else{
+    			//It's not there, call an error:
+    			error(transit);
+    		}
+    	});
+    	//Stop it from continuing to the regular AJAX function:
+    	return;
+    }
+
+    if (!xhr) {
+    	error("Ajax is not supported on your browser.");
+    	return false;
+    } else {
+        var handle_load = function (event_type) {
+            return function (XHRobj) {
+                // stupid IExplorer!!!
+                var XHRobj = is_iexplorer() ? xhr : XHRobj;
+
+                if (event_type == 'load' && (is_iexplorer() || XHRobj.readyState == 4) && success) success(XHRobj.responseText, XHRobj);
+                else if (error) error(XHRobj);
+            }
+        };
+
+        xhr.onload = function (e) {
+            handle_load('load')(is_iexplorer() ? e : e.target)
+        };
+        xhr.onerror = function (e) {
+            handle_load('error')(is_iexplorer() ? e : e.target)
+        };
+        
+        if(type.toLowerCase() === "post"){
+        	//There were issues with how Post data was being handled, and setting this managed to fix all of the issues.
+        	//Ergo, Villo needs this:
+        	if("setRequestHeader" in xhr){
+        		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        	}
+        }
+        xhr.send(data);
+    }
+}
+
+/*
+ * Generic/Private Functions/Housings
+ */
+villo.app = {
+	propBag: {
+		"states": null,
+		"settings": null
+	},
+	//Villo.clipboard for copy and paste.
+	clipboard: [],
+	//All logs from villo.log get dumped here.
+	logs: [],
+	//A house for the app settings.
+	settings: {},
+	//Reference to our pubnub api keys:
+	pubnub: {
+		pub: "pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10",
+		sub: "sub-4e37d063-edfa-11df-8f1a-517217f921a4"
 	}
-})();
+}
 
 /* Villo Do Functions */
-(function(){
+villo.doNothing = function(){
+	//We successfully did nothing! Yay!
+	return true;
+};
+
+villo.doSomething = function(){
+	var strings = [];
 	
-	villo.doNothing = function(){
-		//We successfully did nothing! Yay!
-		return true;
-	};
-	
-	villo.doSomething = function(){
-		var strings = [];
-		
-		for (var i = 0; i < arguments.length; i++) {
-			if (typeof(arguments[i] == "object")) {
-				strings.push(JSON.stringify(arguments[i]));
-			} else {
-				strings.push(arguments[i]);
-			}
+	for (var i = 0; i < arguments.length; i++) {
+		if (typeof(arguments[i] == "object")) {
+			strings.push(JSON.stringify(arguments[i]));
+		} else {
+			strings.push(arguments[i]);
 		}
-		
-		villo.log("You said", strings);
-		if (arguments[0] == "easterEgg") {
-			//Easter Egg!
-			villo.webLog("Suit up!");
-		}
-		return true;
 	}
-})();
+	
+	villo.log("You said", strings);
+	if (arguments[0] == "easterEgg") {
+		//Easter Egg!
+		villo.webLog("Suit up!");
+	}
+	return true;
+}
 
 /* Villo E & Script */
-(function(){
-	villo.script = {
-		get: function(){
-			var scripts = document.getElementsByTagName("script");
-			for (var i = 0, s, src, l = "villo.js".length; s = scripts[i]; i++) {
-				src = s.getAttribute("src") || "";
-				if (src.slice(-l) == "villo.js") {
-					return src.slice(0, -l - 1) + "/";
-				}
+villo.script = {
+	get: function(){
+		var scripts = document.getElementsByTagName("script");
+		for (var i = 0, s, src, l = "villo.js".length; s = scripts[i]; i++) {
+			src = s.getAttribute("src") || "";
+			if (src.slice(-l) == "villo.js") {
+				return src.slice(0, -l - 1) + "/";
 			}
-		},
-		add: function(o){
-			var s = document.createElement("script");
-	        s.type = "text/javascript";
-	        
-	        //Goes nuts on the cache:
-	        //s.async = true;
-	    
-	        s.src = o;
-	        document.getElementsByTagName('head')[0].appendChild(s);
 		}
-	};
-	villo.style = {
-		add: function(o){
-			var s = document.createElement("link");
-	        s.type = "text/css";
-	        s.rel = "stylesheet";
-	        s.href = o;
-	        document.getElementsByTagName('head')[0].appendChild(s);
-		}
+	},
+	add: function(o){
+		var s = document.createElement("script");
+        s.type = "text/javascript";
+        
+        //Goes nuts on the cache:
+        //s.async = true;
+    
+        s.src = o;
+        document.getElementsByTagName('head')[0].appendChild(s);
 	}
-})();
+};
+villo.style = {
+	add: function(o){
+		var s = document.createElement("link");
+        s.type = "text/css";
+        s.rel = "stylesheet";
+        s.href = o;
+        document.getElementsByTagName('head')[0].appendChild(s);
+	}
+}
 
 /* Villo Extend */
-(function(){
-	//Undocumented Utility Function:
-	villo.mixin = function(destination, source){
-		for (var k in source) {
-			if (source.hasOwnProperty(k)) {
-				destination[k] = source[k];
-			}
+//Undocumented Utility Function:
+villo.mixin = function(destination, source){
+	for (var k in source) {
+		if (source.hasOwnProperty(k)) {
+			destination[k] = source[k];
 		}
-		return destination;
 	}
+	return destination;
+}
 /**
 	villo.extend
 	=================
@@ -3008,68 +3038,65 @@
 	If you define an init function in the object, then it will be run when the extension is loaded. The init function will be deleted after it is run.
 
 */
-	Object.defineProperty(Object.prototype, "extend", {
-		value: function(obj){
-			villo.verbose && console.log("Extending Villo:", this);
-			villo.mixin(this, obj);
-			if (typeof(this.init) == "function") {
-				this.init();
-				if(this._ext && this._ext.keepit && this._ext.keepit === true){
-					//Do nothing
-				}else{
-					delete this.init;
-				}
-			}
-			return this;
-		},
-		writable: true,
-		configurable: true,
-		enumerable: false
-	});
-})();(function(){
-	/*
-	 * Experimental
-	 */
-	villo.hooks = {
-		//Where we store the callbacks.
-		hooks: [],
-		//The events that have been called.
-		called: {},
-		//Listen to an action
-		listen: function(setObject){
-			//Check for the name in the called object to see if we should trigger it right now.
-			//Set retroactive to false in the listen function to turn off the retroactive calling.
-			if(setObject.retroactive && setObject.retroactive === true){
-				if(this.called[setObject.name]){
-					setObject.callback(this.called[setObject.name].arguments);
-				}
-			}
-			this.hooks.push({name: setObject.name, callback: setObject.callback});
-		},
-		//Call a hook
-		call: function(callObject){
-			//Allow for retroactive calling.
-			if(callObject.retroactive && callObject.retroactive === false){
-				//Don't add retroactive calling.
+Object.defineProperty(Object.prototype, "extend", {
+	value: function(obj){
+		villo.verbose && console.log("Extending Villo:", this);
+		villo.mixin(this, obj);
+		if (typeof(this.init) == "function") {
+			this.init();
+			if(this._ext && this._ext.keepit && this._ext.keepit === true){
+				//Do nothing
 			}else{
-				//Update with latest arguments:
-				this.called[callObject.name] = {name: callObject.name, arguments: callObject.arguments || true};
+				delete this.init;
 			}
-			//Loop through hooks, trigger ones with the same name:
-			for(var x in this.hooks){
-				if(this.hooks.hasOwnProperty(x)){
-					if(this.hooks[x].name === callObject.name){
-						//Same name, trigger it!
-						this.hooks[x].callback(callObject.arguments || true);
-					}
+		}
+		return this;
+	},
+	writable: true,
+	configurable: true,
+	enumerable: false
+});
+/*
+ * Experimental
+ */
+villo.hooks = {
+	//Where we store the callbacks.
+	hooks: [],
+	//The events that have been called.
+	called: {},
+	//Listen to an action
+	listen: function(setObject){
+		//Check for the name in the called object to see if we should trigger it right now.
+		//Set retroactive to false in the listen function to turn off the retroactive calling.
+		if(setObject.retroactive && setObject.retroactive === true){
+			if(this.called[setObject.name]){
+				setObject.callback(this.called[setObject.name].arguments);
+			}
+		}
+		this.hooks.push({name: setObject.name, callback: setObject.callback});
+	},
+	//Call a hook
+	call: function(callObject){
+		//Allow for retroactive calling.
+		if(callObject.retroactive && callObject.retroactive === false){
+			//Don't add retroactive calling.
+		}else{
+			//Update with latest arguments:
+			this.called[callObject.name] = {name: callObject.name, arguments: callObject.arguments || true};
+		}
+		//Loop through hooks, trigger ones with the same name:
+		for(var x in this.hooks){
+			if(this.hooks.hasOwnProperty(x)){
+				if(this.hooks[x].name === callObject.name){
+					//Same name, trigger it!
+					this.hooks[x].callback(callObject.arguments || true);
 				}
 			}
-		},
-	}
-})();
+		}
+	},
+}
 
 /* Villo Log */
-(function(){
 /**
 	villo.log
 	=================
@@ -3094,28 +3121,28 @@
 		villo.log("test results: ", testResults, {"objects": true}, false);
 
 */
-	villo.log = function(){
-		//Inspired by and based on Dave Balmer's Jo app framework (joapp.com).
-		var strings = [];
-		
-		for (var i = 0; i < arguments.length; i++) {
-			if (typeof(arguments[i] == "object")) {
-				strings.push(JSON.stringify(arguments[i]));
-			} else {
-				strings.push(arguments[i]);
-			}
-		}
-		
-		if (console && console.log) {
-			console.log(strings.join(" "));
-			//We also push to the variable, just to be sure.
-			villo.app.logs[villo.app.logs.length] = strings.join(" ");
+villo.log = function(){
+	//Inspired by and based on Dave Balmer's Jo app framework (joapp.com).
+	var strings = [];
+	
+	for (var i = 0; i < arguments.length; i++) {
+		if (typeof(arguments[i] == "object")) {
+			strings.push(JSON.stringify(arguments[i]));
 		} else {
-			//No console, which is a bummer, so just push the data to the variable.
-			villo.app.logs[villo.app.logs.length] = strings.join(" ");
+			strings.push(arguments[i]);
 		}
-		return true;
 	}
+	
+	if (console && console.log) {
+		console.log(strings.join(" "));
+		//We also push to the variable, just to be sure.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	} else {
+		//No console, which is a bummer, so just push the data to the variable.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	}
+	return true;
+}
 /**
 	villo.webLog
 	=================
@@ -3140,53 +3167,53 @@
 		villo.webLog("test results: ", testResults, {"objects": true}, false);
 
 */
-	villo.webLog = function(){
-		//New logging functionality, inspired by Dave Balmer's Jo app framework (joapp.com).
-		var strings = [];
-		
-		for (var i = 0; i < arguments.length; i++) {
-			if (typeof(arguments[i] == "object")) {
-				strings.push(JSON.stringify(arguments[i]));
-			} else {
-				strings.push(arguments[i]);
-			}
-		}
-		
-		if (console && console.log) {
-			console.log(strings.join(" "));
-			//We also push to the variable, just to be sure.
-			villo.app.logs[villo.app.logs.length] = strings.join(" ");
+villo.webLog = function(){
+	//New logging functionality, inspired by Dave Balmer's Jo app framework (joapp.com).
+	var strings = [];
+	
+	for (var i = 0; i < arguments.length; i++) {
+		if (typeof(arguments[i] == "object")) {
+			strings.push(JSON.stringify(arguments[i]));
 		} else {
-			//No console, which is a bummer, so just push the data to the variable.
-			villo.app.logs[villo.app.logs.length] = strings.join(" ");
+			strings.push(arguments[i]);
 		}
-		
-		if (villo.user.username && villo.user.username !== '') {
-			var logName = villo.user.username;
-		} else {
-			var logName = "Guest";
-		}
-		
-		theLog = strings.join(" ")
-		
-		villo.ajax("http://api.villo.me/log.php", {
-			method: 'post',
-			parameters: {
-				api: villo.apiKey,
-				type: "log",
-				username: logName,
-				appid: villo.app.id,
-				log: theLog
-			},
-			onSuccess: function(transport){
-			
-			},
-			onFailure: function(failure){
-			
-			}
-		});
-		return true;
 	}
+	
+	if (console && console.log) {
+		console.log(strings.join(" "));
+		//We also push to the variable, just to be sure.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	} else {
+		//No console, which is a bummer, so just push the data to the variable.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	}
+	
+	if (villo.user.username && villo.user.username !== '') {
+		var logName = villo.user.username;
+	} else {
+		var logName = "Guest";
+	}
+	
+	theLog = strings.join(" ")
+	
+	villo.ajax("http://api.villo.me/log.php", {
+		method: 'post',
+		parameters: {
+			api: villo.apiKey,
+			type: "log",
+			username: logName,
+			appid: villo.app.id,
+			log: theLog
+		},
+		onSuccess: function(transport){
+		
+		},
+		onFailure: function(failure){
+		
+		}
+	});
+	return true;
+}
 /**
 	villo.dumpLogs
 	=================
@@ -3214,87 +3241,65 @@
 		document.write(logs);
 
 */
-	villo.dumpLogs = function(useJson){
-		if(useJson && useJson === true){
-			return villo.app.logs;
-		}else{
-			return JSON.stringify(villo.app.logs);
-		}
+villo.dumpLogs = function(useJson){
+	if(useJson && useJson === true){
+		return villo.app.logs;
+	}else{
+		return JSON.stringify(villo.app.logs);
 	}
-})();
+}
 
 
 /* Villo Slash Control */
-(function(){
-	//Adds slashes into any string to prevent it from breaking the JS.
-	villo.addSlashes = function(string){
-		string = string.replace(/\\/g, '\\\\');
-		string = string.replace(/\'/g, '\\\'');
-		string = string.replace(/\"/g, '\\"');
-		string = string.replace(/\0/g, '\\0');
-		return string;
-	};
-	villo.stripslashes = function(str){
-		return (str + '').replace(/\\(.?)/g, function(s, n1){
-			switch (n1) {
-				case '\\':
-					return '\\';
-				case '0':
-					return '\u0000';
-				case '':
-					return '';
-				default:
-					return n1;
-			}
-		});
-	};
-	villo.trim = function(str){
-		str = str.replace(/^\s+/, '');
-		for (var i = str.length - 1; i >= 0; i--) {
-			if (/\S/.test(str.charAt(i))) {
-				str = str.substring(0, i + 1);
-				break;
-			}
+//Adds slashes into any string to prevent it from breaking the JS.
+villo.addSlashes = function(string){
+	string = string.replace(/\\/g, '\\\\');
+	string = string.replace(/\'/g, '\\\'');
+	string = string.replace(/\"/g, '\\"');
+	string = string.replace(/\0/g, '\\0');
+	return string;
+};
+villo.stripslashes = function(str){
+	return (str + '').replace(/\\(.?)/g, function(s, n1){
+		switch (n1) {
+			case '\\':
+				return '\\';
+			case '0':
+				return '\u0000';
+			case '':
+				return '';
+			default:
+				return n1;
 		}
-		return str;
-	};
-})();
+	});
+};
+villo.trim = function(str){
+	str = str.replace(/^\s+/, '');
+	for (var i = str.length - 1; i >= 0; i--) {
+		if (/\S/.test(str.charAt(i))) {
+			str = str.substring(0, i + 1);
+			break;
+		}
+	}
+	return str;
+};
 
 /* Villo Sync */
-(function(){
-	//Private function that is run on initialization.
-	villo.sync = function(){
-		
-		/*
-		 * Redeem our voucher.
-		 */
-		//Create voucher date
-		var d = new Date();
-		var voucherday = d.getDate() + " " + d.getMonth() + " " + d.getFullYear();
-		//Get last voucher date
-		if (store.get('voucher')) {
-			if (voucherday == store.get('voucher')) {
-				villo.syncFeed();
-			} else {
-				//Today is a new day, let's request ours and set the new date.
-				store.set('voucher', voucherday);
-				villo.ajax("https://api.villo.me/credits.php", {
-					method: 'post',
-					parameters: {
-						api: villo.apiKey,
-						appid: villo.app.id,
-						type: "voucher",
-						username: villo.user.username,
-						token: villo.user.token
-					},
-					onSuccess: function(){
-					},
-					onFailure: function(){
-					}
-				});
-			}
+//Private function that is run on initialization.
+villo.sync = function(){
+	
+	/*
+	 * Redeem our voucher.
+	 */
+	//Create voucher date
+	var d = new Date();
+	var voucherday = d.getDate() + " " + d.getMonth() + " " + d.getFullYear();
+	//Get last voucher date
+	if (store.get('voucher')) {
+		if (voucherday == store.get('voucher')) {
+			villo.syncFeed();
 		} else {
-			//No last voucher date. Set one and request our voucher.
+			//Today is a new day, let's request ours and set the new date.
 			store.set('voucher', voucherday);
 			villo.ajax("https://api.villo.me/credits.php", {
 				method: 'post',
@@ -3305,37 +3310,35 @@
 					username: villo.user.username,
 					token: villo.user.token
 				},
-				onSuccess: function(transport){
+				onSuccess: function(){
 				},
 				onFailure: function(){
 				}
 			});
 		}
-	
-	}
-	villo.syncFeed = function(){
-		var currentTime = new Date().getTime();
-		if (store.get("feed")) {
-			if (currentTime > (store.get("feed") + 1000000)) {
-				store.set('feed', currentTime);
-				villo.ajax("https://api.villo.me/credits.php", {
-					method: 'post',
-					parameters: {
-						api: villo.apiKey,
-						appid: villo.app.id,
-						type: "launch",
-						username: villo.user.username,
-						token: villo.user.token
-					},
-					onSuccess: function(transport){
-					},
-					onFailure: function(){
-					}
-				});
-			} else {
-				//It hasn't been long enough since our last check in.
+	} else {
+		//No last voucher date. Set one and request our voucher.
+		store.set('voucher', voucherday);
+		villo.ajax("https://api.villo.me/credits.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "voucher",
+				username: villo.user.username,
+				token: villo.user.token
+			},
+			onSuccess: function(transport){
+			},
+			onFailure: function(){
 			}
-		} else {
+		});
+	}
+}
+villo.syncFeed = function(){
+	var currentTime = new Date().getTime();
+	if (store.get("feed")) {
+		if (currentTime > (store.get("feed") + 1000000)) {
 			store.set('feed', currentTime);
 			villo.ajax("https://api.villo.me/credits.php", {
 				method: 'post',
@@ -3351,11 +3354,27 @@
 				onFailure: function(){
 				}
 			});
+		} else {
+			//It hasn't been long enough since our last check in.
 		}
+	} else {
+		store.set('feed', currentTime);
+		villo.ajax("https://api.villo.me/credits.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "launch",
+				username: villo.user.username,
+				token: villo.user.token
+			},
+			onSuccess: function(transport){
+			},
+			onFailure: function(){
+			}
+		});
 	}
-})();
-
-/* END OF VILLO */
+}
 
 /* Villo Dependencies */
 
@@ -3381,381 +3400,83 @@ a.load("localStorage");for(var f=0,j;j=d[f];f++)a.removeAttribute(j.name);a.save
     See http://www.JSON.org/js.html
 */
 
-var JSON;
-if (!JSON) {
-    JSON = {};
-}
-
-(function () {
-    'use strict';
-
-    function f(n) {
-        // Format integers to have at least two digits.
-        return n < 10 ? '0' + n : n;
-    }
-
-    if (typeof Date.prototype.toJSON !== 'function') {
-
-        Date.prototype.toJSON = function (key) {
-
-            return isFinite(this.valueOf())
-                ? this.getUTCFullYear()     + '-' +
-                    f(this.getUTCMonth() + 1) + '-' +
-                    f(this.getUTCDate())      + 'T' +
-                    f(this.getUTCHours())     + ':' +
-                    f(this.getUTCMinutes())   + ':' +
-                    f(this.getUTCSeconds())   + 'Z'
-                : null;
-        };
-
-        String.prototype.toJSON      =
-            Number.prototype.toJSON  =
-            Boolean.prototype.toJSON = function (key) {
-                return this.valueOf();
-            };
-    }
-
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        gap,
-        indent,
-        meta = {    // table of character substitutions
-            '\b': '\\b',
-            '\t': '\\t',
-            '\n': '\\n',
-            '\f': '\\f',
-            '\r': '\\r',
-            '"' : '\\"',
-            '\\': '\\\\'
-        },
-        rep;
-
-
-    function quote(string) {
-
-
-        escapable.lastIndex = 0;
-        return escapable.test(string) ? '"' + string.replace(escapable, function (a) {
-            var c = meta[a];
-            return typeof c === 'string'
-                ? c
-                : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-        }) + '"' : '"' + string + '"';
-    }
-
-
-    function str(key, holder) {
-
-
-        var i,          // The loop counter.
-            k,          // The member key.
-            v,          // The member value.
-            length,
-            mind = gap,
-            partial,
-            value = holder[key];
-
-
-        if (value && typeof value === 'object' &&
-                typeof value.toJSON === 'function') {
-            value = value.toJSON(key);
-        }
-
-
-        if (typeof rep === 'function') {
-            value = rep.call(holder, key, value);
-        }
-
-
-        switch (typeof value) {
-        case 'string':
-            return quote(value);
-
-        case 'number':
-
-
-            return isFinite(value) ? String(value) : 'null';
-
-        case 'boolean':
-        case 'null':
-
-            return String(value);
-
-
-        case 'object':
-
-            if (!value) {
-                return 'null';
-            }
-
-            gap += indent;
-            partial = [];
-
-            if (Object.prototype.toString.apply(value) === '[object Array]') {
-
-
-                length = value.length;
-                for (i = 0; i < length; i += 1) {
-                    partial[i] = str(i, value) || 'null';
-                }
-
-
-                v = partial.length === 0
-                    ? '[]'
-                    : gap
-                    ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
-                    : '[' + partial.join(',') + ']';
-                gap = mind;
-                return v;
-            }
-
-
-            if (rep && typeof rep === 'object') {
-                length = rep.length;
-                for (i = 0; i < length; i += 1) {
-                    if (typeof rep[i] === 'string') {
-                        k = rep[i];
-                        v = str(k, value);
-                        if (v) {
-                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                        }
-                    }
-                }
-            } else {
-
-
-                for (k in value) {
-                    if (Object.prototype.hasOwnProperty.call(value, k)) {
-                        v = str(k, value);
-                        if (v) {
-                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                        }
-                    }
-                }
-            }
-
-
-            v = partial.length === 0
-                ? '{}'
-                : gap
-                ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
-                : '{' + partial.join(',') + '}';
-            gap = mind;
-            return v;
-        }
-    }
-
-
-    if (typeof JSON.stringify !== 'function') {
-        JSON.stringify = function (value, replacer, space) {
-
-            var i;
-            gap = '';
-            indent = '';
-
-            if (typeof space === 'number') {
-                for (i = 0; i < space; i += 1) {
-                    indent += ' ';
-                }
-
-
-            } else if (typeof space === 'string') {
-                indent = space;
-            }
-
-            rep = replacer;
-            if (replacer && typeof replacer !== 'function' &&
-                    (typeof replacer !== 'object' ||
-                    typeof replacer.length !== 'number')) {
-                throw new Error('JSON.stringify');
-            }
-
-            return str('', {'': value});
-        };
-    }
-
-
-    if (typeof JSON.parse !== 'function') {
-        JSON.parse = function (text, reviver) {
-
-
-            var j;
-
-            function walk(holder, key) {
-
-
-                var k, v, value = holder[key];
-                if (value && typeof value === 'object') {
-                    for (k in value) {
-                        if (Object.prototype.hasOwnProperty.call(value, k)) {
-                            v = walk(value, k);
-                            if (v !== undefined) {
-                                value[k] = v;
-                            } else {
-                                delete value[k];
-                            }
-                        }
-                    }
-                }
-                return reviver.call(holder, key, value);
-            }
-
-
-            text = String(text);
-            cx.lastIndex = 0;
-            if (cx.test(text)) {
-                text = text.replace(cx, function (a) {
-                    return '\\u' +
-                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-                });
-            }
-
-
-            if (/^[\],:{}\s]*$/
-                    .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
-                        .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
-                        .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-
-
-                j = eval('(' + text + ')');
-
-
-                return typeof reviver === 'function'
-                    ? walk({'': j}, '')
-                    : j;
-            }
-
-            throw new SyntaxError('JSON.parse');
-        };
-    }
-}());
-
+var JSON;if(!JSON){JSON={};}
+(function(){'use strict';function f(n){return n<10?'0'+n:n;}
+if(typeof Date.prototype.toJSON!=='function'){Date.prototype.toJSON=function(key){return isFinite(this.valueOf())?this.getUTCFullYear()+'-'+
+f(this.getUTCMonth()+1)+'-'+
+f(this.getUTCDate())+'T'+
+f(this.getUTCHours())+':'+
+f(this.getUTCMinutes())+':'+
+f(this.getUTCSeconds())+'Z':null;};String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(key){return this.valueOf();};}
+var cx=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,escapable=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,gap,indent,meta={'\b':'\\b','\t':'\\t','\n':'\\n','\f':'\\f','\r':'\\r','"':'\\"','\\':'\\\\'},rep;function quote(string){escapable.lastIndex=0;return escapable.test(string)?'"'+string.replace(escapable,function(a){var c=meta[a];return typeof c==='string'?c:'\\u'+('0000'+a.charCodeAt(0).toString(16)).slice(-4);})+'"':'"'+string+'"';}
+function str(key,holder){var i,k,v,length,mind=gap,partial,value=holder[key];if(value&&typeof value==='object'&&typeof value.toJSON==='function'){value=value.toJSON(key);}
+if(typeof rep==='function'){value=rep.call(holder,key,value);}
+switch(typeof value){case'string':return quote(value);case'number':return isFinite(value)?String(value):'null';case'boolean':case'null':return String(value);case'object':if(!value){return'null';}
+gap+=indent;partial=[];if(Object.prototype.toString.apply(value)==='[object Array]'){length=value.length;for(i=0;i<length;i+=1){partial[i]=str(i,value)||'null';}
+v=partial.length===0?'[]':gap?'[\n'+gap+partial.join(',\n'+gap)+'\n'+mind+']':'['+partial.join(',')+']';gap=mind;return v;}
+if(rep&&typeof rep==='object'){length=rep.length;for(i=0;i<length;i+=1){if(typeof rep[i]==='string'){k=rep[i];v=str(k,value);if(v){partial.push(quote(k)+(gap?': ':':')+v);}}}}else{for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=str(k,value);if(v){partial.push(quote(k)+(gap?': ':':')+v);}}}}
+v=partial.length===0?'{}':gap?'{\n'+gap+partial.join(',\n'+gap)+'\n'+mind+'}':'{'+partial.join(',')+'}';gap=mind;return v;}}
+if(typeof JSON.stringify!=='function'){JSON.stringify=function(value,replacer,space){var i;gap='';indent='';if(typeof space==='number'){for(i=0;i<space;i+=1){indent+=' ';}}else if(typeof space==='string'){indent=space;}
+rep=replacer;if(replacer&&typeof replacer!=='function'&&(typeof replacer!=='object'||typeof replacer.length!=='number')){throw new Error('JSON.stringify');}
+return str('',{'':value});};}
+if(typeof JSON.parse!=='function'){JSON.parse=function(text,reviver){var j;function walk(holder,key){var k,v,value=holder[key];if(value&&typeof value==='object'){for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=walk(value,k);if(v!==undefined){value[k]=v;}else{delete value[k];}}}}
+return reviver.call(holder,key,value);}
+text=String(text);cx.lastIndex=0;if(cx.test(text)){text=text.replace(cx,function(a){return'\\u'+
+('0000'+a.charCodeAt(0).toString(16)).slice(-4);});}
+if(/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,'@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,']').replace(/(?:^|:|,)(?:\s*\[)+/g,''))){j=eval('('+text+')');return typeof reviver==='function'?walk({'':j},''):j;}
+throw new SyntaxError('JSON.parse');};}}());var is={ie:navigator.appName=='Microsoft Internet Explorer',java:navigator.javaEnabled(),ns:navigator.appName=='Netscape',ua:navigator.userAgent.toLowerCase(),version:parseFloat(navigator.appVersion.substr(21))||parseFloat(navigator.appVersion),win:navigator.platform=='Win32'}
+is.mac=is.ua.indexOf('mac')>=0;if(is.ua.indexOf('opera')>=0){is.ie=is.ns=false;is.opera=true;}
+if(is.ua.indexOf('gecko')>=0){is.ie=is.ns=false;is.gecko=true;}
 
 /* 
  * Script.js
  * See https://github.com/ded/script.js
  */
 
-!function(win, doc, timeout) {
-  var head = doc.getElementsByTagName('head')[0],
-      list = {}, ids = {}, delay = {}, scriptpath,
-      scripts = {}, s = 'string', f = false,
-      push = 'push', domContentLoaded = 'DOMContentLoaded', readyState = 'readyState',
-      addEventListener = 'addEventListener', onreadystatechange = 'onreadystatechange',
-      every = function(ar, fn) {
-        for (var i = 0, j = ar.length; i < j; ++i) {
-          if (!fn(ar[i])) {
-            return f;
-          }
-        }
-        return 1;
-      };
-      function each(ar, fn) {
-        every(ar, function(el) {
-          return !fn(el);
-        });
-      }
-
-  if (!doc[readyState] && doc[addEventListener]) {
-    doc[addEventListener](domContentLoaded, function fn() {
-      doc.removeEventListener(domContentLoaded, fn, f);
-      doc[readyState] = "complete";
-    }, f);
-    doc[readyState] = "loading";
-  }
-
-  function $script(paths, idOrDone, optDone) {
-    paths = paths[push] ? paths : [paths];
-    var idOrDoneIsDone = idOrDone && idOrDone.call,
-        done = idOrDoneIsDone ? idOrDone : optDone,
-        id = idOrDoneIsDone ? paths.join('') : idOrDone,
-        queue = paths.length;
-    function loopFn(item) {
-      return item.call ? item() : list[item];
-    }
-    function callback() {
-      if (!--queue) {
-        list[id] = 1;
-        done && done();
-        for (var dset in delay) {
-          every(dset.split('|'), loopFn) && !each(delay[dset], loopFn) && (delay[dset] = []);
-        }
-      }
-    }
-    timeout(function() {
-      each(paths, function(path) {
-        if (scripts[path]) {
-          id && (ids[id] = 1);
-          scripts[path] == 2 && callback();
-          return;
-        }
-        scripts[path] = 1;
-        id && (ids[id] = 1);
-        create(scriptpath ?
-          scriptpath + path + '.js' :
-          path, callback);
-      });
-    }, 0);
-    return $script;
-  }
-
-  function create(path, fn) {
-    var el = doc.createElement("script"),
-        loaded = f;
-    el.onload = el.onerror = el[onreadystatechange] = function () {
-      if ((el[readyState] && !(/^c|loade/.test(el[readyState]))) || loaded) {
-        return;
-      }
-      el.onload = el[onreadystatechange] = null;
-      loaded = 1;
-      scripts[path] = 2;
-      fn();
-    };
-    el.async = 1;
-    el.src = path;
-	el.type = "text/javascript"
-    head.insertBefore(el, head.firstChild);
-  }
-
-  $script.get = create;
-
-  $script.path = function(p) {
-    scriptpath = p
-  }
-  $script.ready = function(deps, ready, req) {
-    deps = deps[push] ? deps : [deps];
-    var missing = [];
-    !each(deps, function(dep) {
-      list[dep] || missing[push](dep);
-    }) && every(deps, function(dep) {
-      return list[dep];
-    }) ? ready() : !function(key) {
-      delay[key] = delay[key] || [];
-      delay[key][push](ready);
-      req && req(missing);
-    }(deps.join('|'));
-    return $script;
-  };
-
-  var old = win.$script;
-  $script.noConflict = function () {
-    win.$script = old;
-    return this;
-  };
-
-  (typeof module !== 'undefined' && module.exports) ?
-    (module.exports = $script) :
-    (win['$script'] = $script);
-
-}(this, document, setTimeout);
+(function(name,definition,context){if(typeof context['module']!='undefined'&&context['module']['exports'])context['module']['exports']=definition()
+else if(typeof context['define']!='undefined'&&context['define']=='function'&&context['define']['amd'])define(name,definition)
+else context[name]=definition()})('$script',function(){var doc=document,head=doc.getElementsByTagName('head')[0],validBase=/^https?:\/\//,list={},ids={},delay={},scriptpath,scripts={},s='string',f=false,push='push',domContentLoaded='DOMContentLoaded',readyState='readyState',addEventListener='addEventListener',onreadystatechange='onreadystatechange'
+function every(ar,fn){for(var i=0,j=ar.length;i<j;++i)if(!fn(ar[i]))return f
+return 1}
+function each(ar,fn){every(ar,function(el){return!fn(el)})}
+if(!doc[readyState]&&doc[addEventListener]){doc[addEventListener](domContentLoaded,function fn(){doc.removeEventListener(domContentLoaded,fn,f)
+doc[readyState]='complete'},f)
+doc[readyState]='loading'}
+function $script(paths,idOrDone,optDone){paths=paths[push]?paths:[paths]
+var idOrDoneIsDone=idOrDone&&idOrDone.call,done=idOrDoneIsDone?idOrDone:optDone,id=idOrDoneIsDone?paths.join(''):idOrDone,queue=paths.length
+function loopFn(item){return item.call?item():list[item]}
+function callback(){if(!--queue){list[id]=1
+done&&done()
+for(var dset in delay){every(dset.split('|'),loopFn)&&!each(delay[dset],loopFn)&&(delay[dset]=[])}}}
+setTimeout(function(){each(paths,function(path){if(scripts[path]){id&&(ids[id]=1)
+return scripts[path]==2&&callback()}
+scripts[path]=1
+id&&(ids[id]=1)
+create(!validBase.test(path)&&scriptpath?scriptpath+path+'.js':path,callback)})},0)
+return $script}
+function create(path,fn){var el=doc.createElement('script'),loaded=f
+el.onload=el.onerror=el[onreadystatechange]=function(){if((el[readyState]&&!(/^c|loade/.test(el[readyState])))||loaded)return;el.onload=el[onreadystatechange]=null
+loaded=1
+scripts[path]=2
+fn()}
+el.async=1
+el.src=path
+head.insertBefore(el,head.firstChild)}
+$script.get=create
+$script.order=function(scripts,id,done){(function callback(s){s=scripts.shift()
+if(!scripts.length)$script(s,id,done)
+else $script(s,callback)}())}
+$script.path=function(p){scriptpath=p}
+$script.ready=function(deps,ready,req){deps=deps[push]?deps:[deps]
+var missing=[];!each(deps,function(dep){list[dep]||missing[push](dep);})&&every(deps,function(dep){return list[dep]})?ready():!function(key){delay[key]=delay[key]||[]
+delay[key][push](ready)
+req&&req(missing)}(deps.join('|'))
+return $script}
+return $script},this);
 
 /* 
- * PubNub-3.1.js + socketIO
- * See http://www.pubnub.com and http://www.socket.io
- */
-
-/*
- * PUBNUB:
+ * PubNub-3.1.js
+ * See http://www.pubnub.com
  */
 (function(){
 function r(){return function(){}}
@@ -3777,263 +3498,4 @@ x=1E3,E=-1==navigator.userAgent.indexOf("MSIE 6"),M=function(){var a=Math.floor(
 top:-x});if("opera"in window||n(v,"flash"))v.innerHTML="<object id=pubnubs data=https://dh15atwfs066y.cloudfront.net/pubnub.swf><param name=movie value=https://dh15atwfs066y.cloudfront.net/pubnub.swf><param name=allowscriptaccess value=always></object>";var L=p("pubnubs")||{};h("load",window,function(){setTimeout(D,0)});PUBNUB.rdx=function(a,b){if(!b)return q[a].onerror();q[a].responseText=unescape(b);q[a].onload()};q.id=x;window.jQuery&&(window.jQuery.PUBNUB=PUBNUB);"undefined"!==typeof module&&
 (module.f=PUBNUB)&&D()}();
 })();
-
-/*
- * SOCKET.IO:
- */
-(function(){
-
-    // =====================================================================
-    // PubNub Socket.IO
-    // =====================================================================
-    var p          = PUBNUB
-    ,   standard   = 'standard'
-    ,   uuid       = PUBNUB.db.get('uuid') || p.uuid(function(id){
-            PUBNUB.db.set( 'uuid', uuid = id )
-        })
-    ,   now        = function(){return+new Date}
-    ,   namespaces = {}
-    ,   users      = {}
-    ,   io         = window.io = {
-        connected  : false,
-        disconnect : function(channel) {
-            namespaces = {};
-            p.unsubscribe(channel);
-        },
-        connect    : function( host, setup ) {
-
-            // PARSE SETUP and HOST
-            var urlbits   = (host+'////').split('/')
-            ,   setup     = setup || {}
-            ,   cuser     = setup['user'] || {}
-            ,   presence  = 'presence' in setup ? setup['presence'] : true
-            ,   origin    = urlbits[2]
-            ,   namespace = urlbits[3] || standard
-            ,   socket    = create_socket(namespace);
-
-            // PASSWORD ENCRYPTION
-            socket.password = 'sjcl' in window && setup.password;
-
-            // PUBNUB ALREADY SETUP?
-            if (io.connected) return socket;
-            io.connected = true;
-
-            // GEO LOCATION
-            if (setup.geo) setInterval( locate, 15000 ) && locate();
-
-            // SETUP PUBNUB
-            setup.origin   = origin;
-            p              = p.init(setup);
-            p.disconnected = 0;
-            p.channel      = setup.channel || standard;
-
-            // DISCONNECTED
-            function dropped() {
-                if (p.disconnected) return;
-                p.disconnected = 1;
-                p.each( namespaces, function(ns) {
-                    p.events.fire( ns + 'disconnect', {} ) 
-                } );
-            }
-
-            // ESTABLISH CONNECTION
-            p.subscribe({
-                channel : p.channel,
-                disconnect : dropped,
-                reconnect : function() {p.disconnected = 0;},
-                connect : function() {
-                    p.disconnected = 0;
-                    p.each( namespaces, function(ns) {
-                        p.events.fire( ns + 'connect', {} ) 
-                    } );
-                },
-                callback : function(evt) {
-                    if (p.disconnected) p.each( namespaces, function(ns) {
-                        p.events.fire( ns + 'reconnect', {} ) 
-                    } );
- 
-                    p.disconnected = 0;
-
-                    var data = decrypt( evt.ns, evt.data );
-
-                    if (evt.ns in namespaces)
-                        data && p.events.fire( evt.ns + evt.name, data );
-
-                    // USER EVENTS
-                    if (!evt.uuid || evt.uuid === uuid) return;
-
-                    evt.name === 'ping' && p.each( data.nss, function(ns) {
-
-                        users[ns] = users[ns] || {};
-
-                        var user = users[ns][evt.uuid] =
-                        users[ns][evt.uuid] || (function() { return {
-                            geo       : evt.geo || [ 0, 0 ],
-                            uuid      : evt.uuid,
-                            last      : now(),
-                            socket    : socket,
-                            namespace : ns,
-                            connected : false,
-                            slot      : socket.user_count++
-                        } })();
-
-                        user.last = now();
-                        user.data = data.cuser;
-
-                        if (user.connected) return;
-
-                        user.connected = true;
-                        p.events.fire( ns + 'join', user );
-
-                    } );
-
-                    if (evt.name === 'user-disconnect') disconnect(evt.uuid);
-                }
-            });
-
-            // TCP KEEP ALIVE
-            if (presence) {
-                clearInterval(p.tcpKeepAlive);
-                p.tcpKeepAlive = setInterval( p.updater( function() {
-                    var nss = p.map( namespaces, function(ns) { return ns } );
-                    if (!(nss||[]).length) return;
-                    send( 'ping', standard, { nss : nss, cuser : cuser } );
-                }, 2500 ), 500 );
-            }
-
-            // RETURN SOCKET
-            return socket;
-        }
-    };
-
-    // =====================================================================
-    // Advanced User Presence
-    // =====================================================================
-    setInterval( function() {
-        if (p.disconnected) return;
-
-        p.each( users, function(namespace) {
-            p.each( users[namespace], function(uid) {
-                var user = users[namespace][uid];
-                if (now() - user.last < 5500 || uid === uuid) return;
-                disconnect(user.uuid);
-            } );
-        } );
-    }, 1000 );
-
-    function disconnect(uid) {
-        p.each( namespaces, function(ns) {
-            var user = users[ns][uid];
-            if (!user.connected) return;
-
-            user.connected = false;
-            user.socket.user_count--;
-            p.events.fire( ns + 'leave', user ) 
-        } );
-    }
-
-    typeof window !== 'undefined' &&
-    p.bind( 'beforeunload', window, function() {
-        send( 'user-disconnect', '', uuid );
-        return true;
-    } );
-
-    // =====================================================================
-    // Stanford Crypto Library with AES Encryption
-    // =====================================================================
-    function encrypt( namespace, data ) {
-        var namespace = namespace || standard
-        ,   socket    = namespaces[namespace];
-
-        return 'password' in socket && socket.password && sjcl.encrypt(
-           socket.password, JSON.stringify(data)+''
-        ) || data;
-    }
-
-    function decrypt( namespace, data ) {
-        var namespace = namespace || standard
-        ,   socket    = namespaces[namespace];
-
-        if (!socket.password) return data;
-        try { return JSON.parse(
-            sjcl.decrypt( socket.password, data )
-        ); }
-        catch(e) { return null; }
-    }
-
-    // =====================================================================
-    // PUBLISH A MESSAGE + Retry if Failed with fallback
-    // =====================================================================
-    function send( event, namespace, data, wait, cb ) {
-        p.publish({
-            channel : p.channel,
-            message : {
-                name : event,
-                ns   : namespace || standard,
-                data : encrypt( namespace, data || {} ),
-                uuid : uuid,
-                geo  : p.location || [ 0, 0 ]
-            },
-            callback : function(info) {
-                if (info[0]) return (cb||function(){})(info);
-                var retry = (wait || 500) * 2;
-                setTimeout( function() {
-                    send( event, namespace, data, retry, cb );
-                }, retry > 5500 ? 5500 : retry );
-            }
-        });
-    }
-
-    // =====================================================================
-    // GEO LOCATION DATA (LATITUDE AND LONGITUDE)
-    // =====================================================================
-    function locate(callback) {
-        var callback = callback || function(){};
-        navigator && navigator.geolocation &&
-        navigator.geolocation.getCurrentPosition(function(position) {  
-            p.location = [
-                position.coords.latitude,
-                position.coords.longitude
-            ];
-            callback(p.location);
-        }) || callback([ 0, 0 ]); 
-    }
-
-    // =====================================================================
-    // CREATE SOCKET
-    // =====================================================================
-    function create_socket(namespace) {
-        if ( namespace !== standard &&
-             !(standard in namespaces)
-        ) create_socket(standard);
-
-        return namespaces[namespace] = {
-            namespace      : namespace,
-            users          : users[namespace] = {},
-            user_count     : 1,
-            get_user_list  : function(){
-                return namespaces[namespace].users;
-            },
-            get_user_count : function(){
-                return namespaces[namespace].user_count;
-            },
-            emit : function( event, data, receipt ) {
-                send( event, namespace, data, 0, receipt );
-            },
-            send : function( data, receipt ) {
-                send( 'message', namespace, data, 0, receipt );
-            },
-            on : function( event, fn ) {
-                if (typeof event === 'string')
-                    p.events.bind( namespace + event, fn );
-                else if (typeof event === 'object')
-                    p.each( event, function(evt) {
-                        p.events.bind( namespace + evt, fn );
-                    } );
-            },
-            disconnect : function() {
-                delete namespaces[namespace];
-            }
-        };
-    }
-})();
+/* END OF VILLO */
