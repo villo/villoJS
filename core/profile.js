@@ -1,8 +1,7 @@
 
 /* Villo Profile */
-(function(){
-	villo.profile = {
-		//TODO: Figure out the callback for non-existing users.
+villo.profile = {
+	//TODO: Figure out the callback for non-existing users.
 /**
 	villo.profile.get
 	=================
@@ -49,41 +48,41 @@
 		});
 
 */
-		get: function(getObject){
-			if (!getObject.username) {
-				getObject.username = villo.user.username;
-			}
-			villo.ajax("https://api.villo.me/profile.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					type: "get",
-					username: getObject.username,
-					ourUsername: villo.user.username || "Guest",
-					ourToken: villo.user.token || ""
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log(transport);
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.profile) {
-							getObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								getObject.callback(transport);
-							} else {
-								getObject.callback(33);
-							}
-					} else {
-						getObject.callback(33);
-					}
-				},
-				onFailure: function(){
+	get: function(getObject){
+		if (!getObject.username) {
+			getObject.username = villo.user.username;
+		}
+		villo.ajax("https://api.villo.me/profile.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "get",
+				username: getObject.username,
+				ourUsername: villo.user.username || "Guest",
+				ourToken: villo.user.token || ""
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log(transport);
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.profile) {
+						getObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							getObject.callback(transport);
+						} else {
+							getObject.callback(33);
+						}
+				} else {
 					getObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(){
+				getObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.profile.set
 	=================
@@ -116,41 +115,41 @@
 		});
 
 */	
-		set: function(updateObject){
-			villo.ajax("https://api.villo.me/profile.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					username: villo.user.username,
-					token: villo.user.token,
-					type: "specific",
-					field: updateObject.field,
-					data: updateObject.data
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log(transport);
-					//Stop at logging:
-					//return;
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.profile) {
-							updateObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								updateObject.callback(transport);
-							} else {
-								updateObject.callback(33);
-							}
-					} else {
-						updateObject.callback(33);
-					}
-				},
-				onFailure: function(){
+	set: function(updateObject){
+		villo.ajax("https://api.villo.me/profile.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				username: villo.user.username,
+				token: villo.user.token,
+				type: "specific",
+				field: updateObject.field,
+				data: updateObject.data
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log(transport);
+				//Stop at logging:
+				//return;
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.profile) {
+						updateObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							updateObject.callback(transport);
+						} else {
+							updateObject.callback(33);
+						}
+				} else {
 					updateObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(){
+				updateObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.profile.friends
 	=====================
@@ -208,39 +207,39 @@
 		});
 
 */
-		friends: function(updateObject){
-			villo.verbose && villo.log("called");
-			villo.ajax("https://api.villo.me/profile.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					username: villo.user.username,
-					token: villo.user.token,
-					type: "friends",
-				},
-				onSuccess: function(transport){
-					////Stop at logging:
-					if (!transport == "") {
-						var tmprsp = JSON.parse(transport);
-						if (tmprsp.friends) {
-							updateObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								updateObject.callback(transport);
-							} else {
-								updateObject.callback(33);
-							}
-					} else {
-						updateObject.callback(33);
-					}
-				},
-				onFailure: function(){
-					villo.verbose && villo.log("fail");
+	friends: function(updateObject){
+		villo.verbose && villo.log("called");
+		villo.ajax("https://api.villo.me/profile.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				username: villo.user.username,
+				token: villo.user.token,
+				type: "friends",
+			},
+			onSuccess: function(transport){
+				////Stop at logging:
+				if (!transport == "") {
+					var tmprsp = JSON.parse(transport);
+					if (tmprsp.friends) {
+						updateObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							updateObject.callback(transport);
+						} else {
+							updateObject.callback(33);
+						}
+				} else {
 					updateObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(){
+				villo.verbose && villo.log("fail");
+				updateObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.profile.avatar
 	=====================
@@ -272,8 +271,7 @@
 		});
 
 */
-		avatar: function(avatarObject){
-			
-		}
+	avatar: function(avatarObject){
+		
 	}
-})();
+};

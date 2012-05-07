@@ -1,5 +1,3 @@
+
 /* Villo Messages */
-(function(){
-	//TODO
-	villo.messages = {}
-})();
+villo.messages = {}

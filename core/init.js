@@ -1,11 +1,10 @@
 
 /* Villo Init/Load */
 
-(function(){
-	//We aren't loaded yet
-	villo.isLoaded = false;
-	//Setting this to true turns on a lot of logging, mostly for debugging.
-	villo.verbose = false;
+//We aren't loaded yet
+villo.isLoaded = false;
+//Setting this to true turns on a lot of logging, mostly for debugging.
+villo.verbose = false;
 /**
 	villo.resource
 	==============
@@ -49,29 +48,29 @@
 	If you specify a folder in the resources array, it will attempt to load an info.villo.js file in that folder.
 
 */
-	villo.resource = function(options){
-		if(options && typeof(options) === "object" && options.resources){
-			var o = options.resources;
-			var scripts = [];
-			for(var x in o){
-				//We technically support CSS files, but we can't use callbacks with it:
-				if(o[x].slice(-3) == "css"){
-					villo.style.add(o[x]);
-				}else if(o[x].slice(-2) == "js"){
-					scripts.push(o[x]);
+villo.resource = function(options){
+	if(options && typeof(options) === "object" && options.resources){
+		var o = options.resources;
+		var scripts = [];
+		for(var x in o){
+			//We technically support CSS files, but we can't use callbacks with it:
+			if(o[x].slice(-3) == "css"){
+				villo.style.add(o[x]);
+			}else if(o[x].slice(-2) == "js"){
+				scripts.push(o[x]);
+			}else{
+				//Try info.villo.js loader:
+				if(o[x].slice(-1) == "/"){
+					scripts.push(o[x] + "info.villo.js");
 				}else{
-					//Try info.villo.js loader:
-					if(o[x].slice(-1) == "/"){
-						scripts.push(o[x] + "info.villo.js");
-					}else{
-						scripts.push(o[x] + "/info.villo.js");
-					}
+					scripts.push(o[x] + "/info.villo.js");
 				}
 			}
-			var callback = options.callback || function(){};
-			$script(scripts, callback);
-		}	
-	};
+		}
+		var callback = options.callback || function(){};
+		$script(scripts, callback);
+	}	
+};
 /**
 	villo.load
 	===========
@@ -137,96 +136,105 @@
 	If you wish to call villo.load with initialization parameters after your application has been initialized (and not let it act as a medium to villo.resource), then set "forceReload" to true in the object you pass villo.load.
 
 */
-	villo.load = function(options){
-		//Allow resource loading through villo.load. Set forceReload to true to call the init.
-		if (villo.isLoaded === true) {			
-			if(options.forceReload && options.forceReload === true){
-				//Allow function to continue.
-			}else{
-				//Load resources
-				villo.resource(options);
-				//Stop it.
-				return true;
+villo.load = function(options){
+	//Allow resource loading through villo.load. Set forceReload to true to call the init.
+	if (villo.isLoaded === true) {			
+		if(options.forceReload && options.forceReload === true){
+			//Allow function to continue.
+		}else{
+			//Load resources
+			villo.resource(options);
+			//Stop it.
+			return true;
+		}
+	}
+	
+	
+	
+	/*
+	 * Initialization
+	 */
+	
+	if (options.api) {
+		villo.apiKey = options.api;
+	}
+	
+	//Passed App Information
+	villo.app.platform = options.platform || "";
+	villo.app.title = options.title || "";
+	villo.app.id = options.id || "";
+	villo.app.version = options.version || "";
+	villo.app.developer = options.developer || "";
+	
+	/*
+	 * Set up the user propBag
+	 */
+	if(!villo.user.propBag){
+		villo.user.propBag = {}
+	}
+	
+	villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
+	villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
+	
+	/*
+	 * Set up the app propBag
+	 */
+	if(!villo.app.propBag){
+		villo.app.propBag = {}
+	}
+	
+	villo.app.propBag.states = "VAppState." + villo.app.id.toUpperCase();
+	villo.app.propBag.settings = "VilloSettingsProp." + villo.app.id.toUpperCase();
+	
+	/*
+	 * Load up the settings (includes sync + cloud).
+	 */
+	if (store.get(villo.app.propBag.settings)) {
+		villo.settings.load({
+			callback: villo.doNothing
+		});
+	}
+	
+	/*
+	 * Optional: Turn on logging.
+	 */
+	if(options.verbose){
+		villo.verbose = options.verbose;
+	}
+	
+	//Check login status.
+	if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
+		villo.user.strapLogin({username: store.get(villo.user.propBag.user), token: store.get(villo.user.propBag.token)});
+		//User Logged In
+		villo.sync();
+	} else {
+		//User not Logged In
+	}
+	
+	//Load pre-defined extensions. This makes adding them a breeze.
+	if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
+		var extensions = [];
+		for (x in options.extensions) {
+			if (options.extensions.hasOwnProperty(x)) {
+				extensions.push(villo.script.get() + options.extensions[x]);
 			}
 		}
-		
-		
-		
-		/*
-		 * Initialization
-		 */
-		
-		if (options.api) {
-			villo.apiKey = options.api;
-		}
-		
-		//Optional utility function to swap to cookie storage if localstorage isn't supported.
-		if (options.useCookies && options.useCookies === true) {
-			villo.overrideStorage(true);
-		}
-		
-		//Passed App Information
-		villo.app.platform = options.platform || "";
-		villo.app.title = options.title || "";
-		villo.app.id = options.id || "";
-		villo.app.version = options.version || "";
-		villo.app.developer = options.developer || "";
-		
-		/*
-		 * Set up the user propBag
-		 */
-		if(!villo.user.propBag){
-			villo.user.propBag = {}
-		}
-		
-		villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
-		villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
-		
-		/*
-		 * Set up the app propBag
-		 */
-		if(!villo.app.propBag){
-			villo.app.propBag = {}
-		}
-		
-		villo.app.propBag.states = "VAppState." + villo.app.id.toUpperCase();
-		villo.app.propBag.settings = "VilloSettingsProp." + villo.app.id.toUpperCase();
-		
-		/*
-		 * Load up the settings (includes sync + cloud).
-		 */
-		if (store.get(villo.app.propBag.settings)) {
-			villo.settings.load({
-				callback: villo.doNothing
-			});
-		}
-		
-		/*
-		 * Optional: Turn on logging.
-		 */
-		if(options.verbose){
-			villo.verbose = options.verbose;
-		}
-		
-		//Check login status.
-		if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
-			villo.user.strapLogin({username: store.get(villo.user.propBag.user), token: store.get(villo.user.propBag.token)});
-			//User Logged In
-			villo.sync();
-		} else {
-			//User not Logged In
-		}
-		
-		//Load pre-defined extensions. This makes adding them a breeze.
-		if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
-			var extensions = [];
-			for (x in options.extensions) {
-				if (options.extensions.hasOwnProperty(x)) {
-					extensions.push(villo.script.get() + options.extensions[x]);
-				}
+		$script(extensions, "extensions");
+	}else if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
+		var include = [];
+		for (x in options.include) {
+			if (options.include.hasOwnProperty(x)) {
+				include.push(options.include[x]);
 			}
-			$script(extensions, "extensions");
-		}else if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
+		}
+		$script(include, "include");
+	} else {
+		villo.doPushLoad(options);
+	}
+	
+	$script.ready("extensions", function(){
+		//Load up the include files
+		if (options.include && (typeof(options.include == "object") && options.include.length > 0)) {
 			var include = [];
 			for (x in options.include) {
 				if (options.include.hasOwnProperty(x)) {
@@ -235,91 +243,42 @@
 			}
 			$script(include, "include");
 		} else {
+			//No include, so just call the onload
 			villo.doPushLoad(options);
 		}
-		
-		$script.ready("extensions", function(){
-			//Load up the include files
-			if (options.include && (typeof(options.include == "object") && options.include.length > 0)) {
-				var include = [];
-				for (x in options.include) {
-					if (options.include.hasOwnProperty(x)) {
-						include.push(options.include[x]);
-					}
-				}
-				$script(include, "include");
-			} else {
-				//No include, so just call the onload
-				villo.doPushLoad(options);
-			}
-		});
-		
-		$script.ready("include", function(){
-			villo.doPushLoad(options);
-		});
+	});
+	
+	$script.ready("include", function(){
+		villo.doPushLoad(options);
+	});
 
-	};
-	villo.doPushLoad = function(options){
-		villo.isLoaded = true;
-		villo.hooks.call({name: "load"});
-		if(options && options.onload && typeof(options.onload) === "function"){
-			options.onload(true);
-		}
-		
-		/*
-		 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
-		 */
-		if(options.patch === false){
-			villo.verbose && console.log("Not loading patch file.");
-		}else{
-			villo.verbose && console.log("Loading patch file.");
-			$script("https://api.villo.me/patch.js", function(){
-				villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
-				villo.hooks.call({name: "patch"});
-			});
-		}
-		
-	};
-	//Override default storage options with a cookie option.
-	//* @protected
-	villo.overrideStorage = function(doIt){
-		if(doIt == true){
-			store = {
-				set: function(name, value, days){
-					if (days) {
-						var date = new Date();
-						date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-						var expires = "; expires=" + date.toGMTString();
-					} else {
-						var expires = "";
-					}
-					document.cookie = name+"="+value+expires+"; path=/";
-				},
-				get: function(name){
-					var nameEQ = name + "=";
-					var ca = document.cookie.split(';');
-					for(var i=0;i < ca.length;i++) {
-						var c = ca[i];
-						while (c.charAt(0) == ' ') {
-							c = c.substring(1, c.length);
-						}
-						if (c.indexOf(nameEQ) == 0) {
-							return c.substring(nameEQ.length, c.length);
-						}
-					}
-					return null;
-				},
-				remove: function(name) {
-					store.set(name,"",-1);
-				}
-			}
-		}
+};
+
+villo.doPushLoad = function(options){
+	villo.isLoaded = true;
+	villo.hooks.call({name: "load"});
+	if(options && options.onload && typeof(options.onload) === "function"){
+		options.onload(true);
 	}
 	
 	/*
-	 * When extensions are loaded, they will run this init function by defualt, unless they package their own.
+	 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
 	 */
-	villo.init = function(options){
-		return true;
+	if(options.patch === false){
+		villo.verbose && console.log("Not loading patch file.");
+	}else{
+		villo.verbose && console.log("Loading patch file.");
+		$script("https://api.villo.me/patch.js", function(){
+			villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
+			villo.hooks.call({name: "patch"});
+		});
 	}
-})();
+	
+};
+
+/*
+ * When extensions are loaded, they will run this init function by defualt, unless they package their own.
+ */
+villo.init = function(options){
+	return true;
+};

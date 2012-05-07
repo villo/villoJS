@@ -1,7 +1,6 @@
 
 /* Villo Clipboard */
-(function(){
-	villo.clipboard = {
+villo.clipboard = {
 /**
 	villo.clipboard.copy
 	====================
@@ -25,11 +24,11 @@
 
 */
 
-		copy: function(string){
-			var newIndex = villo.app.clipboard.length;
-			villo.app.clipboard[newIndex] = string;
-			return newIndex;
-		},         
+	copy: function(string){
+		var newIndex = villo.app.clipboard.length;
+		villo.app.clipboard[newIndex] = string;
+		return newIndex;
+	},         
 /**
 	villo.clipboard.paste
 	=====================
@@ -55,13 +54,12 @@
 
 */
 
-		paste: function(index){
-			if (index) {
-				return villo.app.clipboard[index];
-			} else {
-				var lastIndex = villo.app.clipboard.length;
-				return villo.app.clipboard[lastIndex - 1];
-			}
+	paste: function(index){
+		if (index) {
+			return villo.app.clipboard[index];
+		} else {
+			var lastIndex = villo.app.clipboard.length;
+			return villo.app.clipboard[lastIndex - 1];
 		}
 	}
-})();
+};

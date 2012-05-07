@@ -1,14 +1,13 @@
 
 /* Villo User */
-(function(){
-	villo.user = {
-		/*
-		 * 
-		 */
-		propBag: {
-			"user": null,
-			"token": null
-		},
+villo.user = {
+	/*
+	 * 
+	 */
+	propBag: {
+		"user": null,
+		"token": null
+	},
 /**
 	villo.user.login
 	================
@@ -53,52 +52,52 @@
 	The username of the user currently logged in to Villo is stored as a string in villo.user.username, which you can view by calling villo.user.getUsername.
 
 */
-		login: function(userObject, callback){
-			villo.ajax("https://api.villo.me/user/login.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					username: userObject.username,
-					password: userObject.password
-				},
-				onSuccess: function(transport){
-					//We occasionally have a whitespace issue, so trim it!
-					var token = villo.trim(transport);
-					if (token == 1 || token == 2 || token == 33 || token == 99) {
-						//Error, call back with our error codes.
-						//We also are using the newer callback syntax here.
+	login: function(userObject, callback){
+		villo.ajax("https://api.villo.me/user/login.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				username: userObject.username,
+				password: userObject.password
+			},
+			onSuccess: function(transport){
+				//We occasionally have a whitespace issue, so trim it!
+				var token = villo.trim(transport);
+				if (token == 1 || token == 2 || token == 33 || token == 99) {
+					//Error, call back with our error codes.
+					//We also are using the newer callback syntax here.
+					if (callback) {
+						callback(token);
+					} else {
+						userObject.callback(token);
+					}
+				} else 
+					if (token.length == 32) {
+						
+						villo.user.strapLogin({username: userObject.username, token: token});
+						
 						if (callback) {
-							callback(token);
+							callback(true);
 						} else {
-							userObject.callback(token);
+							userObject.callback(true);
 						}
-					} else 
-						if (token.length == 32) {
-							
-							villo.user.strapLogin({username: userObject.username, token: token});
-							
-							if (callback) {
-								callback(true);
-							} else {
-								userObject.callback(true);
-							}
-							
-							villo.sync();
-							
-							//Call the hook, retroactive account.
-							villo.hooks.call({name: "login"});
-						} else {
-							callback(33);
-							villo.verbose && villo.log(33);
-							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
-						}
-				},
-				onFailure: function(failure){
-					callback(33);
-				}
-			});
-		},
+						
+						villo.sync();
+						
+						//Call the hook, retroactive account.
+						villo.hooks.call({name: "login"});
+					} else {
+						callback(33);
+						villo.verbose && villo.log(33);
+						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
+					}
+			},
+			onFailure: function(failure){
+				callback(33);
+			}
+		});
+	},
 /**
 	villo.user.logout
 	=================
@@ -128,18 +127,18 @@
 	Villo removes the username and unique app token used to authenticate API requests once a user is logged out, so the user will need to login again if they logout.   
 
 */
-		logout: function(){
-			//destroy user tokens and logout.
-			store.remove(villo.user.propBag.user);
-			store.remove(villo.user.propBag.token);
-			//Remove the variables we're working with locally.
-			villo.user.username = null;
-			villo.user.token = null;
-			//Call a logout hook.
-			villo.hooks.call({name: "logout"});
-			//We did it!
-			return true;
-		},
+	logout: function(){
+		//destroy user tokens and logout.
+		store.remove(villo.user.propBag.user);
+		store.remove(villo.user.propBag.token);
+		//Remove the variables we're working with locally.
+		villo.user.username = null;
+		villo.user.token = null;
+		//Call a logout hook.
+		villo.hooks.call({name: "logout"});
+		//We did it!
+		return true;
+	},
 /**
 	villo.user.isLoggedIn
 	=====================
@@ -168,14 +167,14 @@
 		}
 
 */
-		isLoggedIn: function(){
-			if (villo.user.username && villo.user.username !== "" && villo.user.token && villo.user.token !== "") {
-				return true;
-			} else {
-				return false;
-			}
-		},
-		//TODO: Finish FourValue
+	isLoggedIn: function(){
+		if (villo.user.username && villo.user.username !== "" && villo.user.token && villo.user.token !== "") {
+			return true;
+		} else {
+			return false;
+		}
+	},
+//TODO: Finish FourValue
 /**
 	villo.user.register
 	===================
@@ -259,60 +258,60 @@
 	Once a user is registered using villo.user.register, it will automatically log them in. You do not need to store the username or password. Villo will automatically save the username, along with a unique authentication token, and will load both of them every time Villo is initialized.
 
 */
-		register: function(userObject, callback){
-			villo.ajax("https://api.villo.me/user/register.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					appid: villo.app.id,
-					username: userObject.username,
-					password: userObject.password,
-					password_confirm: (userObject.password_confirm || userObject.password),
-					fourvalue: (userObject.fourvalue || false),
-					email: userObject.email
-				},
-				onSuccess: function(transport){
-					var token = villo.trim(transport);
-					if (token == 1 || token == 2 || token == 33 || token == 99) {
-						//Error, call back with our error codes.
-						if (callback) {
-							callback(token);
-						} else {
-							userObject.callback(token);
-						}
-					} else 
-						if (token.length == 32) {
-							
-							villo.user.strapLogin({username: userObject.username, token: token});
-							
-							if (callback) {
-								callback(true);
-							} else {
-								userObject.callback(true);
-							}
-							villo.sync();
-							
-							//Call the hook
-							villo.hooks.call({name: "register"});
-						} else {
-							if (callback) {
-								callback(33);
-							} else {
-								userObject.callback(33);
-							}
-							villo.verbose && villo.log(33);
-							villo.verbose && villo.log("Error Logging In - Undefined: " + token);
-						}
-				},
-				onFailure: function(failure){
+	register: function(userObject, callback){
+		villo.ajax("https://api.villo.me/user/register.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				username: userObject.username,
+				password: userObject.password,
+				password_confirm: (userObject.password_confirm || userObject.password),
+				fourvalue: (userObject.fourvalue || false),
+				email: userObject.email
+			},
+			onSuccess: function(transport){
+				var token = villo.trim(transport);
+				if (token == 1 || token == 2 || token == 33 || token == 99) {
+					//Error, call back with our error codes.
 					if (callback) {
-						callback(33);
+						callback(token);
 					} else {
-						userObject.callback(33);
+						userObject.callback(token);
 					}
+				} else 
+					if (token.length == 32) {
+						
+						villo.user.strapLogin({username: userObject.username, token: token});
+						
+						if (callback) {
+							callback(true);
+						} else {
+							userObject.callback(true);
+						}
+						villo.sync();
+						
+						//Call the hook
+						villo.hooks.call({name: "register"});
+					} else {
+						if (callback) {
+							callback(33);
+						} else {
+							userObject.callback(33);
+						}
+						villo.verbose && villo.log(33);
+						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
+					}
+			},
+			onFailure: function(failure){
+				if (callback) {
+					callback(33);
+				} else {
+					userObject.callback(33);
 				}
-			});
-		},
+			}
+		});
+	},
 /**
 	villo.user.strapLogin
 	==================
@@ -344,18 +343,18 @@
 	This feature is designed for applications which have multi-account support.
 	
 */	
-		strapLogin: function(strapObject){
-			store.set(villo.user.propBag.user, strapObject.username);
-			store.set(villo.user.propBag.token, strapObject.token);
-			villo.user.username = strapObject.username;
-			villo.user.token = strapObject.token;
-			
-			//Call the hook, retroactive account.
-			villo.hooks.call({name: "account"});
-			
-			villo.sync();
-			return true;
-		},
+	strapLogin: function(strapObject){
+		store.set(villo.user.propBag.user, strapObject.username);
+		store.set(villo.user.propBag.token, strapObject.token);
+		villo.user.username = strapObject.username;
+		villo.user.token = strapObject.token;
+		
+		//Call the hook, retroactive account.
+		villo.hooks.call({name: "account"});
+		
+		villo.sync();
+		return true;
+	},
 		
 /**
 	villo.user.getUsername
@@ -381,10 +380,9 @@
 		var username = villo.user.getUsername();
 	
 */
-		getUsername: function(){
-			return villo.user.username || false;
-		},
-		username: null,
-		token: ""
-	}
-})();
+	getUsername: function(){
+		return villo.user.username || false;
+	},
+	username: null,
+	token: ""
+}

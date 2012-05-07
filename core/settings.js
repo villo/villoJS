@@ -14,9 +14,8 @@
  * Privacy, too. So encrypted on the server end.
  * 
  */
-(function(){
-	villo.settings = {
-		//We strap the settings on to villo.app.settings.
+villo.settings = {
+	//We strap the settings on to villo.app.settings.
 /**
 	villo.settings.load
 	===================
@@ -80,45 +79,45 @@
 	If the version of the settings on the server are older than the settings on your device, then the server will be updated with the local settings.
 
 */
-		load: function(loadObject){
-			if (loadObject.instant && loadObject.instant == true) {
-				if(store.get(villo.app.propBag.settings)){
-					villo.app.settings = store.get(villo.app.propBag.settings).settings;
-					//TODO: Callback, baby
-					return villo.app.settings;
-				}else{
-					return false;
-				}
-			} else {
-				var theTimestamp = store.get(villo.app.propBag.settings).timestamp;
-				villo.storage.get({
-					privacy: true,
-					title: "VilloSettingsProp",
-					callback: function(transit){
-						//TODO: Check for the need of this: 
-						transit = JSON.parse(JSON.parse(transit));
-						if (!transit.storage) {
-							//Offline: 
-							villo.app.settings = store.get(villo.app.propBag.settings).settings
+	load: function(loadObject){
+		if (loadObject.instant && loadObject.instant == true) {
+			if(store.get(villo.app.propBag.settings)){
+				villo.app.settings = store.get(villo.app.propBag.settings).settings;
+				//TODO: Callback, baby
+				return villo.app.settings;
+			}else{
+				return false;
+			}
+		} else {
+			var theTimestamp = store.get(villo.app.propBag.settings).timestamp;
+			villo.storage.get({
+				privacy: true,
+				title: "VilloSettingsProp",
+				callback: function(transit){
+					//TODO: Check for the need of this: 
+					transit = JSON.parse(JSON.parse(transit));
+					if (!transit.storage) {
+						//Offline: 
+						villo.app.settings = store.get(villo.app.propBag.settings).settings
+						loadObject.callback(villo.app.settings);
+					} else {
+						//Check for timestamps.
+						if (transit.storage.timestamp > theTimestamp) {
+							//Server version is newer. Replace our existing local storage with the server storage.
+							store.set(villo.app.propBag.settings, transit.storage);
+							villo.app.settings = transit.storage.settings
 							loadObject.callback(villo.app.settings);
 						} else {
-							//Check for timestamps.
-							if (transit.storage.timestamp > theTimestamp) {
-								//Server version is newer. Replace our existing local storage with the server storage.
-								store.set(villo.app.propBag.settings, transit.storage);
-								villo.app.settings = transit.storage.settings
-								loadObject.callback(villo.app.settings);
-							} else {
-								//Local version is newer. 
-								//TODO: Update server.
-								villo.app.settings = store.get(villo.app.propBag.settings).settings
-								loadObject.callback(villo.app.setting);
-							}
+							//Local version is newer. 
+							//TODO: Update server.
+							villo.app.settings = store.get(villo.app.propBag.settings).settings
+							loadObject.callback(villo.app.setting);
 						}
 					}
-				});
-			}
-		},
+				}
+			});
+		}
+	},
 /**
 	villo.settings.save
 	===================
@@ -161,22 +160,22 @@
 	Settings are user-specific, not universal.
 
 */
-		save: function(saveObject){
-			var settingsObject = {};
-			var d = new Date();
-			//Universal Timestamp Win
-			var timestamp = d.getTime();
-			settingsObject.timestamp = timestamp;
-			settingsObject.settings = saveObject.settings;
-			store.set(villo.app.propBag.settings, settingsObject);
-			villo.app.settings = settingsObject.settings;
-			villo.storage.set({
-				privacy: true,
-				title: "VilloSettingsProp",
-				data: settingsObject
-			});
-			return villo.app.settings;
-		},
+	save: function(saveObject){
+		var settingsObject = {};
+		var d = new Date();
+		//Universal Timestamp Win
+		var timestamp = d.getTime();
+		settingsObject.timestamp = timestamp;
+		settingsObject.settings = saveObject.settings;
+		store.set(villo.app.propBag.settings, settingsObject);
+		villo.app.settings = settingsObject.settings;
+		villo.storage.set({
+			privacy: true,
+			title: "VilloSettingsProp",
+			data: settingsObject
+		});
+		return villo.app.settings;
+	},
 /**
 	villo.settings.remove
 	=====================
@@ -201,10 +200,9 @@
 		villo.settings.remove();
 
 */
-		remove: function(){
-			store.remove(villo.app.propBag.settings);
-			villo.app.settings = {};
-			return true;
-		}
+	remove: function(){
+		store.remove(villo.app.propBag.settings);
+		villo.app.settings = {};
+		return true;
 	}
-})();
+}

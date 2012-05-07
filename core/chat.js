@@ -1,8 +1,7 @@
 
 /* Villo Push Chat */
-(function(){
-	villo.chat = {
-		rooms: [],
+villo.chat = {
+	rooms: [],
 
 /**
 	villo.chat.join
@@ -45,47 +44,47 @@
 		});
 
 */
-		join: function(chatObject){
+	join: function(chatObject){
+		//FIXME
+		if ('PUBNUB' in window) {
 			//FIXME
-			if ('PUBNUB' in window) {
-				//FIXME
-				if (villo.chat.isSubscribed(chatObject.room) == false) {
-					PUBNUB.subscribe({
-						channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + chatObject.room.toUpperCase(),
-						callback: function(message){
-							chatObject.callback(message);
-						},
-						connect: chatObject.connect || function(){},
-						error: function(e){
-							//Error connecting. PubNub will automatically attempt to reconnect.
-						}
-					});
-					
-					//FIXME: This is all handled inline now:
-					if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled == true){
-						villo.presence.join({
-							room: chatObject.room,
-							callback: (chatObject.presence.callback || "")
-						});
-						villo.chat.rooms.push({
-							"name": chatObject.room.toUpperCase(),
-							"presence": true
-						});
-					}else{
-						villo.chat.rooms.push({
-							"name": chatObject.room.toUpperCase(),
-							"presence": false
-						});
+			if (villo.chat.isSubscribed(chatObject.room) == false) {
+				PUBNUB.subscribe({
+					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + chatObject.room.toUpperCase(),
+					callback: function(message){
+						chatObject.callback(message);
+					},
+					connect: chatObject.connect || function(){},
+					error: function(e){
+						//Error connecting. PubNub will automatically attempt to reconnect.
 					}
-					
-					return true;
-				} else {
-					return true;
+				});
+				
+				//FIXME: This is all handled inline now:
+				if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled == true){
+					villo.presence.join({
+						room: chatObject.room,
+						callback: (chatObject.presence.callback || "")
+					});
+					villo.chat.rooms.push({
+						"name": chatObject.room.toUpperCase(),
+						"presence": true
+					});
+				}else{
+					villo.chat.rooms.push({
+						"name": chatObject.room.toUpperCase(),
+						"presence": false
+					});
 				}
+				
+				return true;
 			} else {
-				return false;
+				return true;
 			}
-		},
+		} else {
+			return false;
+		}
+	},
 /**
 	villo.chat.isSubscribed
 	=======================
@@ -111,17 +110,17 @@
 
 */
 
-		isSubscribed: function(roomString){
-			var c = false;
-			for (x in villo.chat.rooms) {
-				if (villo.chat.rooms.hasOwnProperty(x)) {
-					if (villo.chat.rooms[x].name.toUpperCase() == roomString.toUpperCase()) {
-						c = true;
-					}
+	isSubscribed: function(roomString){
+		var c = false;
+		for (x in villo.chat.rooms) {
+			if (villo.chat.rooms.hasOwnProperty(x)) {
+				if (villo.chat.rooms[x].name.toUpperCase() == roomString.toUpperCase()) {
+					c = true;
 				}
 			}
-			return c;
-		},
+		}
+		return c;
+	},
 /**
 	villo.chat.send
 	==================
@@ -155,26 +154,26 @@
 	If you have joined a chat room, when a message is sent, it will be received through the callback defined in the join function call.
 
 */
-		send: function(messageObject){
-			if ('PUBNUB' in window) {
-				//Build the JSON to push to the server.
-				var pushMessage = {
-					"username": villo.user.username,
-					"message": messageObject.message
-				};
-				if(!messageObject.room){
-					messageObject.room = villo.chat.rooms[0].name;
-				}
-				PUBNUB.publish({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + messageObject.room.toUpperCase(),
-					message: pushMessage
-				});
-				return true;
-			} else {
-				return false;
+	send: function(messageObject){
+		if ('PUBNUB' in window) {
+			//Build the JSON to push to the server.
+			var pushMessage = {
+				"username": villo.user.username,
+				"message": messageObject.message
+			};
+			if(!messageObject.room){
+				messageObject.room = villo.chat.rooms[0].name;
 			}
-			
-		},
+			PUBNUB.publish({
+				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + messageObject.room.toUpperCase(),
+				message: pushMessage
+			});
+			return true;
+		} else {
+			return false;
+		}
+		
+	},
 /**
 	villo.chat.leaveAll
 	==================
@@ -199,26 +198,26 @@
 		villo.chat.leaveAll();
 
 */
-		leaveAll: function(){
-			if ('PUBNUB' in window) {
-				for (x in villo.chat.rooms) {
-					if (villo.chat.rooms.hasOwnProperty(x)) {
-						PUBNUB.unsubscribe({
-							channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
+	leaveAll: function(){
+		if ('PUBNUB' in window) {
+			for (x in villo.chat.rooms) {
+				if (villo.chat.rooms.hasOwnProperty(x)) {
+					PUBNUB.unsubscribe({
+						channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
+					});
+					if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
+						villo.presence.leave({
+							room: villo.chat.rooms[x].name
 						});
-						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
-							villo.presence.leave({
-								room: villo.chat.rooms[x].name
-							});
-						}
 					}
 				}
-				villo.chat.rooms = [];
-				return true;
-			} else {
-				return false;
 			}
-		},
+			villo.chat.rooms = [];
+			return true;
+		} else {
+			return false;
+		}
+	},
 /**
 	villo.chat.leave
 	==================
@@ -243,30 +242,30 @@
 		villo.chat.leave("main");
 
 */
-		leave: function(closerObject){
-			if ('PUBNUB' in window) {
-				PUBNUB.unsubscribe({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.toUpperCase()
-				});
-				var x;
-				for (x in villo.chat.rooms) {
-					if (villo.chat.rooms.hasOwnProperty(x)) {
-						if (villo.chat.rooms[x].name == closerObject) {
-							var rmv = x;
-							if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
-								villo.presence.leave({
-									room: villo.chat.rooms[x].name
-								});
-							}
+	leave: function(closerObject){
+		if ('PUBNUB' in window) {
+			PUBNUB.unsubscribe({
+				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.toUpperCase()
+			});
+			var x;
+			for (x in villo.chat.rooms) {
+				if (villo.chat.rooms.hasOwnProperty(x)) {
+					if (villo.chat.rooms[x].name == closerObject) {
+						var rmv = x;
+						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
+							villo.presence.leave({
+								room: villo.chat.rooms[x].name
+							});
 						}
 					}
 				}
-				villo.chat.rooms.splice(rmv, 1);
-				return true;
-			} else {
-				return false;
 			}
-		},
+			villo.chat.rooms.splice(rmv, 1);
+			return true;
+		} else {
+			return false;
+		}
+	},
 		
 /**
 	villo.chat.history
@@ -311,16 +310,15 @@
 		});
 
 */
-		history: function(historyObject){
-			if('PUBNUB' in window){
-				PUBNUB.history({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + historyObject.room.toUpperCase(),
-					limit: (historyObject.limit || 25),
-					callback: function(data){
-						historyObject.callback(data);
-					}
-				});
-			}
+	history: function(historyObject){
+		if('PUBNUB' in window){
+			PUBNUB.history({
+				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + historyObject.room.toUpperCase(),
+				limit: (historyObject.limit || 25),
+				callback: function(data){
+					historyObject.callback(data);
+				}
+			});
 		}
 	}
-})();
+};

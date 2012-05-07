@@ -1,7 +1,6 @@
 
 /* Villo Leaders */
-(function(){
-	villo.leaders = {		
+villo.leaders = {		
 /**
 	villo.leaders.get
 	=================
@@ -48,52 +47,52 @@
 		});
 
 */
-		get: function(getObject){
-			if (getObject.board && getObject.board !== "") {
-				var leaderBoardName = getObject.board;
-			} else {
-				var leaderBoardName = villo.app.title;
-			}
-			
-			if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
-				var leaderLimiter = getObject.limit;
-			}else{
-				var leaderLimiter = 30;
-			}
-			
-			villo.ajax("https://api.villo.me/leaders.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					type: getObject.duration,
-					username: villo.user.username,
-					appName: leaderBoardName,
-					appid: villo.app.id,
-					limit: leaderLimiter
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log("Success!");
-					villo.verbose && villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.leaders) {
-							getObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								getObject.callback(transport);
-							} else {
-								getObject.callback(33);
-							}
-					} else {
-						getObject.callback(33);
-					}
-				},
-				onFailure: function(failure){
-					villo.verbose && villo.log("failure!");
+	get: function(getObject){
+		if (getObject.board && getObject.board !== "") {
+			var leaderBoardName = getObject.board;
+		} else {
+			var leaderBoardName = villo.app.title;
+		}
+		
+		if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
+			var leaderLimiter = getObject.limit;
+		}else{
+			var leaderLimiter = 30;
+		}
+		
+		villo.ajax("https://api.villo.me/leaders.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				type: getObject.duration,
+				username: villo.user.username,
+				appName: leaderBoardName,
+				appid: villo.app.id,
+				limit: leaderLimiter
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log("Success!");
+				villo.verbose && villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.leaders) {
+						getObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							getObject.callback(transport);
+						} else {
+							getObject.callback(33);
+						}
+				} else {
 					getObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(failure){
+				villo.verbose && villo.log("failure!");
+				getObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.leaders.search
 	====================
@@ -141,53 +140,53 @@
 		});
 
 */
-		search: function(getObject){
-			if (getObject.board && getObject.board !== "") {
-				var leaderBoardName = getObject.board;
-			} else {
-				var leaderBoardName = villo.app.title;
-			}
-			
-			if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
-				var leaderLimiter = getObject.limit;
-			}else{
-				var leaderLimiter = 30;
-			}
-			
-			villo.ajax("https://api.villo.me/leaders.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					type: "search",
-					username: villo.user.username,
-					appName: leaderBoardName,
-					appid: villo.app.id,
-					usersearch: getObject.username,
-					limit: leaderLimiter
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log("Success!");
-					villo.verbose && villo.log(transport);
-					if (transport !== "") {
-						var tmprsp = JSON.parse(transport)
-						if (tmprsp.leaders) {
-							getObject.callback(tmprsp);
-						} else 
-							if (transport == 33 || transport == 66 || transport == 99) {
-								getObject.callback(transport);
-							} else {
-								getObject.callback(33);
-							}
-					} else {
-						getObject.callback(33);
-					}
-				},
-				onFailure: function(failure){
-					villo.verbose && villo.log("failure!");
+	search: function(getObject){
+		if (getObject.board && getObject.board !== "") {
+			var leaderBoardName = getObject.board;
+		} else {
+			var leaderBoardName = villo.app.title;
+		}
+		
+		if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
+			var leaderLimiter = getObject.limit;
+		}else{
+			var leaderLimiter = 30;
+		}
+		
+		villo.ajax("https://api.villo.me/leaders.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				type: "search",
+				username: villo.user.username,
+				appName: leaderBoardName,
+				appid: villo.app.id,
+				usersearch: getObject.username,
+				limit: leaderLimiter
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log("Success!");
+				villo.verbose && villo.log(transport);
+				if (transport !== "") {
+					var tmprsp = JSON.parse(transport)
+					if (tmprsp.leaders) {
+						getObject.callback(tmprsp);
+					} else 
+						if (transport == 33 || transport == 66 || transport == 99) {
+							getObject.callback(transport);
+						} else {
+							getObject.callback(33);
+						}
+				} else {
 					getObject.callback(33);
 				}
-			});
-		},
+			},
+			onFailure: function(failure){
+				villo.verbose && villo.log("failure!");
+				getObject.callback(33);
+			}
+		});
+	},
 /**
 	villo.leaders.submit
 	====================
@@ -227,51 +226,49 @@
 		});
 
 */
-//TODO: Figure out callback
-		submit: function(scoreObject){
+	submit: function(scoreObject){
+	
+		if (scoreObject.board && scoreObject.board !== "") {
+			var leaderBoardName = scoreObject.board;
+		} else {
+			var leaderBoardName = villo.app.title;
+		}
+		if (villo.user.username == "" || !villo.user.username || (scoreObject.anon && scoreObject.anon == true)) {
+			var leaderBoardUsername = "Guest"
+		} else {
+			var leaderBoardUsername = villo.user.username;
+		}
 		
-			if (scoreObject.board && scoreObject.board !== "") {
-				var leaderBoardName = scoreObject.board;
-			} else {
-				var leaderBoardName = villo.app.title;
-			}
-			if (villo.user.username == "" || !villo.user.username || (scoreObject.anon && scoreObject.anon == true)) {
-				var leaderBoardUsername = "Guest"
-			} else {
-				var leaderBoardUsername = villo.user.username;
-			}
-			
-			villo.ajax("https://api.villo.me/leaders.php", {
-				method: 'post',
-				parameters: {
-					api: villo.apiKey,
-					type: "submit",
-					username: leaderBoardUsername,
-					token: villo.user.token,
-					appName: leaderBoardName,
-					appid: villo.app.id,
-					score: scoreObject.score
-				},
-				onSuccess: function(transport){
-					villo.verbose && villo.log(transport);
-					if (transport !== "") {
-						if (transport === "0") {
-							//Submitted!
-							scoreObject.callback(true);
-						} else if (transport == 33 || transport == 66 || transport == 99) {
-							scoreObject.callback(transport);
-						} else {
-							scoreObject.callback(33);
-						}
+		villo.ajax("https://api.villo.me/leaders.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				type: "submit",
+				username: leaderBoardUsername,
+				token: villo.user.token,
+				appName: leaderBoardName,
+				appid: villo.app.id,
+				score: scoreObject.score
+			},
+			onSuccess: function(transport){
+				villo.verbose && villo.log(transport);
+				if (transport !== "") {
+					if (transport === "0") {
+						//Submitted!
+						scoreObject.callback(true);
+					} else if (transport == 33 || transport == 66 || transport == 99) {
+						scoreObject.callback(transport);
 					} else {
 						scoreObject.callback(33);
 					}
-				},
-				onFailure: function(failure){
-					villo.verbose && villo.log("failure!");
+				} else {
 					scoreObject.callback(33);
 				}
-			});
-		}
+			},
+			onFailure: function(failure){
+				villo.verbose && villo.log("failure!");
+				scoreObject.callback(33);
+			}
+		});
 	}
-})();
+};
