@@ -9,7 +9,7 @@ cd .\core
 copy core.js + analytics.js + bridge.js + chat.js + clipboard.js + feeds.js + friends.js + gift.js + init.js + leaders.js + messages.js + presence.js + profile.js + settings.js + states.js + storage.js + user.js ..\villo_core.js
 
 cd ..\utils
-copy ajax.js + app.js + do.js + e.js + extend.js + hooks.js + log.js + slashes.js + sync.js + end.js ..\villo_utils.js
+copy ajax.js + app.js + do.js + e.js + extend.js + hooks.js + log.js + slashes.js + sync.js + dependencies.js + end.js ..\villo_utils.js
 
 cd ..
 
@@ -18,8 +18,8 @@ del villo_core.js
 del villo_utils.js
 
 
-if exist jsmin.exe goto minify
-echo "jsmin not found, skipping minification."
+#if exist jsmin.exe goto minify
+#echo "jsmin not found, skipping minification."
 goto nomin
 
 #optional minifying step:
@@ -39,5 +39,4 @@ goto end
 
 
 :end 
-copy villo.js + .\utils\dependencies.js villo.js
 echo "Done building villo.js"
