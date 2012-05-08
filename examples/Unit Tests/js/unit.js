@@ -3,17 +3,18 @@
  * 
  * Not included in Villo by default.
  */
-villo.extend({
+villo.extend(villo, {
 	bind: function(scope, _function) {
 		return function() {
 			return _function.apply(scope, arguments);
 		}
 	}
 });
+
 /*
  * Unit Testing Extension:
  */
-villo.extend({
+villo.extend(villo, {
 	tests: {
 		init: function(){
 			//Add super class references:
@@ -438,19 +439,19 @@ villo.extend({
 			},
 			extend: function(){
 				test("extend test", villo.bind(this, function(){
-					villo.extend({
+					villo.extend(villo, {
 						extender: {
 							working: true
 						}
 					});
 					equal(villo.extender.working, true, "We expect the extension to load.");
 					
-					villo.extender.extend({
+					villo.extend(villo.extender, {
 						notWorking: false
 					});
 					equal(villo.extender.working, true, "We expect the second sub-extension to load.");
 					
-					villo.extender.extend({
+					villo.extend(villo.extender, {
 						init: function(){
 							this.initRun = true;
 						}

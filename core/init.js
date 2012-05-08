@@ -68,7 +68,8 @@ villo.resource = function(options){
 			}
 		}
 		var callback = options.callback || function(){};
-		$script(scripts, callback);
+		$LAB.script(scripts).wait(callback);
+		//$script(scripts, callback);
 	}	
 };
 /**
@@ -211,47 +212,29 @@ villo.load = function(options){
 		//User not Logged In
 	}
 	
-	//Load pre-defined extensions. This makes adding them a breeze.
-	if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
-		var extensions = [];
-		for (x in options.extensions) {
-			if (options.extensions.hasOwnProperty(x)) {
-				extensions.push(villo.script.get() + options.extensions[x]);
-			}
-		}
-		$script(extensions, "extensions");
-	}else if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
-		var include = [];
+	
+	var include = [];
+	if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
 		for (x in options.include) {
 			if (options.include.hasOwnProperty(x)) {
 				include.push(options.include[x]);
 			}
 		}
-		$script(include, "include");
+	}
+	if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
+		for (x in options.extensions) {
+			if (options.extensions.hasOwnProperty(x)) {
+				include.push(options.extensions[x]);
+			}
+		}
+	}
+	if(include.length > 0){
+		$LAB.script(include).wait(function(){
+			villo.doPushLoad(options);
+		});
 	} else {
 		villo.doPushLoad(options);
 	}
-	
-	$script.ready("extensions", function(){
-		//Load up the include files
-		if (options.include && (typeof(options.include == "object") && options.include.length > 0)) {
-			var include = [];
-			for (x in options.include) {
-				if (options.include.hasOwnProperty(x)) {
-					include.push(options.include[x]);
-				}
-			}
-			$script(include, "include");
-		} else {
-			//No include, so just call the onload
-			villo.doPushLoad(options);
-		}
-	});
-	
-	$script.ready("include", function(){
-		villo.doPushLoad(options);
-	});
-
 };
 
 villo.doPushLoad = function(options){
@@ -268,7 +251,7 @@ villo.doPushLoad = function(options){
 		villo.verbose && console.log("Not loading patch file.");
 	}else{
 		villo.verbose && console.log("Loading patch file.");
-		$script("https://api.villo.me/patch.js", function(){
+		$LAB.script("https://api.villo.me/patch.js").wait(function(){
 			villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
 			villo.hooks.call({name: "patch"});
 		});

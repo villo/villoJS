@@ -26,5 +26,5 @@
 	villo = window.villo || {};
 	
 	villo.apiKey = "";
-	villo.version = "0.9.9 p1";
+	villo.version = "0.9.9 a1";
 })(window);
