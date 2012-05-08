@@ -36,15 +36,37 @@ villo.Game = function(gameObject){
 		}
 		this.use = gameObject.use;
 		delete gameObject.use;
-		//TODO: loop through use and import features we want.
+		for(var x in this.use){
+			if(this.use.hasOwnProperty(x)){
+				//Ensure that the feature exists:
+				if(villo.Game.features[x]){
+					//Do they want it?
+					if(this.use[x] === true){
+						//Add it in:
+						this[x] = villo.Game.features[x];
+					}
+				}
+			}
+		}
 	}else{
 		//Import all features:
 		villo.mixin(this, villo.Game.features);
 	}
 	
-	//Events
-	//General mixin
-	//Create
+	//Import the events. Its up to the invoke type to call the events.
+	if(gameObject.events){
+		this.events = gameObject.events;
+		delete gameObject.events;
+	}
+	
+	//Import the create function, to be called after the general mixin and invoke type.
+	if(gameObject.create){
+		this.create = gameObject.create;
+		delete gameObject.create;
+	}
+
+	//Time to mixin what's left of gameObject:
+	villo.mixin(this, gameObject);
 	
 	if(invoke){
 		if(invoke === "all"){
@@ -52,6 +74,12 @@ villo.Game = function(gameObject){
 		}
 	}
 	
+	if(this.create && typeof(this.create) === "function"){
+		//We pass the create function true, just for giggles.
+		this.create(true);
+	}
+	
+	//Return the prototype, to allow for calling methods off of a variable reference:
 	return this;
 };
 
