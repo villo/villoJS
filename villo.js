@@ -22,7 +22,7 @@
  * OF SUCH DAMAGE.
  */
 
-(function( window, undefined ) {
+;(function( window, undefined ) {
 	villo = window.villo || {};
 	
 	villo.apiKey = "";
@@ -2995,24 +2995,25 @@ villo.mixin = function(destination, source){
 	villo.extend
 	=================
 	
-	Allows developers to extend Villo functionality by adding methods to the Villo object. As of Villo 1.0, villo.extend actually adds the extend function to the Object prototype.
+	Allows developers to extend Villo functionality by adding methods to the Villo object.
     
 	Calling
 	-------
 
-	`villo.extend(object)`
+	`villo.extend(object (to extend), object (extensions))`
 	
-	- The only parameter that villo.extend takes is the object. Villo will add the object into the main Villo object. Additionally, if you define a function named "init" in the object, the function will run when the extension is loaded.
+	- The first object is the object that you want to extend.
+	- The second object is the object which you wish to add to the first. Additionally, if you define a function named "init" in the object, the function will run when the extension is loaded.
 	
 	Returns
 	-------
 	
-	The function returns the Villo object, or the part of the object you were modifying.
+	The function returns the object you were extending.
 		
 	Use
 	---
 		
-		villo.extend({
+		villo.extend(villo, {
 			suggest:{
 				get: function(){
 					//Function that can be called using villo.
@@ -3028,8 +3029,6 @@ villo.mixin = function(destination, source){
 		
 	Notes
 	-----
-	
-	Because this function is actually an addition to the Object prototype, you can call it on any part of Villo that is an object.
 
 	For example, to extend the villo.profile, object, you call `villo.profile.extend({"suggest": function(){}});`, which would add the suggest method to villo.profile.
 	
@@ -3038,24 +3037,21 @@ villo.mixin = function(destination, source){
 	If you define an init function in the object, then it will be run when the extension is loaded. The init function will be deleted after it is run.
 
 */
-Object.defineProperty(Object.prototype, "extend", {
-	value: function(obj){
-		villo.verbose && console.log("Extending Villo:", this);
-		villo.mixin(this, obj);
-		if (typeof(this.init) == "function") {
-			this.init();
-			if(this._ext && this._ext.keepit && this._ext.keepit === true){
-				//Do nothing
-			}else{
-				delete this.init;
-			}
+villo.extend = function(that, obj){
+	villo.verbose && console.log("Extending Villo:", that);
+	villo.mixin(that, obj);
+	if (typeof(that.init) == "function") {
+		that.init();
+		if(that._ext && that._ext.keepit && that._ext.keepit === true){
+			delete that._ext;
+		}else{
+			delete that.init;
 		}
-		return this;
-	},
-	writable: true,
-	configurable: true,
-	enumerable: false
-});
+	}
+	return that;
+}
+
+
 /*
  * Experimental
  */
@@ -3252,12 +3248,12 @@ villo.dumpLogs = function(useJson){
 
 /* Villo Slash Control */
 //Adds slashes into any string to prevent it from breaking the JS.
-villo.addSlashes = function(string){
-	string = string.replace(/\\/g, '\\\\');
-	string = string.replace(/\'/g, '\\\'');
-	string = string.replace(/\"/g, '\\"');
-	string = string.replace(/\0/g, '\\0');
-	return string;
+villo.addSlashes = function(str){
+	str = str.replace(/\\/g, '\\\\');
+	str = str.replace(/\'/g, '\\\'');
+	str = str.replace(/\"/g, '\\"');
+	str = str.replace(/\0/g, '\\0');
+	return str;
 };
 villo.stripslashes = function(str){
 	return (str + '').replace(/\\(.?)/g, function(s, n1){
@@ -3283,7 +3279,9 @@ villo.trim = function(str){
 	}
 	return str;
 };
-
+villo.cap = function(str) {
+	return str.slice(0, 1).toUpperCase() + str.slice(1);
+};
 /* Villo Sync */
 //Private function that is run on initialization.
 villo.sync = function(){
