@@ -22,7 +22,7 @@
  * OF SUCH DAMAGE.
  */
 
-(function( window, undefined ) {
+;(function( window, undefined ) {
 	villo = window.villo || {};
 	
 	villo.apiKey = "";
