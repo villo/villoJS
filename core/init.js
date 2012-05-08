@@ -212,7 +212,6 @@ villo.load = function(options){
 		//User not Logged In
 	}
 	
-	
 	var include = [];
 	if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
 		for (x in options.include) {
