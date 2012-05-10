@@ -1196,7 +1196,6 @@ villo.load = function(options){
 		//User not Logged In
 	}
 	
-	
 	var include = [];
 	if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
 		for (x in options.include) {
@@ -2965,7 +2964,15 @@ villo.style = {
 }
 
 /* Villo Extend */
-//Undocumented Utility Function:
+
+//Undocumented Bind Function:
+villo.bind = function(scope, _function) {
+	return function() {
+		return _function.apply(scope, arguments);
+	}
+}
+
+//Undocumented Object Mixin Function:
 villo.mixin = function(destination, source){
 	for (var k in source) {
 		if (source.hasOwnProperty(k)) {

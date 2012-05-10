@@ -1,6 +1,14 @@
 
 /* Villo Extend */
-//Undocumented Utility Function:
+
+//Undocumented Bind Function:
+villo.bind = function(scope, _function) {
+	return function() {
+		return _function.apply(scope, arguments);
+	}
+}
+
+//Undocumented Object Mixin Function:
 villo.mixin = function(destination, source){
 	for (var k in source) {
 		if (source.hasOwnProperty(k)) {

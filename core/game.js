@@ -122,15 +122,50 @@ villo.Game.type = function(typeObject){
 
 //Add Chat feature:
 villo.Game.feature({
-	name: "chat"
+	name: "chat",
+	room: "main",
+	send: function(sendObject){
+		villo.chat.send({
+			room: sendObject.room || this.room,
+			message: sendObject.message
+		});
+		return this;
+	},
+	join: function(joinObject){
+		//Set the room to the latest join value:
+		this.room = joinObject.room || this.room;
+		villo.chat.join({
+			room: this.room,
+			callback: joinObject.callback
+		});
+		return this;
+	},
+	history: function(){},
+	leave: function(){},
+	leaveAll: function(){
+		villo.chat.leaveAll();
+		return this;
+	}
 });
+
 //Add Presence feature:
 villo.Game.feature({
 	name: "presence"
 });
+
 //Add Data feature:
 villo.Game.feature({
-	name: "data"
+	name: "data",
+	//Send data down the public lines:
+	send: function(){},
+	//Send data at a given interval:
+	interval: function(){},
+	//Send data after a given timeout:
+	timeout: function(){},
+	//Join the data rooms:
+	join: function(){},
+	//Send data to a specific user:
+	user: function(){}
 });
 
 /*
@@ -141,6 +176,23 @@ villo.Game.feature({
 villo.Game.type({
 	name: "all",
 	create: function(){
-		console.log(this);
+		//Check to see if we have chat enabled:
+		if(this.chat){
+			this.chat.join({
+				room: "game/" + this.name,
+				callback: villo.bind(this, function(){
+					//Trigger Events
+				})
+			});
+		}
+		//Manage presence separately:
+		if(this.presence){
+			
+		}
+		//And finally subscribe to some data!
+		if(this.data){
+			
+		}
+		return this;
 	}
 });

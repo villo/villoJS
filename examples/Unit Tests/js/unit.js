@@ -1,15 +1,3 @@
-/*
- * Utility Bind Function:
- * 
- * Not included in Villo by default.
- */
-villo.extend(villo, {
-	bind: function(scope, _function) {
-		return function() {
-			return _function.apply(scope, arguments);
-		}
-	}
-});
 
 /*
  * Unit Testing Extension:
