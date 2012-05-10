@@ -65,8 +65,8 @@ villo.extend(villo, {
 					stop();
 					villo.user.register({
 						username: "DELETEME:UNIT-TEST-USER",
-						password: "",
-						email: "",
+						password: "test",
+						email: "test@test.com",
 						callback: villo.bind(this, function(trans){
 							start();
 							equal(trans, true, "We expect true to be returned.");
@@ -373,6 +373,7 @@ villo.extend(villo, {
 				this.__class__.patch.init();
 			}
 		},
+		//TODO: Redo this with hooks:
 		patch: {
 			init: function(){
 				module("Patch");

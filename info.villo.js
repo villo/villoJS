@@ -10,13 +10,13 @@ villo.load({
 	"title": "Your App",
 	"api": "YOURAPIKEY",
 	"push": true,
+	//Now functionally identical to include:
 	"extensions": [
 	],
 	"include": [
 	],
 	
 	//Other utility parameters (optional):
-	useCookies: false, //Replace localstorage with cookies.
-	verbose: false, //Turn on logging.
-	patch: true //Include Villo's server patch file.
+	"verbose": true, //Turn on logging.
+	"patch": true //Include Villo's server patch file.
 });

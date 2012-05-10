@@ -1,3 +1,3 @@
-villo.extend({
+villo.extend(villo, {
 	example: true
 });

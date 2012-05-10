@@ -69,6 +69,7 @@ villo.Game = function(gameObject){
 	villo.mixin(this, gameObject);
 	
 	if(invoke){
+		//TODO: pull from villo.Game.feature
 		if(invoke === "all"){
 			//Create the "all room".
 		}
@@ -83,9 +84,17 @@ villo.Game = function(gameObject){
 	return this;
 };
 
-//Define pluggable features:
-villo.Game.features = {
-	chat: {},
-	presence: {},
-	data: {}
-};
+//Create our empty objects which will eventually be extended:
+villo.Game.features = {};
+villo.Game.invoke = {}
+
+//Add a feature for villo.Game:
+villo.Game.feature = function(extendObject){
+	
+}
+
+//Add Chat feature:
+villo.Game.feature({
+	
+});
+//Add 
