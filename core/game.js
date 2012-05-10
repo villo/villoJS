@@ -23,9 +23,10 @@ villo.Game = function(gameObject){
 	
 	if(gameObject.type){
 		this.type = gameObject.type;
-		var invoke = "all";
+		var invoke = this.type;
 		delete gameObject.type;
 	}else{
+		//Default to "all" type:
 		this.type = "all";
 		var invoke = "all";
 	}
@@ -68,10 +69,11 @@ villo.Game = function(gameObject){
 	//Time to mixin what's left of gameObject:
 	villo.mixin(this, gameObject);
 	
+	//Check to see if we should call the type function:
 	if(invoke){
-		//TODO: pull from villo.Game.feature
-		if(invoke === "all"){
-			//Create the "all room".
+		if(villo.Game.invoke[this.type]){
+			//Call the invoke function, binding scope:
+			villo.Game.invoke[this.type].call(this, true);
 		}
 	}
 	
@@ -84,17 +86,61 @@ villo.Game = function(gameObject){
 	return this;
 };
 
-//Create our empty objects which will eventually be extended:
+//Create our empty objects which will eventually be filled with features and types:
 villo.Game.features = {};
-villo.Game.invoke = {}
+villo.Game.invoke = {};
+
+/*
+ * The following two functions are extremely simple, but still handy utilities for defining types and features in villo.Game.
+ */
 
 //Add a feature for villo.Game:
-villo.Game.feature = function(extendObject){
+villo.Game.feature = function(featureObject){
+	//Extract name:
+	var name = featureObject.name;
+	delete featureObject.name;
 	
+	if(villo.Game.features[name]){
+		//Already exists:
+		villo.mixin(villo.Game.features[name], featureObject);
+	}else{
+		//New:
+		villo.Game.features[name] = featureObject;
+	}
 }
+
+//Define a type:
+villo.Game.type = function(typeObject){
+	console.log("new type");
+	//Extract name:
+	villo.Game.invoke[typeObject.name] = typeObject.create || function(){};
+}
+
+/*
+ * FEATURES:
+ */
 
 //Add Chat feature:
 villo.Game.feature({
-	
+	name: "chat"
 });
-//Add 
+//Add Presence feature:
+villo.Game.feature({
+	name: "presence"
+});
+//Add Data feature:
+villo.Game.feature({
+	name: "data"
+});
+
+/*
+ * TYPES:
+ */
+
+//Add the "all" type:
+villo.Game.type({
+	name: "all",
+	create: function(){
+		console.log(this);
+	}
+});
