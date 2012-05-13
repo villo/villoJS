@@ -14,9 +14,9 @@ villo.states = {
 		if (getObject.instant && getObject.instant === true) {
 			//Don't force return, allow callback:
 			if(getObject.callback){
-				getObject.callback(store.get(villo.app.propBag.states));
+				getObject.callback(villo.store.get("VAppState"));
 			}
-			return store.get(villo.app.propBag.states);
+			return villo.store.get("VAppState");
 		} else {
 			villo.storage.get({
 				privacy: true,

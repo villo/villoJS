@@ -69,7 +69,7 @@ villo.Game = function(gameObject){
 				//Event doesn't exist:
 				return false;
 			}
-		}
+		};
 	}
 	
 	//Import the create function, to be called after the general mixin and invoke type.
@@ -134,6 +134,7 @@ villo.Game.type = function(typeObject){
 //Add Chat feature:
 villo.Game.feature({
 	name: "chat",
+	//default room value: 
 	room: "main",
 	send: function(sendObject){
 		villo.chat.send({
@@ -205,7 +206,9 @@ villo.Game.type({
 		}
 		//And finally subscribe to some data!
 		if(this.data){
-			
+			this.data.join({
+				name: this.name
+			});
 		}
 		return this;
 	}

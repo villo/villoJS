@@ -167,24 +167,8 @@ villo.load = function(options){
 	villo.app.version = options.version || "";
 	villo.app.developer = options.developer || "";
 	
-	//Set up the user propBag
-	if(!villo.user.propBag){
-		villo.user.propBag = {};
-	}
-	
-	villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
-	villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
-	
-	//Set up the app propBag
-	if(!villo.app.propBag){
-		villo.app.propBag = {};
-	}
-	
-	villo.app.propBag.states = "VAppState." + villo.app.id.toUpperCase();
-	villo.app.propBag.settings = "VilloSettingsProp." + villo.app.id.toUpperCase();
-	
 	//Load up the settings (includes sync + cloud).
-	if (store.get(villo.app.propBag.settings)) {
+	if (villo.store.get("VilloSettingsProp")) {
 		villo.settings.load({
 			callback: villo.doNothing
 		});
@@ -196,8 +180,8 @@ villo.load = function(options){
 	}
 	
 	//Check login status.
-	if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
-		villo.user.strapLogin({username: store.get(villo.user.propBag.user), token: store.get(villo.user.propBag.token)});
+	if (villo.store.get("token.user") && villo.store.get("token.token")) {
+		villo.user.strapLogin({username: villo.store.get("token.user"), token: villo.store.get("token.token")});
 		//User Logged In
 		villo.sync();
 	} else {

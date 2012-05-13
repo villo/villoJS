@@ -49,12 +49,13 @@ smoosh.config({
 			utils + "hooks.js",
 			utils + "lang.js",
 			utils + "log.js",
+			utils + "store.js",
 			utils + "sync.js",
 			utils + "end.js",
 			//Dependencies (don't run jshint on 3rd-party libraries):
 			{src: dep + "lab.js", jshint: false},
 			{src: dep + "pubnub.js", jshint: false},
-			{src: dep + "store.js", jshint: false}
+			//{src: dep + "store.js", jshint: false}
 		]
 	}
 }).run().build().analyze();

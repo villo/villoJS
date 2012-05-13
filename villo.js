@@ -873,7 +873,7 @@ villo.Game = function(gameObject){
 				//Event doesn't exist:
 				return false;
 			}
-		}
+		};
 	}
 	
 	//Import the create function, to be called after the general mixin and invoke type.
@@ -938,6 +938,7 @@ villo.Game.type = function(typeObject){
 //Add Chat feature:
 villo.Game.feature({
 	name: "chat",
+	//default room value: 
 	room: "main",
 	send: function(sendObject){
 		villo.chat.send({
@@ -1009,7 +1010,9 @@ villo.Game.type({
 		}
 		//And finally subscribe to some data!
 		if(this.data){
-			
+			this.data.join({
+				name: this.name
+			});
 		}
 		return this;
 	}
@@ -1375,24 +1378,8 @@ villo.load = function(options){
 	villo.app.version = options.version || "";
 	villo.app.developer = options.developer || "";
 	
-	//Set up the user propBag
-	if(!villo.user.propBag){
-		villo.user.propBag = {};
-	}
-	
-	villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
-	villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
-	
-	//Set up the app propBag
-	if(!villo.app.propBag){
-		villo.app.propBag = {};
-	}
-	
-	villo.app.propBag.states = "VAppState." + villo.app.id.toUpperCase();
-	villo.app.propBag.settings = "VilloSettingsProp." + villo.app.id.toUpperCase();
-	
 	//Load up the settings (includes sync + cloud).
-	if (store.get(villo.app.propBag.settings)) {
+	if (villo.store.get("VilloSettingsProp")) {
 		villo.settings.load({
 			callback: villo.doNothing
 		});
@@ -1404,8 +1391,8 @@ villo.load = function(options){
 	}
 	
 	//Check login status.
-	if (store.get(villo.user.propBag.user) && store.get(villo.user.propBag.token)) {
-		villo.user.strapLogin({username: store.get(villo.user.propBag.user), token: store.get(villo.user.propBag.token)});
+	if (villo.store.get("token.user") && villo.store.get("token.token")) {
+		villo.user.strapLogin({username: villo.store.get("token.user"), token: villo.store.get("token.token")});
 		//User Logged In
 		villo.sync();
 	} else {
@@ -2227,14 +2214,14 @@ villo.settings = {
 	load: function(loadObject){
 		if (loadObject.instant && loadObject.instant === true) {
 			if(store.get(villo.app.propBag.settings)){
-				villo.app.settings = store.get(villo.app.propBag.settings).settings;
+				villo.app.settings = villo.store.get("VilloSettingsProp").settings;
 				//TODO: Callback, baby
 				return villo.app.settings;
 			}else{
 				return false;
 			}
 		} else {
-			var theTimestamp = store.get(villo.app.propBag.settings).timestamp;
+			var theTimestamp = villo.store.get("VilloSettingsProp").timestamp;
 			villo.storage.get({
 				privacy: true,
 				title: "VilloSettingsProp",
@@ -2243,7 +2230,7 @@ villo.settings = {
 					transit = JSON.parse(JSON.parse(transit));
 					if (!transit.storage) {
 						//Offline: 
-						villo.app.settings = store.get(villo.app.propBag.settings).settings;
+						villo.app.settings = villo.store.get("VilloSettingsProp").settings;
 						loadObject.callback(villo.app.settings);
 					} else {
 						//Check for timestamps.
@@ -2255,7 +2242,7 @@ villo.settings = {
 						} else {
 							//Local version is newer. 
 							//TODO: Update server.
-							villo.app.settings = store.get(villo.app.propBag.settings).settings;
+							villo.app.settings = villo.store.get("VilloSettingsProp").settings;
 							loadObject.callback(villo.app.setting);
 						}
 					}
@@ -2368,9 +2355,9 @@ villo.states = {
 		if (getObject.instant && getObject.instant === true) {
 			//Don't force return, allow callback:
 			if(getObject.callback){
-				getObject.callback(store.get(villo.app.propBag.states));
+				getObject.callback(villo.store.get("VAppState"));
 			}
-			return store.get(villo.app.propBag.states);
+			return villo.store.get("VAppState");
 		} else {
 			villo.storage.get({
 				privacy: true,
@@ -3428,6 +3415,47 @@ villo.dumpLogs = function(useJson){
 };
 
 
+
+//Utility functions to access localStorage:
+villo.store = (function(){
+	//Check to see if localStorage is here for us:
+	var ls = typeof(localStorage) !== 'undefined' && localStorage;
+	//Generate app-specific localStorage keys:
+	var genName = function(name){
+		return (name + "." + (villo.app.id || "myapp").toUpperCase());
+	};
+	return {
+		get: function(name){
+			name = genName(name);
+			if(ls){
+				return ls.getItem(name);
+			}else{
+				if (document.cookie.indexOf(name) === -1){
+					return null;
+				}
+                return ((document.cookie || "").match(
+                    RegExp(name+'=([^;]+)')
+                )||[])[1] || null;
+			}
+		},
+		set: function(name, value){
+			name = genName(name);
+			if(ls){
+				return ls.setItem(name, value);
+			}else{
+				document.cookie = name + "=" + value + "; expires=Thu, 1 Aug 2030 20:00:00 UTC; path=/";
+			}
+		},
+		remove: function(name){
+			name = genName(name);
+			if(ls){
+				ls.removeItem(name);
+			}else{
+				document.cookie = name + "=" + value + "; expires=Thu, 1 Aug 2000 20:00:00 UTC; path=/";
+			}
+		}
+	};
+})();
 
 /* Villo Sync */
 //Private function that is run on initialization.
@@ -4960,197 +4988,3 @@ window['jQuery'] && (window['jQuery']['PUBNUB'] = PUBNUB);
 typeof module !== 'undefined' && (module.exports = PUBNUB) && ready();
 
 })();
-/* Copyright (c) 2010-2012 Marcus Westin
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-;(function(){
-	var store = {},
-		win = window,
-		doc = win.document,
-		localStorageName = 'localStorage',
-		globalStorageName = 'globalStorage',
-		namespace = '__storejs__',
-		storage
-
-	store.disabled = false
-	store.set = function(key, value) {}
-	store.get = function(key) {}
-	store.remove = function(key) {}
-	store.clear = function() {}
-	store.transact = function(key, defaultVal, transactionFn) {
-		var val = store.get(key)
-		if (transactionFn == null) {
-			transactionFn = defaultVal
-			defaultVal = null
-		}
-		if (typeof val == 'undefined') { val = defaultVal || {} }
-		transactionFn(val)
-		store.set(key, val)
-	}
-	store.getAll = function() {}
-
-	store.serialize = function(value) {
-		return JSON.stringify(value)
-	}
-	store.deserialize = function(value) {
-		if (typeof value != 'string') { return undefined }
-		return JSON.parse(value)
-	}
-
-	// Functions to encapsulate questionable FireFox 3.6.13 behavior
-	// when about.config::dom.storage.enabled === false
-	// See https://github.com/marcuswestin/store.js/issues#issue/13
-	function isLocalStorageNameSupported() {
-		try { return (localStorageName in win && win[localStorageName]) }
-		catch(err) { return false }
-	}
-
-	function isGlobalStorageNameSupported() {
-		try { return (globalStorageName in win && win[globalStorageName] && win[globalStorageName][win.location.hostname]) }
-		catch(err) { return false }
-	}
-
-	if (isLocalStorageNameSupported()) {
-		storage = win[localStorageName]
-		store.set = function(key, val) {
-			if (val === undefined) { return store.remove(key) }
-			storage.setItem(key, store.serialize(val))
-		}
-		store.get = function(key) { return store.deserialize(storage.getItem(key)) }
-		store.remove = function(key) { storage.removeItem(key) }
-		store.clear = function() { storage.clear() }
-		store.getAll = function() {
-			var ret = {}
-			for (var i=0; i<storage.length; ++i) {
-				var key = storage.key(i)
-				ret[key] = store.get(key)
-			}
-			return ret
-		}
-	} else if (isGlobalStorageNameSupported()) {
-		storage = win[globalStorageName][win.location.hostname]
-		store.set = function(key, val) {
-			if (val === undefined) { return store.remove(key) }
-			storage[key] = store.serialize(val)
-		}
-		store.get = function(key) { return store.deserialize(storage[key] && storage[key].value) }
-		store.remove = function(key) { delete storage[key] }
-		store.clear = function() { for (var key in storage ) { delete storage[key] } }
-		store.getAll = function() {
-			var ret = {}
-			for (var i=0; i<storage.length; ++i) {
-				var key = storage.key(i)
-				ret[key] = store.get(key)
-			}
-			return ret
-		}
-
-	} else if (doc.documentElement.addBehavior) {
-		var storageOwner,
-			storageContainer
-		// Since #userData storage applies only to specific paths, we need to
-		// somehow link our data to a specific path.  We choose /favicon.ico
-		// as a pretty safe option, since all browsers already make a request to
-		// this URL anyway and being a 404 will not hurt us here.  We wrap an
-		// iframe pointing to the favicon in an ActiveXObject(htmlfile) object
-		// (see: http://msdn.microsoft.com/en-us/library/aa752574(v=VS.85).aspx)
-		// since the iframe access rules appear to allow direct access and
-		// manipulation of the document element, even for a 404 page.  This
-		// document can be used instead of the current document (which would
-		// have been limited to the current path) to perform #userData storage.
-		try {
-			storageContainer = new ActiveXObject('htmlfile')
-			storageContainer.open()
-			storageContainer.write('<s' + 'cript>document.w=window</s' + 'cript><iframe src="/favicon.ico"></frame>')
-			storageContainer.close()
-			storageOwner = storageContainer.w.frames[0].document
-			storage = storageOwner.createElement('div')
-		} catch(e) {
-			// somehow ActiveXObject instantiation failed (perhaps some special
-			// security settings or otherwse), fall back to per-path storage
-			storage = doc.createElement('div')
-			storageOwner = doc.body
-		}
-		function withIEStorage(storeFunction) {
-			return function() {
-				var args = Array.prototype.slice.call(arguments, 0)
-				args.unshift(storage)
-				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
-				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
-				storageOwner.appendChild(storage)
-				storage.addBehavior('#default#userData')
-				storage.load(localStorageName)
-				var result = storeFunction.apply(store, args)
-				storageOwner.removeChild(storage)
-				return result
-			}
-		}
-		function ieKeyFix(key) {
-			// In IE7, keys may not begin with numbers.
-			// See https://github.com/marcuswestin/store.js/issues/40#issuecomment-4617842
-			return '_'+key
-		}
-		store.set = withIEStorage(function(storage, key, val) {
-			key = ieKeyFix(key)
-			if (val === undefined) { return store.remove(key) }
-			storage.setAttribute(key, store.serialize(val))
-			storage.save(localStorageName)
-		})
-		store.get = withIEStorage(function(storage, key) {
-			key = ieKeyFix(key)
-			return store.deserialize(storage.getAttribute(key))
-		})
-		store.remove = withIEStorage(function(storage, key) {
-			key = ieKeyFix(key)
-			storage.removeAttribute(key)
-			storage.save(localStorageName)
-		})
-		store.clear = withIEStorage(function(storage) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			storage.load(localStorageName)
-			for (var i=0, attr; attr=attributes[i]; i++) {
-				storage.removeAttribute(attr.name)
-			}
-			storage.save(localStorageName)
-		})
-		store.getAll = withIEStorage(function(storage) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			storage.load(localStorageName)
-			var ret = {}
-			for (var i=0, attr; attr=attributes[i]; ++i) {
-				ret[attr] = store.get(attr)
-			}
-			return ret
-		})
-	}
-
-	try {
-		store.set(namespace, namespace)
-		if (store.get(namespace) != namespace) { store.disabled = true }
-		store.remove(namespace)
-	} catch(e) {
-		store.disabled = true
-	}
-	
-	if (typeof module != 'undefined' && typeof module != 'function') { module.exports = store }
-	else if (typeof define === 'function' && define.amd) { define(store) }
-	else { this.store = store }
-})()

@@ -82,14 +82,14 @@ villo.settings = {
 	load: function(loadObject){
 		if (loadObject.instant && loadObject.instant === true) {
 			if(store.get(villo.app.propBag.settings)){
-				villo.app.settings = store.get(villo.app.propBag.settings).settings;
+				villo.app.settings = villo.store.get("VilloSettingsProp").settings;
 				//TODO: Callback, baby
 				return villo.app.settings;
 			}else{
 				return false;
 			}
 		} else {
-			var theTimestamp = store.get(villo.app.propBag.settings).timestamp;
+			var theTimestamp = villo.store.get("VilloSettingsProp").timestamp;
 			villo.storage.get({
 				privacy: true,
 				title: "VilloSettingsProp",
@@ -98,7 +98,7 @@ villo.settings = {
 					transit = JSON.parse(JSON.parse(transit));
 					if (!transit.storage) {
 						//Offline: 
-						villo.app.settings = store.get(villo.app.propBag.settings).settings;
+						villo.app.settings = villo.store.get("VilloSettingsProp").settings;
 						loadObject.callback(villo.app.settings);
 					} else {
 						//Check for timestamps.
@@ -110,7 +110,7 @@ villo.settings = {
 						} else {
 							//Local version is newer. 
 							//TODO: Update server.
-							villo.app.settings = store.get(villo.app.propBag.settings).settings;
+							villo.app.settings = villo.store.get("VilloSettingsProp").settings;
 							loadObject.callback(villo.app.setting);
 						}
 					}
