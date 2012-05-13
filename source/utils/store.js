@@ -11,7 +11,17 @@ villo.store = (function(){
 		get: function(name){
 			name = genName(name);
 			if(ls){
-				return ls.getItem(name);
+				var ret = ls.getItem(name);
+				try{
+					var newret = JSON.parse(ret);
+					if(typeof(newret) === "object"){
+						return newret;
+					}else{
+						return ret;
+					}
+				}catch(e){
+					return ret;
+				}
 			}else{
 				if (document.cookie.indexOf(name) === -1){
 					return null;
@@ -23,6 +33,9 @@ villo.store = (function(){
 		},
 		set: function(name, value){
 			name = genName(name);
+			if(typeof(value) === "object"){
+				value = JSON.stringify(value);
+			}
 			if(ls){
 				return ls.setItem(name, value);
 			}else{

@@ -54,8 +54,7 @@ smoosh.config({
 			utils + "end.js",
 			//Dependencies (don't run jshint on 3rd-party libraries):
 			{src: dep + "lab.js", jshint: false},
-			{src: dep + "pubnub.js", jshint: false},
-			//{src: dep + "store.js", jshint: false}
+			{src: dep + "pubnub.js", jshint: false}
 		]
 	}
 }).run().build().analyze();
@@ -76,6 +75,8 @@ var	lazy = require("lazy"),
 	fs = require("fs");
 
 var documenting = true;
+var fileList = [];
+var currentFile = "";
 new lazy(fs.createReadStream(core +"chat.js")).lines.forEach(
 	function(line){
 		//convert buffer to string:
@@ -84,14 +85,16 @@ new lazy(fs.createReadStream(core +"chat.js")).lines.forEach(
 			//Check to see if we want to stop docs:
 			if(trim(line) === "ENDCOMMENT"){
 				documenting = false;
-				console.log("stopping documentation");
+				fileList.push(currentFile + "");
 				return;
 			}
-			//Start documenting...
-			console.log(line);
+			
+			//Document:
+			currentFile += line;
 		}else if(trim(line) === "/**"){
+			//Start documenting:
 			documenting = true;
-			console.log("starting documentation");
+			currentFile = "";
 			return;
 		}
 	}

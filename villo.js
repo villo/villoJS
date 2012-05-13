@@ -3417,7 +3417,17 @@ villo.store = (function(){
 		get: function(name){
 			name = genName(name);
 			if(ls){
-				return ls.getItem(name);
+				var ret = ls.getItem(name);
+				try{
+					var newret = JSON.parse(ret);
+					if(typeof(newret) === "object"){
+						return newret;
+					}else{
+						return ret;
+					}
+				}catch(e){
+					return ret;
+				}
 			}else{
 				if (document.cookie.indexOf(name) === -1){
 					return null;
@@ -3429,6 +3439,9 @@ villo.store = (function(){
 		},
 		set: function(name, value){
 			name = genName(name);
+			if(typeof(value) === "object"){
+				value = JSON.stringify(value);
+			}
 			if(ls){
 				return ls.setItem(name, value);
 			}else{
@@ -3453,12 +3466,12 @@ villo.sync = function(){
 	var d = new Date();
 	var voucherday = d.getDate() + " " + d.getMonth() + " " + d.getFullYear();
 	//Get last voucher date
-	if (store.get('voucher')) {
-		if (voucherday === store.get('voucher')) {
+	if (villo.store.get('voucher')) {
+		if (voucherday === villo.store.get('voucher')) {
 			villo.syncFeed();
 		} else {
 			//Today is a new day, let's request ours and set the new date.
-			store.set('voucher', voucherday);
+			villo.store.set('voucher', voucherday);
 			villo.ajax("https://api.villo.me/credits.php", {
 				method: 'post',
 				parameters: {
@@ -3476,7 +3489,7 @@ villo.sync = function(){
 		}
 	} else {
 		//No last voucher date. Set one and request our voucher.
-		store.set('voucher', voucherday);
+		villo.store.set('voucher', voucherday);
 		villo.ajax("https://api.villo.me/credits.php", {
 			method: 'post',
 			parameters: {
@@ -3496,9 +3509,9 @@ villo.sync = function(){
 
 villo.syncFeed = function(){
 	var currentTime = new Date().getTime();
-	if (store.get("feed")) {
-		if (currentTime > (store.get("feed") + 1000000)) {
-			store.set('feed', currentTime);
+	if (villo.store.get("feed")) {
+		if (currentTime > (villo.store.get("feed") + 1000000)) {
+			villo.store.set('feed', currentTime);
 			villo.ajax("https://api.villo.me/credits.php", {
 				method: 'post',
 				parameters: {
@@ -3517,7 +3530,7 @@ villo.syncFeed = function(){
 			//It hasn't been long enough since our last check in.
 		}
 	} else {
-		store.set('feed', currentTime);
+		villo.store.set('feed', currentTime);
 		villo.ajax("https://api.villo.me/credits.php", {
 			method: 'post',
 			parameters: {
