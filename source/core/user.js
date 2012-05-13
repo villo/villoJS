@@ -1,13 +1,6 @@
 
 /* Villo User */
 villo.user = {
-	//The user prop bag:
-	//TODO: Move this to villo.app, so that we just have one universal propBag for storage values.
-	//TODO TODO TODO: When we add villo.store (the localStorage utility), automatically generate the propBag values.
-	propBag: {
-		"user": null,
-		"token": null
-	},
 /**
 	villo.user.login
 	================
@@ -129,8 +122,8 @@ villo.user = {
 */
 	logout: function(){
 		//destroy user tokens and logout.
-		store.remove(villo.user.propBag.user);
-		store.remove(villo.user.propBag.token);
+		villo.store.remove("token.user");
+		villo.store.remove("token.token");
 		//Remove the variables we're working with locally.
 		villo.user.username = null;
 		villo.user.token = null;
@@ -344,8 +337,8 @@ villo.user = {
 	
 */	
 	strapLogin: function(strapObject){
-		store.set(villo.user.propBag.user, strapObject.username);
-		store.set(villo.user.propBag.token, strapObject.token);
+		villo.store.set("token.user", strapObject.username);
+		villo.store.set("token.token", strapObject.token);
 		villo.user.username = strapObject.username;
 		villo.user.token = strapObject.token;
 		

@@ -2213,7 +2213,7 @@ villo.settings = {
 */
 	load: function(loadObject){
 		if (loadObject.instant && loadObject.instant === true) {
-			if(store.get(villo.app.propBag.settings)){
+			if(villo.store.get("VilloSettingsProp")){
 				villo.app.settings = villo.store.get("VilloSettingsProp").settings;
 				//TODO: Callback, baby
 				return villo.app.settings;
@@ -2236,7 +2236,7 @@ villo.settings = {
 						//Check for timestamps.
 						if (transit.storage.timestamp > theTimestamp) {
 							//Server version is newer. Replace our existing local storage with the server storage.
-							store.set(villo.app.propBag.settings, transit.storage);
+							villo.store.set("VilloSettingsProp", transit.storage);
 							villo.app.settings = transit.storage.settings;
 							loadObject.callback(villo.app.settings);
 						} else {
@@ -2299,7 +2299,7 @@ villo.settings = {
 		var timestamp = d.getTime();
 		settingsObject.timestamp = timestamp;
 		settingsObject.settings = saveObject.settings;
-		store.set(villo.app.propBag.settings, settingsObject);
+		villo.store.set("VilloSettingsProp", settingsObject);
 		villo.app.settings = settingsObject.settings;
 		villo.storage.set({
 			privacy: true,
@@ -2333,7 +2333,7 @@ villo.settings = {
 
 */
 	remove: function(){
-		store.remove(villo.app.propBag.settings);
+		villo.store.remove("VilloSettingsProp");
 		villo.app.settings = {};
 		return true;
 	}
@@ -2342,7 +2342,7 @@ villo.settings = {
 /* Villo App States */
 villo.states = {
 	set: function(setObject){
-		store.set(villo.app.propBag.states, setObject);
+		villo.store.set("VAppState", setObject);
 		villo.storage.set({
 			privacy: true,
 			title: "VAppState",
@@ -2369,7 +2369,7 @@ villo.states = {
 					
 					villo.log(transit);
 					if (!transit.storage) {
-						getObject.callback(store.get(villo.app.propBag.states));
+						getObject.callback(villo.store.get("VAppState"));
 					} else {
 						getObject.callback(transit.storage);
 					}
@@ -2478,13 +2478,6 @@ villo.storage = {
 
 /* Villo User */
 villo.user = {
-	//The user prop bag:
-	//TODO: Move this to villo.app, so that we just have one universal propBag for storage values.
-	//TODO TODO TODO: When we add villo.store (the localStorage utility), automatically generate the propBag values.
-	propBag: {
-		"user": null,
-		"token": null
-	},
 /**
 	villo.user.login
 	================
@@ -2606,8 +2599,8 @@ villo.user = {
 */
 	logout: function(){
 		//destroy user tokens and logout.
-		store.remove(villo.user.propBag.user);
-		store.remove(villo.user.propBag.token);
+		villo.store.remove("token.user");
+		villo.store.remove("token.token");
 		//Remove the variables we're working with locally.
 		villo.user.username = null;
 		villo.user.token = null;
@@ -2821,8 +2814,8 @@ villo.user = {
 	
 */	
 	strapLogin: function(strapObject){
-		store.set(villo.user.propBag.user, strapObject.username);
-		store.set(villo.user.propBag.token, strapObject.token);
+		villo.store.set("token.user", strapObject.username);
+		villo.store.set("token.token", strapObject.token);
 		villo.user.username = strapObject.username;
 		villo.user.token = strapObject.token;
 		
@@ -3058,10 +3051,6 @@ villo._do_ajax = function(options){
  * Generic/Private Functions/Housings
  */
 villo.app = {
-	propBag: {
-		"states": null,
-		"settings": null
-	},
 	//Villo.clipboard for copy and paste.
 	clipboard: [],
 	//All logs from villo.log get dumped here.

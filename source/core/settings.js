@@ -81,7 +81,7 @@ villo.settings = {
 */
 	load: function(loadObject){
 		if (loadObject.instant && loadObject.instant === true) {
-			if(store.get(villo.app.propBag.settings)){
+			if(villo.store.get("VilloSettingsProp")){
 				villo.app.settings = villo.store.get("VilloSettingsProp").settings;
 				//TODO: Callback, baby
 				return villo.app.settings;
@@ -104,7 +104,7 @@ villo.settings = {
 						//Check for timestamps.
 						if (transit.storage.timestamp > theTimestamp) {
 							//Server version is newer. Replace our existing local storage with the server storage.
-							store.set(villo.app.propBag.settings, transit.storage);
+							villo.store.set("VilloSettingsProp", transit.storage);
 							villo.app.settings = transit.storage.settings;
 							loadObject.callback(villo.app.settings);
 						} else {
@@ -167,7 +167,7 @@ villo.settings = {
 		var timestamp = d.getTime();
 		settingsObject.timestamp = timestamp;
 		settingsObject.settings = saveObject.settings;
-		store.set(villo.app.propBag.settings, settingsObject);
+		villo.store.set("VilloSettingsProp", settingsObject);
 		villo.app.settings = settingsObject.settings;
 		villo.storage.set({
 			privacy: true,
@@ -201,7 +201,7 @@ villo.settings = {
 
 */
 	remove: function(){
-		store.remove(villo.app.propBag.settings);
+		villo.store.remove("VilloSettingsProp");
 		villo.app.settings = {};
 		return true;
 	}
