@@ -22,16 +22,22 @@
  * OF SUCH DAMAGE.
  */
 
-;(function( window, undefined ) {
+/*jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true, undef:true, curly:true, browser:true, devel:true, */
+
+var villo;
+(function( window, undefined ) {
 	villo = window.villo || {};
 	
 	villo.apiKey = "";
-	villo.version = "0.9.9 a1";
+	villo.version = "0.9.9 l1";
 })(window);
+
 /* Villo Analytics */
 //TODO: For 1.0 release.
 
+
 /* Villo Bridge: Removed from roadmap */
+
 /* Villo Push Chat */
 villo.chat = {
 	rooms: [],
@@ -81,7 +87,7 @@ villo.chat = {
 		//FIXME
 		if ('PUBNUB' in window) {
 			//FIXME
-			if (villo.chat.isSubscribed(chatObject.room) == false) {
+			if (villo.chat.isSubscribed(chatObject.room) === false) {
 				PUBNUB.subscribe({
 					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + chatObject.room.toUpperCase(),
 					callback: function(message){
@@ -94,7 +100,7 @@ villo.chat = {
 				});
 				
 				//FIXME: This is all handled inline now:
-				if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled == true){
+				if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled === true){
 					villo.presence.join({
 						room: chatObject.room,
 						callback: (chatObject.presence.callback || "")
@@ -145,9 +151,9 @@ villo.chat = {
 
 	isSubscribed: function(roomString){
 		var c = false;
-		for (x in villo.chat.rooms) {
+		for (var x in villo.chat.rooms) {
 			if (villo.chat.rooms.hasOwnProperty(x)) {
-				if (villo.chat.rooms[x].name.toUpperCase() == roomString.toUpperCase()) {
+				if (villo.chat.rooms[x].name.toUpperCase() === roomString.toUpperCase()) {
 					c = true;
 				}
 			}
@@ -233,12 +239,12 @@ villo.chat = {
 */
 	leaveAll: function(){
 		if ('PUBNUB' in window) {
-			for (x in villo.chat.rooms) {
+			for (var x in villo.chat.rooms) {
 				if (villo.chat.rooms.hasOwnProperty(x)) {
 					PUBNUB.unsubscribe({
 						channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
 					});
-					if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
+					if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence === true){
 						villo.presence.leave({
 							room: villo.chat.rooms[x].name
 						});
@@ -280,12 +286,12 @@ villo.chat = {
 			PUBNUB.unsubscribe({
 				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.toUpperCase()
 			});
-			var x;
-			for (x in villo.chat.rooms) {
+			var rmv = "";
+			for (var x in villo.chat.rooms) {
 				if (villo.chat.rooms.hasOwnProperty(x)) {
-					if (villo.chat.rooms[x].name == closerObject) {
-						var rmv = x;
-						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence == true){
+					if (villo.chat.rooms[x].name === closerObject) {
+						rmv = x;
+						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence === true){
 							villo.presence.leave({
 								room: villo.chat.rooms[x].name
 							});
@@ -355,6 +361,7 @@ villo.chat = {
 		}
 	}
 };
+
 /* Villo Clipboard */
 villo.clipboard = {
 /**
@@ -420,37 +427,40 @@ villo.clipboard = {
 	}
 };
 
+
 /* Villo Public Feeds */
 villo.feeds = {
 	post: function(pubObject){
-		/*
-		 * Channels: 
-		 * =========
-		 * 
-		 * VILLO/FEEDS/PUBLIC
-		 * VILLO/FEEDS/USERS/USERNAME
-		 * VILLO/FEEDS/APPS/APPID
-		 */
-		/*
-		 * Actions:
-		 * ========
-		 * 
-		 * Actions aim to give developers an idea of what the feed post is about. 
-		 * Developers can define any action to differentiate posts from their own app, and handle the actions accordingly.
-		 * The default action is "user-post".
-		 * The following are reserved actions, and any post that attempts to use them will get prefixed with "custom-".
-		 * 
-		 * 	- "leaders-submit",
-		 *	- "friend-add",
-		 *	- "profile-edit",
-		 *	- "app-launch",
-		 *	- "user-register",
-		 *	- "user-login"
-		 * 
-		 * Additionally, the "villo-" prefix is reserved, and any post that attempts to use it will get prefixed with "custom-".
-		 * 
-		 * All actions will be converted to lowercase.
-		 */
+		
+		//
+		// Channels: 
+		// =========
+		// 
+		// VILLO/FEEDS/PUBLIC
+		// VILLO/FEEDS/USERS/USERNAME
+		// VILLO/FEEDS/APPS/APPID
+		//
+		//
+		// Actions:
+		// ========
+		// 
+		// Actions aim to give developers an idea of what the feed post is about. 
+		// Developers can define any action to differentiate posts from their own app, and handle the actions accordingly.
+		// The default action is "user-post".
+		// The following are reserved actions, and any post that attempts to use them will get prefixed with "custom-".
+		// 
+		//	- "leaders-submit",
+		//	- "friend-add",
+		//	- "profile-edit",
+		//	- "app-launch",
+		//	- "user-register",
+		//	- "user-login"
+		// 
+		// Additionally, the "villo-" prefix is reserved, and any post that attempts to use it will get prefixed with "custom-".
+		// 
+		// All actions will be converted to lowercase.
+		//
+		
 		villo.ajax("https://api.villo.me/feeds.php", {
 			method: 'post',
 			parameters: {
@@ -566,6 +576,7 @@ villo.feeds = {
 	}
 };
 
+
 /* Villo Friends */
 villo.friends = {
 /**
@@ -625,12 +636,12 @@ villo.friends = {
 				
 				villo.verbose && villo.log(transport);
 				
-				if (!transport == "") {
+				if (transport !== "") {
 					var tmprsp = JSON.parse(transport);
 					if (tmprsp.friends) {
 						addObject.callback(tmprsp);
 					} else 
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							addObject.callback(transport);
 						} else {
 							addObject.callback(33);
@@ -698,12 +709,12 @@ villo.friends = {
 				//66 - Unauthenticated User
 				//99 - Unauthorized App
 				villo.verbose && villo.log(transport);
-				if (!transport == "") {
+				if (transport !== "") {
 					var tmprsp = JSON.parse(transport);
 					if (tmprsp.friends) {
 						removeObject.callback(tmprsp);
 					} else 
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							removeObject.callback(transport);
 						} else {
 							removeObject.callback(33);
@@ -769,14 +780,14 @@ villo.friends = {
 				//66 - Unauthenticated User
 				//99 - Unauthorized App
 				
-				villo.verbose && villo.log(transport)
+				villo.verbose && villo.log(transport);
 				
-				if (!transport == "") {
+				if (transport !== "") {
 					var tmprsp = JSON.parse(transport);
 					if (tmprsp.friends) {
 						getObject.callback(tmprsp);
 					} else 
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							getObject.callback(transport);
 						} else {
 							getObject.callback(33);
@@ -790,7 +801,208 @@ villo.friends = {
 			}
 		});
 	}
-}
+};
+
+
+
+/*
+ * Experimental
+ */
+
+villo.Game = function(gameObject){
+	
+	//If they forget to include the new keyword, we'll do it for them, so that we always have a new instance:
+	if (!(this instanceof villo.Game)){
+		villo.verbose && console.log("Forgot to include new keyword with villo.Game, attempting to call new instance.");
+		return new villo.Game(gameObject);
+	}
+	
+	if(gameObject.name){
+		//set the name
+		this.name = gameObject.name;
+		//delete reference
+		delete gameObject.name;
+	}else{
+		//we need a name
+		return;
+	}
+	
+	var invoke = "";
+	if(gameObject.type){
+		this.type = gameObject.type;
+		invoke = this.type;
+		delete gameObject.type;
+	}else{
+		//Default to "all" type:
+		this.type = "all";
+		invoke = "all";
+	}
+	
+	if(gameObject.use){
+		if(gameObject.use.clean && gameObject.use.clean === true){
+			invoke = false;
+		}
+		this.use = gameObject.use;
+		delete gameObject.use;
+		for(var x in this.use){
+			if(this.use.hasOwnProperty(x)){
+				//Ensure that the feature exists:
+				if(villo.Game.features[x]){
+					//Do they want it?
+					if(this.use[x] === true){
+						//Add it in:
+						this[x] = villo.Game.features[x];
+					}
+				}
+			}
+		}
+	}else{
+		//Import all features:
+		villo.mixin(this, villo.Game.features);
+	}
+	
+	//Import the events. Its up to the invoke type to call the events.
+	if(gameObject.events){
+		this.events = gameObject.events;
+		delete gameObject.events;
+	}
+	
+	//Import the create function, to be called after the general mixin and invoke type.
+	if(gameObject.create){
+		this.create = gameObject.create;
+		delete gameObject.create;
+	}
+
+	//Time to mixin what's left of gameObject:
+	villo.mixin(this, gameObject);
+	
+	//Check to see if we should call the type function:
+	if(invoke){
+		if(villo.Game.invoke[this.type]){
+			//Call the invoke function, binding scope:
+			villo.Game.invoke[this.type].call(this, true);
+		}
+	}
+	
+	if(this.create && typeof(this.create) === "function"){
+		//We pass the create function true, just for giggles.
+		this.create(true);
+	}
+	
+	//Return the prototype, to allow for calling methods off of a variable reference:
+	return this;
+};
+
+//Create our empty objects which will eventually be filled with features and types:
+villo.Game.features = {};
+villo.Game.invoke = {};
+
+/*
+ * The following two functions are extremely simple, but still handy utilities for defining types and features in villo.Game.
+ */
+
+//Add a feature for villo.Game:
+villo.Game.feature = function(featureObject){
+	//Extract name:
+	var name = featureObject.name;
+	delete featureObject.name;
+	
+	if(villo.Game.features[name]){
+		//Already exists:
+		villo.mixin(villo.Game.features[name], featureObject);
+	}else{
+		//New:
+		villo.Game.features[name] = featureObject;
+	}
+};
+
+//Define a type:
+villo.Game.type = function(typeObject){
+	console.log("new type");
+	//Extract name:
+	villo.Game.invoke[typeObject.name] = typeObject.create || function(){};
+};
+
+/*
+ * FEATURES:
+ */
+
+//Add Chat feature:
+villo.Game.feature({
+	name: "chat",
+	room: "main",
+	send: function(sendObject){
+		villo.chat.send({
+			room: sendObject.room || this.room,
+			message: sendObject.message
+		});
+		return this;
+	},
+	join: function(joinObject){
+		//Set the room to the latest join value:
+		this.room = joinObject.room || this.room;
+		villo.chat.join({
+			room: this.room,
+			callback: joinObject.callback
+		});
+		return this;
+	},
+	history: function(){},
+	leave: function(){},
+	leaveAll: function(){
+		villo.chat.leaveAll();
+		return this;
+	}
+});
+
+//Add Presence feature:
+villo.Game.feature({
+	name: "presence"
+});
+
+//Add Data feature:
+villo.Game.feature({
+	name: "data",
+	//Send data down the public lines:
+	send: function(){},
+	//Send data at a given interval:
+	interval: function(){},
+	//Send data after a given timeout:
+	timeout: function(){},
+	//Join the data rooms:
+	join: function(){},
+	//Send data to a specific user:
+	user: function(){}
+});
+
+/*
+ * TYPES:
+ */
+
+//Add the "all" type:
+villo.Game.type({
+	name: "all",
+	create: function(){
+		//Check to see if we have chat enabled:
+		if(this.chat){
+			this.chat.join({
+				room: "game/" + this.name,
+				callback: villo.bind(this, function(){
+					//Trigger Events
+				})
+			});
+		}
+		//Manage presence separately:
+		if(this.presence){
+			
+		}
+		//And finally subscribe to some data!
+		if(this.data){
+			
+		}
+		return this;
+	}
+});
 
 
 /* Villo Gift */
@@ -818,11 +1030,11 @@ villo.gift = {
 			onSuccess: function(transport){
 				villo.log(transport);
 				if (transport !== "") {
-					var tmprsp = JSON.parse(transport)
+					var tmprsp = JSON.parse(transport);
 					if (tmprsp.gifts) {
 						giftObject.callback(tmprsp);
 					} else {
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							giftObject.callback(transport);
 						} else {
 							giftObject.callback(33);
@@ -855,11 +1067,11 @@ villo.gift = {
 			onSuccess: function(transport){
 				villo.log(transport);
 				if (transport !== "") {
-					var tmprsp = JSON.parse(transport)
+					var tmprsp = JSON.parse(transport);
 					if (tmprsp.gifts) {
 						giftObject.callback(tmprsp);
 					} else {
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							giftObject.callback(transport);
 						} else {
 							giftObject.callback(33);
@@ -891,11 +1103,11 @@ villo.gift = {
 			onSuccess: function(transport){
 				villo.log(transport);
 				if (transport !== "") {
-					var tmprsp = JSON.parse(transport)
+					var tmprsp = JSON.parse(transport);
 					if (tmprsp.gifts) {
 						giftObject.callback(tmprsp);
 					}
-					if (transport == 33 || transport == 66 || transport == 99) {
+					if (transport === 33 || transport === 66 || transport === 99) {
 						giftObject.callback(transport);
 					} else {
 						giftObject.callback(33);
@@ -927,12 +1139,12 @@ villo.gift = {
 			onSuccess: function(transport){
 				villo.log(transport);
 				if (transport !== "") {
-					var tmprsp = JSON.parse(transport)
+					var tmprsp = JSON.parse(transport);
 					if (tmprsp.gifts) {
 						villo.credits = tmprsp.gifts.data;
 						giftObject.callback(tmprsp);
 					}
-					if (transport == 33 || transport == 66 || transport == 99) {
+					if (transport === 33 || transport === 66 || transport === 99) {
 						giftObject.callback(transport);
 					} else {
 						giftObject.callback(33);
@@ -962,12 +1174,12 @@ villo.gift = {
 			onSuccess: function(transport){
 				villo.log(transport);
 				if (transport !== "") {
-					var tmprsp = JSON.parse(transport)
+					var tmprsp = JSON.parse(transport);
 					if (tmprsp.gifts) {
 						villo.credits = tmprsp.gifts.data;
 						giftObject.callback(tmprsp);
 					}
-					if (transport == 33 || transport == 66 || transport == 99) {
+					if (transport === 33 || transport === 66 || transport === 99) {
 						giftObject.callback(transport);
 					} else {
 						giftObject.callback(33);
@@ -981,7 +1193,8 @@ villo.gift = {
 			}
 		});
 	}
-}
+};
+
 
 /* Villo Init/Load */
 
@@ -1038,13 +1251,13 @@ villo.resource = function(options){
 		var scripts = [];
 		for(var x in o){
 			//We technically support CSS files, but we can't use callbacks with it:
-			if(o[x].slice(-3) == "css"){
+			if(o[x].slice(-3) === "css"){
 				villo.style.add(o[x]);
-			}else if(o[x].slice(-2) == "js"){
+			}else if(o[x].slice(-2) === "js"){
 				scripts.push(o[x]);
 			}else{
 				//Try info.villo.js loader:
-				if(o[x].slice(-1) == "/"){
+				if(o[x].slice(-1) === "/"){
 					scripts.push(o[x] + "info.villo.js");
 				}else{
 					scripts.push(o[x] + "/info.villo.js");
@@ -1060,22 +1273,22 @@ villo.resource = function(options){
 	villo.load
 	===========
 	
-    The load function can be called for two things. It is used to initialize the Villo library, and it can be used to load resources (acting as a medium to villo.resource). 
+	The load function can be called for two things. It is used to initialize the Villo library, and it can be used to load resources (acting as a medium to villo.resource). 
     
-    Initialization
+	Initialization
 	--------------
     
-    The recommended way to initialize Villo is to create a file called "info.villo.js". This file should be called after villo.js.
-    	
-    	<script type="text/javascript" src="villo.js"></script>
-    	<script type="text/javascript" src="info.villo.js"></script>
-    	
-    This file should contain the call to villo.load, which will allow you to access Villo's APIs.
-    
-    Resources
-    ---------
-    
-    Once Villo has been initialized, it will act as a medium to villo.resource, allowing you to load any resources with villo.load.
+	The recommended way to initialize Villo is to create a file called "info.villo.js". This file should be called after villo.js.
+	
+		<script type="text/javascript" src="villo.js"></script>
+		<script type="text/javascript" src="info.villo.js"></script>
+	
+	This file should contain the call to villo.load, which will allow you to access Villo's APIs.
+	
+	Resources
+	---------
+	
+	Once Villo has been initialized, it will act as a medium to villo.resource, allowing you to load any resources with villo.load.
     
 	Calling
 	-------
@@ -1136,9 +1349,9 @@ villo.load = function(options){
 	
 	
 	
-	/*
-	 * Initialization
-	 */
+	//
+	// Villo Initialization:
+	//
 	
 	if (options.api) {
 		villo.apiKey = options.api;
@@ -1151,38 +1364,30 @@ villo.load = function(options){
 	villo.app.version = options.version || "";
 	villo.app.developer = options.developer || "";
 	
-	/*
-	 * Set up the user propBag
-	 */
+	//Set up the user propBag
 	if(!villo.user.propBag){
-		villo.user.propBag = {}
+		villo.user.propBag = {};
 	}
 	
 	villo.user.propBag.user = "token.user." + villo.app.id.toUpperCase();
 	villo.user.propBag.token = "token.token." + villo.app.id.toUpperCase();
 	
-	/*
-	 * Set up the app propBag
-	 */
+	//Set up the app propBag
 	if(!villo.app.propBag){
-		villo.app.propBag = {}
+		villo.app.propBag = {};
 	}
 	
 	villo.app.propBag.states = "VAppState." + villo.app.id.toUpperCase();
 	villo.app.propBag.settings = "VilloSettingsProp." + villo.app.id.toUpperCase();
 	
-	/*
-	 * Load up the settings (includes sync + cloud).
-	 */
+	//Load up the settings (includes sync + cloud).
 	if (store.get(villo.app.propBag.settings)) {
 		villo.settings.load({
 			callback: villo.doNothing
 		});
 	}
 	
-	/*
-	 * Optional: Turn on logging.
-	 */
+	//Optional: Turn on logging.
 	if(options.verbose){
 		villo.verbose = options.verbose;
 	}
@@ -1197,17 +1402,17 @@ villo.load = function(options){
 	}
 	
 	var include = [];
-	if (options.include && (typeof(options.include == "object")) && options.include.length > 0) {
-		for (x in options.include) {
+	if (options.include && (typeof(options.include === "object")) && options.include.length > 0) {
+		for (var x in options.include) {
 			if (options.include.hasOwnProperty(x)) {
 				include.push(options.include[x]);
 			}
 		}
 	}
-	if (options.extensions && (typeof(options.extensions == "object")) && options.extensions.length > 0) {
-		for (x in options.extensions) {
-			if (options.extensions.hasOwnProperty(x)) {
-				include.push(options.extensions[x]);
+	if (options.extensions && (typeof(options.extensions === "object")) && options.extensions.length > 0) {
+		for (var y in options.extensions) {
+			if (options.extensions.hasOwnProperty(y)) {
+				include.push(options.extensions[y]);
 			}
 		}
 	}
@@ -1227,9 +1432,7 @@ villo.doPushLoad = function(options){
 		options.onload(true);
 	}
 	
-	/*
-	 * Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
-	 */
+	//Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
 	if(options.patch === false){
 		villo.verbose && console.log("Not loading patch file.");
 	}else{
@@ -1242,12 +1445,12 @@ villo.doPushLoad = function(options){
 	
 };
 
-/*
- * When extensions are loaded, they will run this init function by defualt, unless they package their own.
- */
-villo.init = function(options){
+//When extensions are loaded, they will run this init function by defualt, unless they package their own.
+
+villo.init = function(){
 	return true;
 };
+
 
 /* Villo Leaders */
 villo.leaders = {		
@@ -1298,16 +1501,16 @@ villo.leaders = {
 
 */
 	get: function(getObject){
+		var leaderBoardName = "";
 		if (getObject.board && getObject.board !== "") {
-			var leaderBoardName = getObject.board;
+			leaderBoardName = getObject.board;
 		} else {
-			var leaderBoardName = villo.app.title;
+			leaderBoardName = villo.app.title;
 		}
 		
-		if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
-			var leaderLimiter = getObject.limit;
-		}else{
-			var leaderLimiter = 30;
+		var leaderLimiter = 30;
+		if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) === "number"){
+			leaderLimiter = getObject.limit;
 		}
 		
 		villo.ajax("https://api.villo.me/leaders.php", {
@@ -1324,11 +1527,11 @@ villo.leaders = {
 				villo.verbose && villo.log("Success!");
 				villo.verbose && villo.log(transport);
 				if (transport !== "") {
-					var tmprsp = JSON.parse(transport)
+					var tmprsp = JSON.parse(transport);
 					if (tmprsp.leaders) {
 						getObject.callback(tmprsp);
 					} else 
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							getObject.callback(transport);
 						} else {
 							getObject.callback(33);
@@ -1391,16 +1594,14 @@ villo.leaders = {
 
 */
 	search: function(getObject){
+		var leaderBoardName = villo.app.title;
 		if (getObject.board && getObject.board !== "") {
-			var leaderBoardName = getObject.board;
-		} else {
-			var leaderBoardName = villo.app.title;
+			leaderBoardName = getObject.board;
 		}
 		
-		if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) == "number"){
-			var leaderLimiter = getObject.limit;
-		}else{
-			var leaderLimiter = 30;
+		var leaderLimiter = 30;
+		if(getObject.limit && getObject.limit !== "" && typeof(getObject.limit) === "number"){
+			leaderLimiter = getObject.limit;
 		}
 		
 		villo.ajax("https://api.villo.me/leaders.php", {
@@ -1418,11 +1619,11 @@ villo.leaders = {
 				villo.verbose && villo.log("Success!");
 				villo.verbose && villo.log(transport);
 				if (transport !== "") {
-					var tmprsp = JSON.parse(transport)
+					var tmprsp = JSON.parse(transport);
 					if (tmprsp.leaders) {
 						getObject.callback(tmprsp);
 					} else 
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							getObject.callback(transport);
 						} else {
 							getObject.callback(33);
@@ -1477,16 +1678,14 @@ villo.leaders = {
 
 */
 	submit: function(scoreObject){
-	
+		var leaderBoardName = villo.app.title;
 		if (scoreObject.board && scoreObject.board !== "") {
-			var leaderBoardName = scoreObject.board;
-		} else {
-			var leaderBoardName = villo.app.title;
+			leaderBoardName = scoreObject.board;
 		}
-		if (villo.user.username == "" || !villo.user.username || (scoreObject.anon && scoreObject.anon == true)) {
-			var leaderBoardUsername = "Guest"
-		} else {
-			var leaderBoardUsername = villo.user.username;
+		
+		var leaderBoardUsername = villo.user.username;
+		if (villo.user.username === "" || !villo.user.username || (scoreObject.anon && scoreObject.anon === true)) {
+			leaderBoardUsername = "Guest";
 		}
 		
 		villo.ajax("https://api.villo.me/leaders.php", {
@@ -1506,7 +1705,7 @@ villo.leaders = {
 					if (transport === "0") {
 						//Submitted!
 						scoreObject.callback(true);
-					} else if (transport == 33 || transport == 66 || transport == 99) {
+					} else if (transport === 33 || transport === 66 || transport === 99) {
 						scoreObject.callback(transport);
 					} else {
 						scoreObject.callback(33);
@@ -1523,8 +1722,10 @@ villo.leaders = {
 	}
 };
 
+
 /* Villo Messages */
-villo.messages = {}
+villo.messages = {};
+
 
 villo.presence = {
 	rooms: {},
@@ -1567,16 +1768,14 @@ villo.presence = {
 			}
 		});
 
-		/*
-		 * Announce our first presence, then keep announcing it.
-		 */
+		// Announce our first presence, then keep announcing it.
 
 		PUBNUB.publish({
 			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + joinObject.room.toUpperCase(),
 			message: {
 				name: 'user-presence',
 				data: {
-					username: villo.user.username,
+					username: villo.user.username
 				}
 			}
 		});
@@ -1587,7 +1786,7 @@ villo.presence = {
 				message: {
 					name: 'user-presence',
 					data: {
-						username: villo.user.username,
+						username: villo.user.username
 					}
 				}
 			});
@@ -1595,10 +1794,11 @@ villo.presence = {
 
 		return true;
 	},
-	//Also use get as a medium to access villo.presence.get
+	
+	//Also use get as a medium to access villo.presence.get ???
 	get: function(getObject){
 		//TODO: Check to see if we're already subscribed. If we are, we can pass them the current object, we don't need to go through this process.
-		this._get[getObject.room] = {}
+		this._get[getObject.room] = {};
 
 		PUBNUB.subscribe({
 			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + getObject.room.toUpperCase(),
@@ -1621,14 +1821,16 @@ villo.presence = {
 
 		window.setTimeout(function(){
 			PUBNUB.unsubscribe({
-				channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + getObject.room.toUpperCase(),
+				channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + getObject.room.toUpperCase()
 			});
 			var returnObject = {
 				room: getObject.room,
 				users: []
 			};
-			for(x in villo.presence._get[getObject.room]){
-				returnObject.users.push(villo.presence._get[getObject.room][x].username);
+			for(var x in villo.presence._get[getObject.room]){
+				if(villo.presence._get[getObject.room].hasOwnProperty(x)){
+					returnObject.users.push(villo.presence._get[getObject.room][x].username);
+				}
 			}
 			getObject.callback(returnObject);
 		}, 4000);
@@ -1636,7 +1838,7 @@ villo.presence = {
 
 	leave: function(leaveObject){
 		PUBNUB.unsubscribe({
-			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + leaveObject.room.toUpperCase(),
+			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + leaveObject.room.toUpperCase()
 		});
 		clearInterval(this._intervals[leaveObject.room]);
 		delete this._intervals[leaveObject.room];
@@ -1645,14 +1847,13 @@ villo.presence = {
 		return true;
 	},
 
-	/*
-	 * @private
-	 * These are the private variables, they should only be referenced by the Villo framework itself.
-	 */
+	// These are the private variables, they should only be referenced by the Villo framework itself.
+
 	_timeouts: {},
 	_intervals: {},
-	_get: {},
-}
+	_get: {}
+};
+
 
 /* Villo Profile */
 villo.profile = {
@@ -1719,12 +1920,12 @@ villo.profile = {
 			},
 			onSuccess: function(transport){
 				villo.verbose && villo.log(transport);
-				if (!transport == "") {
+				if (transport !== "") {
 					var tmprsp = JSON.parse(transport);
 					if (tmprsp.profile) {
 						getObject.callback(tmprsp);
 					} else 
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							getObject.callback(transport);
 						} else {
 							getObject.callback(33);
@@ -1786,12 +1987,12 @@ villo.profile = {
 				villo.verbose && villo.log(transport);
 				//Stop at logging:
 				//return;
-				if (!transport == "") {
+				if (transport !== "") {
 					var tmprsp = JSON.parse(transport);
 					if (tmprsp.profile) {
 						updateObject.callback(tmprsp);
 					} else 
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							updateObject.callback(transport);
 						} else {
 							updateObject.callback(33);
@@ -1871,16 +2072,16 @@ villo.profile = {
 				appid: villo.app.id,
 				username: villo.user.username,
 				token: villo.user.token,
-				type: "friends",
+				type: "friends"
 			},
 			onSuccess: function(transport){
 				////Stop at logging:
-				if (!transport == "") {
+				if (transport !== "") {
 					var tmprsp = JSON.parse(transport);
 					if (tmprsp.friends) {
 						updateObject.callback(tmprsp);
 					} else 
-						if (transport == 33 || transport == 66 || transport == 99) {
+						if (transport === 33 || transport === 66 || transport === 99) {
 							updateObject.callback(transport);
 						} else {
 							updateObject.callback(33);
@@ -1930,6 +2131,7 @@ villo.profile = {
 		
 	}
 };
+
 /* 
  * Villo Settings
  * ==========
@@ -2012,7 +2214,7 @@ villo.settings = {
 
 */
 	load: function(loadObject){
-		if (loadObject.instant && loadObject.instant == true) {
+		if (loadObject.instant && loadObject.instant === true) {
 			if(store.get(villo.app.propBag.settings)){
 				villo.app.settings = store.get(villo.app.propBag.settings).settings;
 				//TODO: Callback, baby
@@ -2030,19 +2232,19 @@ villo.settings = {
 					transit = JSON.parse(JSON.parse(transit));
 					if (!transit.storage) {
 						//Offline: 
-						villo.app.settings = store.get(villo.app.propBag.settings).settings
+						villo.app.settings = store.get(villo.app.propBag.settings).settings;
 						loadObject.callback(villo.app.settings);
 					} else {
 						//Check for timestamps.
 						if (transit.storage.timestamp > theTimestamp) {
 							//Server version is newer. Replace our existing local storage with the server storage.
 							store.set(villo.app.propBag.settings, transit.storage);
-							villo.app.settings = transit.storage.settings
+							villo.app.settings = transit.storage.settings;
 							loadObject.callback(villo.app.settings);
 						} else {
 							//Local version is newer. 
 							//TODO: Update server.
-							villo.app.settings = store.get(villo.app.propBag.settings).settings
+							villo.app.settings = store.get(villo.app.propBag.settings).settings;
 							loadObject.callback(villo.app.setting);
 						}
 					}
@@ -2137,26 +2339,22 @@ villo.settings = {
 		villo.app.settings = {};
 		return true;
 	}
-}
-/* 
- * Villo App States
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
- */
+};
+
+/* Villo App States */
 villo.states = {
-	set: function(setObject, callbackFunc){
+	set: function(setObject){
 		store.set(villo.app.propBag.states, setObject);
 		villo.storage.set({
 			privacy: true,
 			title: "VAppState",
 			data: setObject,
 			callback: function(transit){
-				//callbackFunc(transit);
 			}
 		});
 	},
 	get: function(getObject){
-		if (getObject.instant && getObject.instant == true) {
+		if (getObject.instant && getObject.instant === true) {
 			//Don't force return, allow callback:
 			if(getObject.callback){
 				getObject.callback(store.get(villo.app.propBag.states));
@@ -2168,7 +2366,7 @@ villo.states = {
 				title: "VAppState",
 				callback: function(transit){
 					//TODO: Check for the need of this:
-					var transit = JSON.parse(transit);
+					transit = JSON.parse(transit);
 					transit.storage = JSON.parse(villo.stripslashes(transit.storage));
 					
 					villo.log(transit);
@@ -2180,29 +2378,21 @@ villo.states = {
 				}
 			});
 		}
-	},
-}
+	}
+};
+
 /* Villo Cloud Storage */
 villo.storage = {
 	
 	//TODO: Check to see if the string is JSON when we get it back.
 	//TODO: Get callback values.
 	
-	/**
-	 * Store a piece of data on the cloud.
-	 * @param {object} addObject Object containing the options.
-	 * @param {boolean} addObject.privacy Can either be set to true or false. If you set it to true, the data will only be able to be accessed in the app that you set it in, and will be encrypted on the database using AES-256 encryption.
-	 * @param {string} addObject.title The title of the data that you want to store.
-	 * @param {string} addObject.data The data that you want to store on the database. You can also pass an object and we will stringify it for you.
-	 * @param {string} addObject.callback Function to be called when the data is set on the server.
-	 * @since 0.8.5
-	 */
 	set: function(addObject){
 		//The managing of update vs new content is handled on the server
 		if (!addObject.privacy) {
 			addObject.privacy = false;
 		}
-		if (typeof(addObject.data) == "object") {
+		if (typeof(addObject.data) === "object") {
 			//We'll be nice and stringify the data for them.
 			addObject.data = JSON.stringify(addObject.data);
 		}
@@ -2221,12 +2411,13 @@ villo.storage = {
 				data: addObject.data
 			},
 			onSuccess: function(transport){
-				if (!transport == "") {
+				if (transport !== "") {
 					//Check for JSON:
+					var trans = "";
 					try{
-						var trans = JSON.parse(transport);
+						trans = JSON.parse(transport);
 					}catch(e){
-						var trans = transport;
+						trans = transport;
 					}
 					if(addObject.callback){
 						addObject.callback(trans);
@@ -2240,29 +2431,19 @@ villo.storage = {
 			}
 		});
 	},
-	/**
-	 * Get a piece of data that is stored on the cloud.
-	 * @param {object} getObject Object containing the options.
-	 * @param {boolean} getObject.privacy If the data on the server is set to "private" you need to set this to true in order to access and decrypt it.
-	 * @param {string} getObject.title The title of the data that you want to store.
-	 * @param {string} getObject.data The data that you want to store on the database. You can also pass an object and we will stringify it for you.
-	 * @param {string} getObject.callback Function to be called when the data is set on the server.
-	 * @param {object} getObject.external If you are accessing an external app's public data, include this object..
-	 * @param {string} getObject.external.appTitle The title of the external app you are recieving data from.
-	 * @param {string} getObject.external.appID The appID of the external app you are recieving data from.
-	 * @since 0.8.5
-	 */
+	
 	get: function(getObject){
 		if (!getObject.privacy) {
 			getObject.privacy = false;
 		}
+		var storeGetTitle = villo.app.title;
+		var storeGetAppID = villo.app.id;
+		
 		if (getObject.external) {
-			var storeGetTitle = getObject.external.appTitle;
-			var storeGetAppID = getObject.external.appID;
-		} else {
-			var storeGetTitle = villo.app.title;
-			var storeGetAppID = villo.app.id;
+			storeGetTitle = getObject.external.appTitle;
+			storeGetAppID = getObject.external.appID;
 		}
+		
 		villo.ajax("https://api.villo.me/storage.php", {
 			method: 'post',
 			parameters: {
@@ -2276,12 +2457,13 @@ villo.storage = {
 				privacy: getObject.privacy
 			},
 			onSuccess: function(transport){
-				if (!transport == "") {
+				if (transport !== "") {
 					//Check for JSON
+					var trans = "";
 					try{
-						var trans = JSON.parse(transport);
+						trans = JSON.parse(transport);
 					}catch(e){
-						var trans = transport;
+						trans = transport;
 					}
 					getObject.callback(trans);
 				} else {
@@ -2293,13 +2475,14 @@ villo.storage = {
 			}
 		});
 	}
-}
+};
+
 
 /* Villo User */
 villo.user = {
-	/*
-	 * 
-	 */
+	//The user prop bag:
+	//TODO: Move this to villo.app, so that we just have one universal propBag for storage values.
+	//TODO TODO TODO: When we add villo.store (the localStorage utility), automatically generate the propBag values.
 	propBag: {
 		"user": null,
 		"token": null
@@ -2360,7 +2543,7 @@ villo.user = {
 			onSuccess: function(transport){
 				//We occasionally have a whitespace issue, so trim it!
 				var token = villo.trim(transport);
-				if (token == 1 || token == 2 || token == 33 || token == 99) {
+				if (token === 1 || token === 2 || token === 33 || token === 99) {
 					//Error, call back with our error codes.
 					//We also are using the newer callback syntax here.
 					if (callback) {
@@ -2369,7 +2552,7 @@ villo.user = {
 						userObject.callback(token);
 					}
 				} else 
-					if (token.length == 32) {
+					if (token.length === 32) {
 						
 						villo.user.strapLogin({username: userObject.username, token: token});
 						
@@ -2568,7 +2751,7 @@ villo.user = {
 			},
 			onSuccess: function(transport){
 				var token = villo.trim(transport);
-				if (token == 1 || token == 2 || token == 33 || token == 99) {
+				if (token === 1 || token === 2 || token === 33 || token === 99) {
 					//Error, call back with our error codes.
 					if (callback) {
 						callback(token);
@@ -2576,7 +2759,7 @@ villo.user = {
 						userObject.callback(token);
 					}
 				} else 
-					if (token.length == 32) {
+					if (token.length === 32) {
 						
 						villo.user.strapLogin({username: userObject.username, token: token});
 						
@@ -2681,7 +2864,8 @@ villo.user = {
 	},
 	username: null,
 	token: ""
-}
+};
+
 
 /* Villo Ajax */
 /**
@@ -2725,21 +2909,23 @@ villo.user = {
 	Most of the Villo APIs require that your web browser supports cross-domain Ajax requests. If your browser does not support them, then you will likely not be able to use a majorty of Villo features.
 
 */
-
 villo.ajax = function(url, modifiers){
 	//Set up the request.
 	var sendingVars = "";
 	if(modifiers.parameters && typeof(modifiers.parameters) === "object"){
 		for (var x in modifiers.parameters) {
-			sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
+			if(modifiers.parameters.hasOwnProperty(x)){
+				sendingVars +=  escape(x) + "=" + escape(modifiers.parameters[x]) + "&";
+			}
 		}
 	}
 	
 	//Differentiate between POST and GET, and send the request.
+	var method = "";
 	if (modifiers.method.toLowerCase() === "post") {
-		var method = "POST";
+		method = "POST";
 	} else {
-		var method = "GET"
+		method = "GET";
 	}
 	
 	//Send to the actual ajax function.
@@ -2757,133 +2943,118 @@ villo.ajax = function(url, modifiers){
 		},
 		jsonp: modifiers.jsonp || false
 	});	
-}
+};
 
-/*
- * Utility function that is utilized if no suitable ajax is available. 
- * This should not be called directly.
- */
+
+//Utility function that is utilized if no suitable ajax is available. 
+//This should not be called directly.
 villo.jsonp = {
-    callbackCounter: 0,
-    fetch: function(url, callback) {
-        var fn = 'JSONPCallback_' + this.callbackCounter++;
-        window[fn] = this.evalJSONP(callback);
-        url = url.replace('=JSONPCallback', '=' + fn);
-
-        var scriptTag = document.createElement('SCRIPT');
-        scriptTag.src = url;
-        document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
-    },
-    evalJSONP: function(callback) {
-        return function(data) {
-            var validJSON = false;
-	    if (typeof data == "string") {
-	        try {validJSON = JSON.parse(data);} catch (e) {
-	            /*invalid JSON*/}
-	    } else {
-	        validJSON = JSON.parse(JSON.stringify(data));
-                window.console && console.warn(
-	            'response data was not a JSON string');
-            }
-            if (validJSON) {
-                callback(validJSON);
-            } else {
-                throw("JSONP call returned invalid or empty JSON");
-            }
-        }
-    }
-}
+	callbackCounter: 0,
+	fetch: function(url, callback) {
+		var fn = 'JSONPCallback_' + this.callbackCounter++;
+		window[fn] = this.evalJSONP(callback);
+		url = url.replace('=JSONPCallback', '=' + fn);
+		
+		var scriptTag = document.createElement('SCRIPT');
+		scriptTag.src = url;
+		document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
+	},
+	evalJSONP: function(callback) {
+		return function(data) {
+			var validJSON = false;
+			if (typeof data === "string") {
+				try {validJSON = JSON.parse(data);} catch (e) {}
+			} else {
+			validJSON = JSON.parse(JSON.stringify(data));
+				window.console && console.warn('response data was not a JSON string');
+			}
+			if (validJSON) {
+				callback(validJSON);
+			} else {
+				throw("JSONP call returned invalid or empty JSON");
+			}
+		};
+	}
+};
 
 //This function does the actual Ajax request.
 villo._do_ajax = function(options){
 	//Internet Explorer checker:
 	var is_iexplorer = function() {
-        return navigator.userAgent.indexOf('MSIE') != -1
-    }
+        return navigator.userAgent.indexOf('MSIE') !== -1;
+	};
     
-    var url = options['url'];
-    var type = options['type'] || 'GET';
-    var success = options['success'];
-    var error = options['error'];
-    var data = options['data'];
+    var url = options.url;
+    var type = options.type || 'GET';
+    var success = options.success;
+    var error = options.error;
+    var data = options.data;
     
-    var jsonp = options['jsonp'] || false;
-
-    try {
-        var xhr = new XMLHttpRequest();
-        
-        //Force JSONP:
-        if (xhr && "withCredentials" in xhr && jsonp === true) {
-        	delete xhr.withCredentials;
-    	}
-    	
-    } catch (e) {}
+    var jsonp = options.jsonp || false;
+	
+    var xhr = new XMLHttpRequest();
+	if (xhr && "withCredentials" in xhr && jsonp === true) {
+		delete xhr.withCredentials;
+	}
 
     if (xhr && "withCredentials" in xhr) {
         xhr.open(type, url, true);
     }else{
-    	//JSONP
-    	/*
-    	 * This method should be used for everything that doesn't support good AJAX. 
-    	 * 
-    	 * Use YQL + GET method
-    	 * return in this method too, so that it doesn't try to process it as regular AJAX
-    	 */
-    	villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){
-    		
+		//JSONP
+		villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){
 			//Add debugging info:
-			try{transit.query.url = url; transit.query.data = data;}catch(e){};
-    		
-    		//See if the stuff we care about is actually there:
-    		if(transit && transit.query && transit.query.results){
-    			//YQL does some weird stuff:
-    			var results = transit.query.results;
-    			if(results.body && results.body.p){
-    				//Call success:
-    				success(results.body.p, "JSONP");
-    			}else{
-    				error(transit);
-    			}
-    		}else{
-    			//It's not there, call an error:
-    			error(transit);
-    		}
-    	});
-    	//Stop it from continuing to the regular AJAX function:
-    	return;
+			try{transit.query.url = url; transit.query.data = data;}catch(e){}
+			//See if the stuff we care about is actually there:
+			if(transit && transit.query && transit.query.results){
+				//YQL does some weird stuff:
+				var results = transit.query.results;
+				if(results.body && results.body.p){
+					//Call success:
+					success(results.body.p, "JSONP");
+				}else{
+					error(transit);
+				}
+			}else{
+				//It's not there, call an error:
+				error(transit);
+			}
+		});
+		//Stop it from continuing to the regular AJAX function:
+		return;
     }
 
     if (!xhr) {
-    	error("Ajax is not supported on your browser.");
-    	return false;
+		error("Ajax is not supported on your browser.");
+		return false;
     } else {
-        var handle_load = function (event_type) {
-            return function (XHRobj) {
-                // stupid IExplorer!!!
-                var XHRobj = is_iexplorer() ? xhr : XHRobj;
+		var handle_load = function (event_type) {
+			return function (XHRobj) {
+				//IE :(
+                XHRobj = is_iexplorer() ? xhr : XHRobj;
+				if (event_type === 'load' && (is_iexplorer() || XHRobj.readyState === 4) && success){
+					success(XHRobj.responseText, XHRobj);
+				}else if (error){
+					error(XHRobj);
+				}
+			};
+		};
+		xhr.onload = function (e) {
+			handle_load('load')(is_iexplorer() ? e : e.target);
+		};
+		xhr.onerror = function (e) {
+			handle_load('error')(is_iexplorer() ? e : e.target);
+		};
+		if(type.toLowerCase() === "post"){
+			//There were issues with how Post data was being handled, and setting this managed to fix all of the issues.
+			//Ergo, Villo needs this:
+			if("setRequestHeader" in xhr){
+				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			}
+		}
+		xhr.send(data);
+	}
+};
 
-                if (event_type == 'load' && (is_iexplorer() || XHRobj.readyState == 4) && success) success(XHRobj.responseText, XHRobj);
-                else if (error) error(XHRobj);
-            }
-        };
-
-        xhr.onload = function (e) {
-            handle_load('load')(is_iexplorer() ? e : e.target)
-        };
-        xhr.onerror = function (e) {
-            handle_load('error')(is_iexplorer() ? e : e.target)
-        };
-        
-        if(type.toLowerCase() === "post"){
-        	//There were issues with how Post data was being handled, and setting this managed to fix all of the issues.
-        	//Ergo, Villo needs this:
-        	if("setRequestHeader" in xhr){
-        		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        	}
-        }
-        xhr.send(data);
-    }
-}
 
 /*
  * Generic/Private Functions/Housings
@@ -2904,7 +3075,8 @@ villo.app = {
 		pub: "pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10",
 		sub: "sub-4e37d063-edfa-11df-8f1a-517217f921a4"
 	}
-}
+};
+
 
 /* Villo Do Functions */
 villo.doNothing = function(){
@@ -2916,7 +3088,7 @@ villo.doSomething = function(){
 	var strings = [];
 	
 	for (var i = 0; i < arguments.length; i++) {
-		if (typeof(arguments[i] == "object")) {
+		if (typeof(arguments[i] === "object")) {
 			strings.push(JSON.stringify(arguments[i]));
 		} else {
 			strings.push(arguments[i]);
@@ -2924,44 +3096,13 @@ villo.doSomething = function(){
 	}
 	
 	villo.log("You said", strings);
-	if (arguments[0] == "easterEgg") {
+	if (arguments[0] === "easterEgg") {
 		//Easter Egg!
 		villo.webLog("Suit up!");
 	}
 	return true;
-}
-
-/* Villo E & Script */
-villo.script = {
-	get: function(){
-		var scripts = document.getElementsByTagName("script");
-		for (var i = 0, s, src, l = "villo.js".length; s = scripts[i]; i++) {
-			src = s.getAttribute("src") || "";
-			if (src.slice(-l) == "villo.js") {
-				return src.slice(0, -l - 1) + "/";
-			}
-		}
-	},
-	add: function(o){
-		var s = document.createElement("script");
-        s.type = "text/javascript";
-        
-        //Goes nuts on the cache:
-        //s.async = true;
-    
-        s.src = o;
-        document.getElementsByTagName('head')[0].appendChild(s);
-	}
 };
-villo.style = {
-	add: function(o){
-		var s = document.createElement("link");
-        s.type = "text/css";
-        s.rel = "stylesheet";
-        s.href = o;
-        document.getElementsByTagName('head')[0].appendChild(s);
-	}
-}
+
 
 /* Villo Extend */
 
@@ -2969,8 +3110,8 @@ villo.style = {
 villo.bind = function(scope, _function) {
 	return function() {
 		return _function.apply(scope, arguments);
-	}
-}
+	};
+};
 
 //Undocumented Object Mixin Function:
 villo.mixin = function(destination, source){
@@ -2980,7 +3121,8 @@ villo.mixin = function(destination, source){
 		}
 	}
 	return destination;
-}
+};
+
 /**
 	villo.extend
 	=================
@@ -3030,7 +3172,7 @@ villo.mixin = function(destination, source){
 villo.extend = function(that, obj){
 	villo.verbose && console.log("Extending Villo:", that);
 	villo.mixin(that, obj);
-	if (typeof(that.init) == "function") {
+	if (typeof(that.init) === "function") {
 		that.init();
 		if(that._ext && that._ext.keepit && that._ext.keepit === true){
 			delete that._ext;
@@ -3039,7 +3181,7 @@ villo.extend = function(that, obj){
 		}
 	}
 	return that;
-}
+};
 
 
 /*
@@ -3056,7 +3198,7 @@ villo.hooks = {
 		//Set retroactive to false in the listen function to turn off the retroactive calling.
 		if(setObject.retroactive && setObject.retroactive === true){
 			if(this.called[setObject.name]){
-				setObject.callback(this.called[setObject.name].arguments);
+				setObject.callback(this.called[setObject.name].args);
 			}
 		}
 		this.hooks.push({name: setObject.name, callback: setObject.callback});
@@ -3068,172 +3210,19 @@ villo.hooks = {
 			//Don't add retroactive calling.
 		}else{
 			//Update with latest arguments:
-			this.called[callObject.name] = {name: callObject.name, arguments: callObject.arguments || true};
+			this.called[callObject.name] = {name: callObject.name, args: callObject.args || true};
 		}
 		//Loop through hooks, trigger ones with the same name:
 		for(var x in this.hooks){
 			if(this.hooks.hasOwnProperty(x)){
 				if(this.hooks[x].name === callObject.name){
 					//Same name, trigger it!
-					this.hooks[x].callback(callObject.arguments || true);
+					this.hooks[x].callback(callObject.args || true);
 				}
 			}
 		}
-	},
-}
-
-/* Villo Log */
-/**
-	villo.log
-	=================
-	
-    Acts as a wrapper for console.log, logging any parameters you pass it. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
-    
-	Calling
-	-------
-
-	`villo.log(anything)`
-	
-	You can pass this function any arguments.
-	
-	Returns
-	-------
-	
-	Returns true if the data was logged.
-		
-	Use
-	---
-		
-		villo.log("test results: ", testResults, {"objects": true}, false);
-
-*/
-villo.log = function(){
-	//Inspired by and based on Dave Balmer's Jo app framework (joapp.com).
-	var strings = [];
-	
-	for (var i = 0; i < arguments.length; i++) {
-		if (typeof(arguments[i] == "object")) {
-			strings.push(JSON.stringify(arguments[i]));
-		} else {
-			strings.push(arguments[i]);
-		}
 	}
-	
-	if (console && console.log) {
-		console.log(strings.join(" "));
-		//We also push to the variable, just to be sure.
-		villo.app.logs[villo.app.logs.length] = strings.join(" ");
-	} else {
-		//No console, which is a bummer, so just push the data to the variable.
-		villo.app.logs[villo.app.logs.length] = strings.join(" ");
-	}
-	return true;
-}
-/**
-	villo.webLog
-	=================
-	
-    Acts as a wrapper for console.log, and also passes the log data to Villo, which can be viewed in the Villo Developer Portal. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
-    
-	Calling
-	-------
-
-	`villo.webLog(anything)`
-	
-	You can pass this function any arguments.
-	
-	Returns
-	-------
-	
-	Returns true if the data was logged.
-		
-	Use
-	---
-		
-		villo.webLog("test results: ", testResults, {"objects": true}, false);
-
-*/
-villo.webLog = function(){
-	//New logging functionality, inspired by Dave Balmer's Jo app framework (joapp.com).
-	var strings = [];
-	
-	for (var i = 0; i < arguments.length; i++) {
-		if (typeof(arguments[i] == "object")) {
-			strings.push(JSON.stringify(arguments[i]));
-		} else {
-			strings.push(arguments[i]);
-		}
-	}
-	
-	if (console && console.log) {
-		console.log(strings.join(" "));
-		//We also push to the variable, just to be sure.
-		villo.app.logs[villo.app.logs.length] = strings.join(" ");
-	} else {
-		//No console, which is a bummer, so just push the data to the variable.
-		villo.app.logs[villo.app.logs.length] = strings.join(" ");
-	}
-	
-	if (villo.user.username && villo.user.username !== '') {
-		var logName = villo.user.username;
-	} else {
-		var logName = "Guest";
-	}
-	
-	theLog = strings.join(" ")
-	
-	villo.ajax("http://api.villo.me/log.php", {
-		method: 'post',
-		parameters: {
-			api: villo.apiKey,
-			type: "log",
-			username: logName,
-			appid: villo.app.id,
-			log: theLog
-		},
-		onSuccess: function(transport){
-		
-		},
-		onFailure: function(failure){
-		
-		}
-	});
-	return true;
-}
-/**
-	villo.dumpLogs
-	=================
-	
-    Get the log data, originating from calls to villo.log or villo.webLog.
-    
-	Calling
-	-------
-
-	`villo.dumpLogs(boolean)`
-	
-	- Set the boolean to true if you wish to get the logs in JSON format, and not stringified.
-	
-	Returns
-	-------
-	
-	Returns a stringified version of the logs that are stored in the villo.app.logs object. If you passed "true" to the function, it will return JSON.
-		
-	Use
-	---
-		
-		//Get the logs
-		var logs = villo.dumpLogs(false);
-		//Write them out for us to see.
-		document.write(logs);
-
-*/
-villo.dumpLogs = function(useJson){
-	if(useJson && useJson === true){
-		return villo.app.logs;
-	}else{
-		return JSON.stringify(villo.app.logs);
-	}
-}
+};
 
 
 /* Villo Slash Control */
@@ -3272,19 +3261,172 @@ villo.trim = function(str){
 villo.cap = function(str) {
 	return str.slice(0, 1).toUpperCase() + str.slice(1);
 };
+
+/* Villo Log */
+/**
+	villo.log
+	=================
+	
+    Acts as a wrapper for console.log, logging any parameters you pass it. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
+    
+	Calling
+	-------
+
+	`villo.log(anything)`
+	
+	You can pass this function any arguments.
+	
+	Returns
+	-------
+	
+	Returns true if the data was logged.
+		
+	Use
+	---
+		
+		villo.log("test results: ", testResults, {"objects": true}, false);
+
+*/
+villo.log = function(){
+	//Inspired by and based on Dave Balmer's Jo app framework (joapp.com).
+	var strings = [];
+	
+	for (var i = 0; i < arguments.length; i++) {
+		if (typeof(arguments[i] === "object")) {
+			strings.push(JSON.stringify(arguments[i]));
+		} else {
+			strings.push(arguments[i]);
+		}
+	}
+	
+	if (console && console.log) {
+		console.log(strings.join(" "));
+		//We also push to the variable, just to be sure.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	} else {
+		//No console, which is a bummer, so just push the data to the variable.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	}
+	return true;
+};
+/**
+	villo.webLog
+	=================
+	
+    Acts as a wrapper for console.log, and also passes the log data to Villo, which can be viewed in the Villo Developer Portal. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
+    
+	Calling
+	-------
+
+	`villo.webLog(anything)`
+	
+	You can pass this function any arguments.
+	
+	Returns
+	-------
+	
+	Returns true if the data was logged.
+		
+	Use
+	---
+		
+		villo.webLog("test results: ", testResults, {"objects": true}, false);
+
+*/
+villo.webLog = function(){
+	//New logging functionality, inspired by Dave Balmer's Jo app framework (joapp.com).
+	var strings = [];
+	
+	for (var i = 0; i < arguments.length; i++) {
+		if (typeof(arguments[i] === "object")) {
+			strings.push(JSON.stringify(arguments[i]));
+		} else {
+			strings.push(arguments[i]);
+		}
+	}
+	
+	if (console && console.log) {
+		console.log(strings.join(" "));
+		//We also push to the variable, just to be sure.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	} else {
+		//No console, which is a bummer, so just push the data to the variable.
+		villo.app.logs[villo.app.logs.length] = strings.join(" ");
+	}
+	
+	var logName = "";
+	if (villo.user.username && villo.user.username !== '') {
+		logName = villo.user.username;
+	} else {
+		logName = "Guest";
+	}
+	
+	theLog = strings.join(" ");
+	
+	villo.ajax("http://api.villo.me/log.php", {
+		method: 'post',
+		parameters: {
+			api: villo.apiKey,
+			type: "log",
+			username: logName,
+			appid: villo.app.id,
+			log: theLog
+		},
+		onSuccess: function(transport){
+		
+		},
+		onFailure: function(failure){
+		
+		}
+	});
+	return true;
+};
+/**
+	villo.dumpLogs
+	=================
+	
+    Get the log data, originating from calls to villo.log or villo.webLog.
+    
+	Calling
+	-------
+
+	`villo.dumpLogs(boolean)`
+	
+	- Set the boolean to true if you wish to get the logs in JSON format, and not stringified.
+	
+	Returns
+	-------
+	
+	Returns a stringified version of the logs that are stored in the villo.app.logs object. If you passed "true" to the function, it will return JSON.
+		
+	Use
+	---
+		
+		//Get the logs
+		var logs = villo.dumpLogs(false);
+		//Write them out for us to see.
+		document.write(logs);
+
+*/
+villo.dumpLogs = function(useJson){
+	if(useJson && useJson === true){
+		return villo.app.logs;
+	}else{
+		return JSON.stringify(villo.app.logs);
+	}
+};
+
+
+
 /* Villo Sync */
 //Private function that is run on initialization.
 villo.sync = function(){
-	
-	/*
-	 * Redeem our voucher.
-	 */
 	//Create voucher date
 	var d = new Date();
 	var voucherday = d.getDate() + " " + d.getMonth() + " " + d.getFullYear();
 	//Get last voucher date
 	if (store.get('voucher')) {
-		if (voucherday == store.get('voucher')) {
+		if (voucherday === store.get('voucher')) {
 			villo.syncFeed();
 		} else {
 			//Today is a new day, let's request ours and set the new date.
@@ -3322,7 +3464,8 @@ villo.sync = function(){
 			}
 		});
 	}
-}
+};
+
 villo.syncFeed = function(){
 	var currentTime = new Date().getTime();
 	if (store.get("feed")) {
@@ -3362,88 +3505,1641 @@ villo.syncFeed = function(){
 			}
 		});
 	}
-}
-
-/* Villo Dependencies */
-
-/* 
- * Store.js
- * Copyright (c) 2010-2011 Marcus Westin
- */
-var store=function(){var b={},e=window,g=e.document,c;b.disabled=false;b.set=function(){};b.get=function(){};b.remove=function(){};b.clear=function(){};b.transact=function(a,d){var f=b.get(a);if(typeof f=="undefined")f={};d(f);b.set(a,f)};b.serialize=function(a){return JSON.stringify(a)};b.deserialize=function(a){if(typeof a=="string")return JSON.parse(a)};var h;try{h="localStorage"in e&&e.localStorage}catch(k){h=false}if(h){c=e.localStorage;b.set=function(a,d){c.setItem(a,b.serialize(d))};b.get=
-function(a){return b.deserialize(c.getItem(a))};b.remove=function(a){c.removeItem(a)};b.clear=function(){c.clear()}}else{var i;try{i="globalStorage"in e&&e.globalStorage&&e.globalStorage[e.location.hostname]}catch(l){i=false}if(i){c=e.globalStorage[e.location.hostname];b.set=function(a,d){c[a]=b.serialize(d)};b.get=function(a){return b.deserialize(c[a]&&c[a].value)};b.remove=function(a){delete c[a]};b.clear=function(){for(var a in c)delete c[a]}}else if(g.documentElement.addBehavior){c=g.createElement("div");
-e=function(a){return function(){var d=Array.prototype.slice.call(arguments,0);d.unshift(c);g.body.appendChild(c);c.addBehavior("#default#userData");c.load("localStorage");d=a.apply(b,d);g.body.removeChild(c);return d}};b.set=e(function(a,d,f){a.setAttribute(d,b.serialize(f));a.save("localStorage")});b.get=e(function(a,d){return b.deserialize(a.getAttribute(d))});b.remove=e(function(a,d){a.removeAttribute(d);a.save("localStorage")});b.clear=e(function(a){var d=a.XMLDocument.documentElement.attributes;
-a.load("localStorage");for(var f=0,j;j=d[f];f++)a.removeAttribute(j.name);a.save("localStorage")})}}try{b.set("__storejs__","__storejs__");if(b.get("__storejs__")!="__storejs__")b.disabled=true;b.remove("__storejs__")}catch(m){b.disabled=true}return b}();
+};
 
 
-
-/*
-    http://www.JSON.org/json2.js
-    2011-10-19
-
-    Public Domain.
-
-    NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
-
-    See http://www.JSON.org/js.html
-*/
-
-var JSON;if(!JSON){JSON={};}
-(function(){'use strict';function f(n){return n<10?'0'+n:n;}
-if(typeof Date.prototype.toJSON!=='function'){Date.prototype.toJSON=function(key){return isFinite(this.valueOf())?this.getUTCFullYear()+'-'+
-f(this.getUTCMonth()+1)+'-'+
-f(this.getUTCDate())+'T'+
-f(this.getUTCHours())+':'+
-f(this.getUTCMinutes())+':'+
-f(this.getUTCSeconds())+'Z':null;};String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(key){return this.valueOf();};}
-var cx=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,escapable=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,gap,indent,meta={'\b':'\\b','\t':'\\t','\n':'\\n','\f':'\\f','\r':'\\r','"':'\\"','\\':'\\\\'},rep;function quote(string){escapable.lastIndex=0;return escapable.test(string)?'"'+string.replace(escapable,function(a){var c=meta[a];return typeof c==='string'?c:'\\u'+('0000'+a.charCodeAt(0).toString(16)).slice(-4);})+'"':'"'+string+'"';}
-function str(key,holder){var i,k,v,length,mind=gap,partial,value=holder[key];if(value&&typeof value==='object'&&typeof value.toJSON==='function'){value=value.toJSON(key);}
-if(typeof rep==='function'){value=rep.call(holder,key,value);}
-switch(typeof value){case'string':return quote(value);case'number':return isFinite(value)?String(value):'null';case'boolean':case'null':return String(value);case'object':if(!value){return'null';}
-gap+=indent;partial=[];if(Object.prototype.toString.apply(value)==='[object Array]'){length=value.length;for(i=0;i<length;i+=1){partial[i]=str(i,value)||'null';}
-v=partial.length===0?'[]':gap?'[\n'+gap+partial.join(',\n'+gap)+'\n'+mind+']':'['+partial.join(',')+']';gap=mind;return v;}
-if(rep&&typeof rep==='object'){length=rep.length;for(i=0;i<length;i+=1){if(typeof rep[i]==='string'){k=rep[i];v=str(k,value);if(v){partial.push(quote(k)+(gap?': ':':')+v);}}}}else{for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=str(k,value);if(v){partial.push(quote(k)+(gap?': ':':')+v);}}}}
-v=partial.length===0?'{}':gap?'{\n'+gap+partial.join(',\n'+gap)+'\n'+mind+'}':'{'+partial.join(',')+'}';gap=mind;return v;}}
-if(typeof JSON.stringify!=='function'){JSON.stringify=function(value,replacer,space){var i;gap='';indent='';if(typeof space==='number'){for(i=0;i<space;i+=1){indent+=' ';}}else if(typeof space==='string'){indent=space;}
-rep=replacer;if(replacer&&typeof replacer!=='function'&&(typeof replacer!=='object'||typeof replacer.length!=='number')){throw new Error('JSON.stringify');}
-return str('',{'':value});};}
-if(typeof JSON.parse!=='function'){JSON.parse=function(text,reviver){var j;function walk(holder,key){var k,v,value=holder[key];if(value&&typeof value==='object'){for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=walk(value,k);if(v!==undefined){value[k]=v;}else{delete value[k];}}}}
-return reviver.call(holder,key,value);}
-text=String(text);cx.lastIndex=0;if(cx.test(text)){text=text.replace(cx,function(a){return'\\u'+
-('0000'+a.charCodeAt(0).toString(16)).slice(-4);});}
-if(/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,'@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,']').replace(/(?:^|:|,)(?:\s*\[)+/g,''))){j=eval('('+text+')');return typeof reviver==='function'?walk({'':j},''):j;}
-throw new SyntaxError('JSON.parse');};}}());var is={ie:navigator.appName=='Microsoft Internet Explorer',java:navigator.javaEnabled(),ns:navigator.appName=='Netscape',ua:navigator.userAgent.toLowerCase(),version:parseFloat(navigator.appVersion.substr(21))||parseFloat(navigator.appVersion),win:navigator.platform=='Win32'}
-is.mac=is.ua.indexOf('mac')>=0;if(is.ua.indexOf('opera')>=0){is.ie=is.ns=false;is.opera=true;}
-if(is.ua.indexOf('gecko')>=0){is.ie=is.ns=false;is.gecko=true;}
+/* END OF VILLO */
 
 /*! LAB.js (LABjs :: Loading And Blocking JavaScript)
     v2.0.3 (c) Kyle Simpson
     MIT License
 */
-(function(o){var K=o.$LAB,y="UseLocalXHR",z="AlwaysPreserveOrder",u="AllowDuplicates",A="CacheBust",B="BasePath",C=/^[^?#]*\//.exec(location.href)[0],D=/^\w+\:\/\/\/?[^\/]+/.exec(C)[0],i=document.head||document.getElementsByTagName("head"),L=(o.opera&&Object.prototype.toString.call(o.opera)=="[object Opera]")||("MozAppearance"in document.documentElement.style),q=document.createElement("script"),E=typeof q.preload=="boolean",r=E||(q.readyState&&q.readyState=="uninitialized"),F=!r&&q.async===true,M=!r&&!F&&!L;function G(a){return Object.prototype.toString.call(a)=="[object Function]"}function H(a){return Object.prototype.toString.call(a)=="[object Array]"}function N(a,c){var b=/^\w+\:\/\//;if(/^\/\/\/?/.test(a)){a=location.protocol+a}else if(!b.test(a)&&a.charAt(0)!="/"){a=(c||"")+a}return b.test(a)?a:((a.charAt(0)=="/"?D:C)+a)}function s(a,c){for(var b in a){if(a.hasOwnProperty(b)){c[b]=a[b]}}return c}function O(a){var c=false;for(var b=0;b<a.scripts.length;b++){if(a.scripts[b].ready&&a.scripts[b].exec_trigger){c=true;a.scripts[b].exec_trigger();a.scripts[b].exec_trigger=null}}return c}function t(a,c,b,d){a.onload=a.onreadystatechange=function(){if((a.readyState&&a.readyState!="complete"&&a.readyState!="loaded")||c[b])return;a.onload=a.onreadystatechange=null;d()}}function I(a){a.ready=a.finished=true;for(var c=0;c<a.finished_listeners.length;c++){a.finished_listeners[c]()}a.ready_listeners=[];a.finished_listeners=[]}function P(d,f,e,g,h){setTimeout(function(){var a,c=f.real_src,b;if("item"in i){if(!i[0]){setTimeout(arguments.callee,25);return}i=i[0]}a=document.createElement("script");if(f.type)a.type=f.type;if(f.charset)a.charset=f.charset;if(h){if(r){e.elem=a;if(E){a.preload=true;a.onpreload=g}else{a.onreadystatechange=function(){if(a.readyState=="loaded")g()}}a.src=c}else if(h&&c.indexOf(D)==0&&d[y]){b=new XMLHttpRequest();b.onreadystatechange=function(){if(b.readyState==4){b.onreadystatechange=function(){};e.text=b.responseText+"\n//@ sourceURL="+c;g()}};b.open("GET",c);b.send()}else{a.type="text/cache-script";t(a,e,"ready",function(){i.removeChild(a);g()});a.src=c;i.insertBefore(a,i.firstChild)}}else if(F){a.async=false;t(a,e,"finished",g);a.src=c;i.insertBefore(a,i.firstChild)}else{t(a,e,"finished",g);a.src=c;i.insertBefore(a,i.firstChild)}},0)}function J(){var l={},Q=r||M,n=[],p={},m;l[y]=true;l[z]=false;l[u]=false;l[A]=false;l[B]="";function R(a,c,b){var d;function f(){if(d!=null){d=null;I(b)}}if(p[c.src].finished)return;if(!a[u])p[c.src].finished=true;d=b.elem||document.createElement("script");if(c.type)d.type=c.type;if(c.charset)d.charset=c.charset;t(d,b,"finished",f);if(b.elem){b.elem=null}else if(b.text){d.onload=d.onreadystatechange=null;d.text=b.text}else{d.src=c.real_src}i.insertBefore(d,i.firstChild);if(b.text){f()}}function S(c,b,d,f){var e,g,h=function(){b.ready_cb(b,function(){R(c,b,e)})},j=function(){b.finished_cb(b,d)};b.src=N(b.src,c[B]);b.real_src=b.src+(c[A]?((/\?.*$/.test(b.src)?"&_":"?_")+~~(Math.random()*1E9)+"="):"");if(!p[b.src])p[b.src]={items:[],finished:false};g=p[b.src].items;if(c[u]||g.length==0){e=g[g.length]={ready:false,finished:false,ready_listeners:[h],finished_listeners:[j]};P(c,b,e,((f)?function(){e.ready=true;for(var a=0;a<e.ready_listeners.length;a++){e.ready_listeners[a]()}e.ready_listeners=[]}:function(){I(e)}),f)}else{e=g[0];if(e.finished){j()}else{e.finished_listeners.push(j)}}}function v(){var e,g=s(l,{}),h=[],j=0,w=false,k;function T(a,c){a.ready=true;a.exec_trigger=c;x()}function U(a,c){a.ready=a.finished=true;a.exec_trigger=null;for(var b=0;b<c.scripts.length;b++){if(!c.scripts[b].finished)return}c.finished=true;x()}function x(){while(j<h.length){if(G(h[j])){try{h[j++]()}catch(err){}continue}else if(!h[j].finished){if(O(h[j]))continue;break}j++}if(j==h.length){w=false;k=false}}function V(){if(!k||!k.scripts){h.push(k={scripts:[],finished:true})}}e={script:function(){for(var f=0;f<arguments.length;f++){(function(a,c){var b;if(!H(a)){c=[a]}for(var d=0;d<c.length;d++){V();a=c[d];if(G(a))a=a();if(!a)continue;if(H(a)){b=[].slice.call(a);b.unshift(d,1);[].splice.apply(c,b);d--;continue}if(typeof a=="string")a={src:a};a=s(a,{ready:false,ready_cb:T,finished:false,finished_cb:U});k.finished=false;k.scripts.push(a);S(g,a,k,(Q&&w));w=true;if(g[z])e.wait()}})(arguments[f],arguments[f])}return e},wait:function(){if(arguments.length>0){for(var a=0;a<arguments.length;a++){h.push(arguments[a])}k=h[h.length-1]}else k=false;x();return e}};return{script:e.script,wait:e.wait,setOptions:function(a){s(a,g);return e}}}m={setGlobalDefaults:function(a){s(a,l);return m},setOptions:function(){return v().setOptions.apply(null,arguments)},script:function(){return v().script.apply(null,arguments)},wait:function(){return v().wait.apply(null,arguments)},queueScript:function(){n[n.length]={type:"script",args:[].slice.call(arguments)};return m},queueWait:function(){n[n.length]={type:"wait",args:[].slice.call(arguments)};return m},runQueue:function(){var a=m,c=n.length,b=c,d;for(;--b>=0;){d=n.shift();a=a[d.type].apply(null,d.args)}return a},noConflict:function(){o.$LAB=K;return m},sandbox:function(){return J()}};return m}o.$LAB=J();(function(a,c,b){if(document.readyState==null&&document[a]){document.readyState="loading";document[a](c,b=function(){document.removeEventListener(c,b,false);document.readyState="complete"},false)}})("addEventListener","DOMContentLoaded")})(this);
 
-/* 
- * PubNub-3.1.js
- * See http://www.pubnub.com
+(function(global){
+	var _$LAB = global.$LAB,
+	
+		// constants for the valid keys of the options object
+		_UseLocalXHR = "UseLocalXHR",
+		_AlwaysPreserveOrder = "AlwaysPreserveOrder",
+		_AllowDuplicates = "AllowDuplicates",
+		_CacheBust = "CacheBust",
+		/*!START_DEBUG*/_Debug = "Debug",/*!END_DEBUG*/
+		_BasePath = "BasePath",
+		
+		// stateless variables used across all $LAB instances
+		root_page = /^[^?#]*\//.exec(location.href)[0],
+		root_domain = /^\w+\:\/\/\/?[^\/]+/.exec(root_page)[0],
+		append_to = document.head || document.getElementsByTagName("head"),
+		
+		// inferences... ick, but still necessary
+		opera_or_gecko = (global.opera && Object.prototype.toString.call(global.opera) == "[object Opera]") || ("MozAppearance" in document.documentElement.style),
+
+/*!START_DEBUG*/
+		// console.log() and console.error() wrappers
+		log_msg = function(){}, 
+		log_error = log_msg,
+/*!END_DEBUG*/
+		
+		// feature sniffs (yay!)
+		test_script_elem = document.createElement("script"),
+		explicit_preloading = typeof test_script_elem.preload == "boolean", // http://wiki.whatwg.org/wiki/Script_Execution_Control#Proposal_1_.28Nicholas_Zakas.29
+		real_preloading = explicit_preloading || (test_script_elem.readyState && test_script_elem.readyState == "uninitialized"), // will a script preload with `src` set before DOM append?
+		script_ordered_async = !real_preloading && test_script_elem.async === true, // http://wiki.whatwg.org/wiki/Dynamic_Script_Execution_Order
+		
+		// XHR preloading (same-domain) and cache-preloading (remote-domain) are the fallbacks (for some browsers)
+		xhr_or_cache_preloading = !real_preloading && !script_ordered_async && !opera_or_gecko
+	;
+
+/*!START_DEBUG*/
+	// define console wrapper functions if applicable
+	if (global.console && global.console.log) {
+		if (!global.console.error) global.console.error = global.console.log;
+		log_msg = function(msg) { global.console.log(msg); };
+		log_error = function(msg,err) { global.console.error(msg,err); };
+	}
+/*!END_DEBUG*/
+
+	// test for function
+	function is_func(func) { return Object.prototype.toString.call(func) == "[object Function]"; }
+
+	// test for array
+	function is_array(arr) { return Object.prototype.toString.call(arr) == "[object Array]"; }
+
+	// make script URL absolute/canonical
+	function canonical_uri(src,base_path) {
+		var absolute_regex = /^\w+\:\/\//;
+		
+		// is `src` is protocol-relative (begins with // or ///), prepend protocol
+		if (/^\/\/\/?/.test(src)) {
+			src = location.protocol + src;
+		}
+		// is `src` page-relative? (not an absolute URL, and not a domain-relative path, beginning with /)
+		else if (!absolute_regex.test(src) && src.charAt(0) != "/") {
+			// prepend `base_path`, if any
+			src = (base_path || "") + src;
+		}
+		// make sure to return `src` as absolute
+		return absolute_regex.test(src) ? src : ((src.charAt(0) == "/" ? root_domain : root_page) + src);
+	}
+
+	// merge `source` into `target`
+	function merge_objs(source,target) {
+		for (var k in source) { if (source.hasOwnProperty(k)) {
+			target[k] = source[k]; // TODO: does this need to be recursive for our purposes?
+		}}
+		return target;
+	}
+
+	// does the chain group have any ready-to-execute scripts?
+	function check_chain_group_scripts_ready(chain_group) {
+		var any_scripts_ready = false;
+		for (var i=0; i<chain_group.scripts.length; i++) {
+			if (chain_group.scripts[i].ready && chain_group.scripts[i].exec_trigger) {
+				any_scripts_ready = true;
+				chain_group.scripts[i].exec_trigger();
+				chain_group.scripts[i].exec_trigger = null;
+			}
+		}
+		return any_scripts_ready;
+	}
+
+	// creates a script load listener
+	function create_script_load_listener(elem,registry_item,flag,onload) {
+		elem.onload = elem.onreadystatechange = function() {
+			if ((elem.readyState && elem.readyState != "complete" && elem.readyState != "loaded") || registry_item[flag]) return;
+			elem.onload = elem.onreadystatechange = null;
+			onload();
+		};
+	}
+
+	// script executed handler
+	function script_executed(registry_item) {
+		registry_item.ready = registry_item.finished = true;
+		for (var i=0; i<registry_item.finished_listeners.length; i++) {
+			registry_item.finished_listeners[i]();
+		}
+		registry_item.ready_listeners = [];
+		registry_item.finished_listeners = [];
+	}
+
+	// make the request for a scriptha
+	function request_script(chain_opts,script_obj,registry_item,onload,preload_this_script) {
+		// setTimeout() "yielding" prevents some weird race/crash conditions in older browsers
+		setTimeout(function(){
+			var script, src = script_obj.real_src, xhr;
+			
+			// don't proceed until `append_to` is ready to append to
+			if ("item" in append_to) { // check if `append_to` ref is still a live node list
+				if (!append_to[0]) { // `append_to` node not yet ready
+					// try again in a little bit -- note: will re-call the anonymous function in the outer setTimeout, not the parent `request_script()`
+					setTimeout(arguments.callee,25);
+					return;
+				}
+				// reassign from live node list ref to pure node ref -- avoids nasty IE bug where changes to DOM invalidate live node lists
+				append_to = append_to[0];
+			}
+			script = document.createElement("script");
+			if (script_obj.type) script.type = script_obj.type;
+			if (script_obj.charset) script.charset = script_obj.charset;
+			
+			// should preloading be used for this script?
+			if (preload_this_script) {
+				// real script preloading?
+				if (real_preloading) {
+					/*!START_DEBUG*/if (chain_opts[_Debug]) log_msg("start script preload: "+src);/*!END_DEBUG*/
+					registry_item.elem = script;
+					if (explicit_preloading) { // explicit preloading (aka, Zakas' proposal)
+						script.preload = true;
+						script.onpreload = onload;
+					}
+					else {
+						script.onreadystatechange = function(){
+							if (script.readyState == "loaded") onload();
+						};
+					}
+					script.src = src;
+					// NOTE: no append to DOM yet, appending will happen when ready to execute
+				}
+				// same-domain and XHR allowed? use XHR preloading
+				else if (preload_this_script && src.indexOf(root_domain) == 0 && chain_opts[_UseLocalXHR]) {
+					xhr = new XMLHttpRequest(); // note: IE never uses XHR (it supports true preloading), so no more need for ActiveXObject fallback for IE <= 7
+					/*!START_DEBUG*/if (chain_opts[_Debug]) log_msg("start script preload (xhr): "+src);/*!END_DEBUG*/
+					xhr.onreadystatechange = function() {
+						if (xhr.readyState == 4) {
+							xhr.onreadystatechange = function(){}; // fix a memory leak in IE
+							registry_item.text = xhr.responseText + "\n//@ sourceURL=" + src; // http://blog.getfirebug.com/2009/08/11/give-your-eval-a-name-with-sourceurl/
+							onload();
+						}
+					};
+					xhr.open("GET",src);
+					xhr.send();
+				}
+				// as a last resort, use cache-preloading
+				else {
+					/*!START_DEBUG*/if (chain_opts[_Debug]) log_msg("start script preload (cache): "+src);/*!END_DEBUG*/
+					script.type = "text/cache-script";
+					create_script_load_listener(script,registry_item,"ready",function() {
+						append_to.removeChild(script);
+						onload();
+					});
+					script.src = src;
+					append_to.insertBefore(script,append_to.firstChild);
+				}
+			}
+			// use async=false for ordered async? parallel-load-serial-execute http://wiki.whatwg.org/wiki/Dynamic_Script_Execution_Order
+			else if (script_ordered_async) {
+				/*!START_DEBUG*/if (chain_opts[_Debug]) log_msg("start script load (ordered async): "+src);/*!END_DEBUG*/
+				script.async = false;
+				create_script_load_listener(script,registry_item,"finished",onload);
+				script.src = src;
+				append_to.insertBefore(script,append_to.firstChild);
+			}
+			// otherwise, just a normal script element
+			else {
+				/*!START_DEBUG*/if (chain_opts[_Debug]) log_msg("start script load: "+src);/*!END_DEBUG*/
+				create_script_load_listener(script,registry_item,"finished",onload);
+				script.src = src;
+				append_to.insertBefore(script,append_to.firstChild);
+			}
+		},0);
+	}
+		
+	// create a clean instance of $LAB
+	function create_sandbox() {
+		var global_defaults = {},
+			can_use_preloading = real_preloading || xhr_or_cache_preloading,
+			queue = [],
+			registry = {},
+			instanceAPI
+		;
+		
+		// global defaults
+		global_defaults[_UseLocalXHR] = true;
+		global_defaults[_AlwaysPreserveOrder] = false;
+		global_defaults[_AllowDuplicates] = false;
+		global_defaults[_CacheBust] = false;
+		/*!START_DEBUG*/global_defaults[_Debug] = false;/*!END_DEBUG*/
+		global_defaults[_BasePath] = "";
+
+		// execute a script that has been preloaded already
+		function execute_preloaded_script(chain_opts,script_obj,registry_item) {
+			var script;
+			
+			function preload_execute_finished() {
+				if (script != null) { // make sure this only ever fires once
+					script = null;
+					script_executed(registry_item);
+				}
+			}
+			
+			if (registry[script_obj.src].finished) return;
+			if (!chain_opts[_AllowDuplicates]) registry[script_obj.src].finished = true;
+			
+			script = registry_item.elem || document.createElement("script");
+			if (script_obj.type) script.type = script_obj.type;
+			if (script_obj.charset) script.charset = script_obj.charset;
+			create_script_load_listener(script,registry_item,"finished",preload_execute_finished);
+			
+			// script elem was real-preloaded
+			if (registry_item.elem) {
+				registry_item.elem = null;
+			}
+			// script was XHR preloaded
+			else if (registry_item.text) {
+				script.onload = script.onreadystatechange = null;	// script injection doesn't fire these events
+				script.text = registry_item.text;
+			}
+			// script was cache-preloaded
+			else {
+				script.src = script_obj.real_src;
+			}
+			append_to.insertBefore(script,append_to.firstChild);
+
+			// manually fire execution callback for injected scripts, since events don't fire
+			if (registry_item.text) {
+				preload_execute_finished();
+			}
+		}
+	
+		// process the script request setup
+		function do_script(chain_opts,script_obj,chain_group,preload_this_script) {
+			var registry_item,
+				registry_items,
+				ready_cb = function(){ script_obj.ready_cb(script_obj,function(){ execute_preloaded_script(chain_opts,script_obj,registry_item); }); },
+				finished_cb = function(){ script_obj.finished_cb(script_obj,chain_group); }
+			;
+			
+			script_obj.src = canonical_uri(script_obj.src,chain_opts[_BasePath]);
+			script_obj.real_src = script_obj.src + 
+				// append cache-bust param to URL?
+				(chain_opts[_CacheBust] ? ((/\?.*$/.test(script_obj.src) ? "&_" : "?_") + ~~(Math.random()*1E9) + "=") : "")
+			;
+			
+			if (!registry[script_obj.src]) registry[script_obj.src] = {items:[],finished:false};
+			registry_items = registry[script_obj.src].items;
+
+			// allowing duplicates, or is this the first recorded load of this script?
+			if (chain_opts[_AllowDuplicates] || registry_items.length == 0) {
+				registry_item = registry_items[registry_items.length] = {
+					ready:false,
+					finished:false,
+					ready_listeners:[ready_cb],
+					finished_listeners:[finished_cb]
+				};
+
+				request_script(chain_opts,script_obj,registry_item,
+					// which callback type to pass?
+					(
+					 	(preload_this_script) ? // depends on script-preloading
+						function(){
+							registry_item.ready = true;
+							for (var i=0; i<registry_item.ready_listeners.length; i++) {
+								registry_item.ready_listeners[i]();
+							}
+							registry_item.ready_listeners = [];
+						} :
+						function(){ script_executed(registry_item); }
+					),
+					// signal if script-preloading should be used or not
+					preload_this_script
+				);
+			}
+			else {
+				registry_item = registry_items[0];
+				if (registry_item.finished) {
+					finished_cb();
+				}
+				else {
+					registry_item.finished_listeners.push(finished_cb);
+				}
+			}
+		}
+
+		// creates a closure for each separate chain spawned from this $LAB instance, to keep state cleanly separated between chains
+		function create_chain() {
+			var chainedAPI,
+				chain_opts = merge_objs(global_defaults,{}),
+				chain = [],
+				exec_cursor = 0,
+				scripts_currently_loading = false,
+				group
+			;
+			
+			// called when a script has finished preloading
+			function chain_script_ready(script_obj,exec_trigger) {
+				/*!START_DEBUG*/if (chain_opts[_Debug]) log_msg("script preload finished: "+script_obj.real_src);/*!END_DEBUG*/
+				script_obj.ready = true;
+				script_obj.exec_trigger = exec_trigger;
+				advance_exec_cursor(); // will only check for 'ready' scripts to be executed
+			}
+
+			// called when a script has finished executing
+			function chain_script_executed(script_obj,chain_group) {
+				/*!START_DEBUG*/if (chain_opts[_Debug]) log_msg("script execution finished: "+script_obj.real_src);/*!END_DEBUG*/
+				script_obj.ready = script_obj.finished = true;
+				script_obj.exec_trigger = null;
+				// check if chain group is all finished
+				for (var i=0; i<chain_group.scripts.length; i++) {
+					if (!chain_group.scripts[i].finished) return;
+				}
+				// chain_group is all finished if we get this far
+				chain_group.finished = true;
+				advance_exec_cursor();
+			}
+
+			// main driver for executing each part of the chain
+			function advance_exec_cursor() {
+				while (exec_cursor < chain.length) {
+					if (is_func(chain[exec_cursor])) {
+						/*!START_DEBUG*/if (chain_opts[_Debug]) log_msg("$LAB.wait() executing: "+chain[exec_cursor]);/*!END_DEBUG*/
+						try { chain[exec_cursor++](); } catch (err) {
+							/*!START_DEBUG*/if (chain_opts[_Debug]) log_error("$LAB.wait() error caught: ",err);/*!END_DEBUG*/
+						}
+						continue;
+					}
+					else if (!chain[exec_cursor].finished) {
+						if (check_chain_group_scripts_ready(chain[exec_cursor])) continue;
+						break;
+					}
+					exec_cursor++;
+				}
+				// we've reached the end of the chain (so far)
+				if (exec_cursor == chain.length) {
+					scripts_currently_loading = false;
+					group = false;
+				}
+			}
+			
+			// setup next chain script group
+			function init_script_chain_group() {
+				if (!group || !group.scripts) {
+					chain.push(group = {scripts:[],finished:true});
+				}
+			}
+
+			// API for $LAB chains
+			chainedAPI = {
+				// start loading one or more scripts
+				script:function(){
+					for (var i=0; i<arguments.length; i++) {
+						(function(script_obj,script_list){
+							var splice_args;
+							
+							if (!is_array(script_obj)) {
+								script_list = [script_obj];
+							}
+							for (var j=0; j<script_list.length; j++) {
+								init_script_chain_group();
+								script_obj = script_list[j];
+								
+								if (is_func(script_obj)) script_obj = script_obj();
+								if (!script_obj) continue;
+								if (is_array(script_obj)) {
+									// set up an array of arguments to pass to splice()
+									splice_args = [].slice.call(script_obj); // first include the actual array elements we want to splice in
+									splice_args.unshift(j,1); // next, put the `index` and `howMany` parameters onto the beginning of the splice-arguments array
+									[].splice.apply(script_list,splice_args); // use the splice-arguments array as arguments for splice()
+									j--; // adjust `j` to account for the loop's subsequent `j++`, so that the next loop iteration uses the same `j` index value
+									continue;
+								}
+								if (typeof script_obj == "string") script_obj = {src:script_obj};
+								script_obj = merge_objs(script_obj,{
+									ready:false,
+									ready_cb:chain_script_ready,
+									finished:false,
+									finished_cb:chain_script_executed
+								});
+								group.finished = false;
+								group.scripts.push(script_obj);
+								
+								do_script(chain_opts,script_obj,group,(can_use_preloading && scripts_currently_loading));
+								scripts_currently_loading = true;
+								
+								if (chain_opts[_AlwaysPreserveOrder]) chainedAPI.wait();
+							}
+						})(arguments[i],arguments[i]);
+					}
+					return chainedAPI;
+				},
+				// force LABjs to pause in execution at this point in the chain, until the execution thus far finishes, before proceeding
+				wait:function(){
+					if (arguments.length > 0) {
+						for (var i=0; i<arguments.length; i++) {
+							chain.push(arguments[i]);
+						}
+						group = chain[chain.length-1];
+					}
+					else group = false;
+					
+					advance_exec_cursor();
+					
+					return chainedAPI;
+				}
+			};
+
+			// the first chain link API (includes `setOptions` only this first time)
+			return {
+				script:chainedAPI.script, 
+				wait:chainedAPI.wait, 
+				setOptions:function(opts){
+					merge_objs(opts,chain_opts);
+					return chainedAPI;
+				}
+			};
+		}
+
+		// API for each initial $LAB instance (before chaining starts)
+		instanceAPI = {
+			// main API functions
+			setGlobalDefaults:function(opts){
+				merge_objs(opts,global_defaults);
+				return instanceAPI;
+			},
+			setOptions:function(){
+				return create_chain().setOptions.apply(null,arguments);
+			},
+			script:function(){
+				return create_chain().script.apply(null,arguments);
+			},
+			wait:function(){
+				return create_chain().wait.apply(null,arguments);
+			},
+
+			// built-in queuing for $LAB `script()` and `wait()` calls
+			// useful for building up a chain programmatically across various script locations, and simulating
+			// execution of the chain
+			queueScript:function(){
+				queue[queue.length] = {type:"script", args:[].slice.call(arguments)};
+				return instanceAPI;
+			},
+			queueWait:function(){
+				queue[queue.length] = {type:"wait", args:[].slice.call(arguments)};
+				return instanceAPI;
+			},
+			runQueue:function(){
+				var $L = instanceAPI, len=queue.length, i=len, val;
+				for (;--i>=0;) {
+					val = queue.shift();
+					$L = $L[val.type].apply(null,val.args);
+				}
+				return $L;
+			},
+
+			// rollback `[global].$LAB` to what it was before this file was loaded, the return this current instance of $LAB
+			noConflict:function(){
+				global.$LAB = _$LAB;
+				return instanceAPI;
+			},
+
+			// create another clean instance of $LAB
+			sandbox:function(){
+				return create_sandbox();
+			}
+		};
+
+		return instanceAPI;
+	}
+
+	// create the main instance of $LAB
+	global.$LAB = create_sandbox();
+
+
+	/* The following "hack" was suggested by Andrea Giammarchi and adapted from: http://webreflection.blogspot.com/2009/11/195-chars-to-help-lazy-loading.html
+	   NOTE: this hack only operates in FF and then only in versions where document.readyState is not present (FF < 3.6?).
+	   
+	   The hack essentially "patches" the **page** that LABjs is loaded onto so that it has a proper conforming document.readyState, so that if a script which does 
+	   proper and safe dom-ready detection is loaded onto a page, after dom-ready has passed, it will still be able to detect this state, by inspecting the now hacked 
+	   document.readyState property. The loaded script in question can then immediately trigger any queued code executions that were waiting for the DOM to be ready. 
+	   For instance, jQuery 1.4+ has been patched to take advantage of document.readyState, which is enabled by this hack. But 1.3.2 and before are **not** safe or 
+	   fixed by this hack, and should therefore **not** be lazy-loaded by script loader tools such as LABjs.
+	*/ 
+	(function(addEvent,domLoaded,handler){
+		if (document.readyState == null && document[addEvent]){
+			document.readyState = "loading";
+			document[addEvent](domLoaded,handler = function(){
+				document.removeEventListener(domLoaded,handler,false);
+				document.readyState = "complete";
+			},false);
+		}
+	})("addEventListener","DOMContentLoaded");
+
+})(this);
+/* ---------------------------------------------------------------------------
+WAIT! - This file depends on instructions from the PUBNUB Cloud.
+http://www.pubnub.com/account-javascript-api-include
+--------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+PubNub Real-time Cloud-Hosted Push API and Push Notification Client Frameworks
+Copyright (c) 2011 PubNub Inc.
+http://www.pubnub.com/
+http://www.pubnub.com/terms
+--------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+--------------------------------------------------------------------------- */
+
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+/* =-=========================     JSON     =============================-= */
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+
+(window['JSON'] && window['JSON']['stringify']) || (function () {
+    window['JSON'] || (window['JSON'] = {});
+
+    if (typeof String.prototype.toJSON !== 'function') {
+        String.prototype.toJSON =
+        Number.prototype.toJSON =
+        Boolean.prototype.toJSON = function (key) {
+            return this.valueOf();
+        };
+    }
+
+    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        gap,
+        indent,
+        meta = {    // table of character substitutions
+            '\b': '\\b',
+            '\t': '\\t',
+            '\n': '\\n',
+            '\f': '\\f',
+            '\r': '\\r',
+            '"' : '\\"',
+            '\\': '\\\\'
+        },
+        rep;
+
+    function quote(string) {
+        escapable.lastIndex = 0;
+        return escapable.test(string) ?
+            '"' + string.replace(escapable, function (a) {
+                var c = meta[a];
+                return typeof c === 'string' ? c :
+                    '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+            }) + '"' :
+            '"' + string + '"';
+    }
+
+
+    function str(key, holder) {
+        var i,          // The loop counter.
+            k,          // The member key.
+            v,          // The member value.
+            length,
+            mind = gap,
+            partial,
+            value = holder[key];
+
+        if (value && typeof value === 'object' &&
+                typeof value.toJSON === 'function') {
+            value = value.toJSON(key);
+        }
+
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+
+        switch (typeof value) {
+        case 'string':
+            return quote(value);
+
+        case 'number':
+            return isFinite(value) ? String(value) : 'null';
+
+        case 'boolean':
+        case 'null':
+            return String(value);
+
+        case 'object':
+
+            if (!value) {
+                return 'null';
+            }
+
+            gap += indent;
+            partial = [];
+
+            if (Object.prototype.toString.apply(value) === '[object Array]') {
+
+                length = value.length;
+                for (i = 0; i < length; i += 1) {
+                    partial[i] = str(i, value) || 'null';
+                }
+
+                v = partial.length === 0 ? '[]' :
+                    gap ? '[\n' + gap +
+                            partial.join(',\n' + gap) + '\n' +
+                                mind + ']' :
+                          '[' + partial.join(',') + ']';
+                gap = mind;
+                return v;
+            }
+            if (rep && typeof rep === 'object') {
+                length = rep.length;
+                for (i = 0; i < length; i += 1) {
+                    k = rep[i];
+                    if (typeof k === 'string') {
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+            } else {
+                for (k in value) {
+                    if (Object.hasOwnProperty.call(value, k)) {
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+            }
+
+            v = partial.length === 0 ? '{}' :
+                gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
+                        mind + '}' : '{' + partial.join(',') + '}';
+            gap = mind;
+            return v;
+        }
+    }
+
+    if (typeof JSON['stringify'] !== 'function') {
+        JSON['stringify'] = function (value, replacer, space) {
+            var i;
+            gap = '';
+            indent = '';
+
+            if (typeof space === 'number') {
+                for (i = 0; i < space; i += 1) {
+                    indent += ' ';
+                }
+            } else if (typeof space === 'string') {
+                indent = space;
+            }
+            rep = replacer;
+            if (replacer && typeof replacer !== 'function' &&
+                    (typeof replacer !== 'object' ||
+                     typeof replacer.length !== 'number')) {
+                throw new Error('JSON.stringify');
+            }
+            return str('', {'': value});
+        };
+    }
+
+    if (typeof JSON['parse'] !== 'function') {
+        // JSON is parsed on the server for security.
+        JSON['parse'] = function (text) {return eval('('+text+')')};
+    }
+}());
+
+
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+/* =-=======================     DOM UTIL     ===========================-= */
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+
+window['PUBNUB'] || (function() {
+
+/**
+ * CONSOLE COMPATIBILITY
  */
-(function(){
-function r(){return function(){}}
-window.JSON&&window.JSON.stringify||function(){function w(c){k.lastIndex=0;return k.test(c)?'"'+c.replace(k,function(c){var e=g[c];return"string"===typeof e?e:"\\u"+("0000"+c.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+c+'"'}function t(c,g){var e,h,o,n,k=i,l,f=g[c];f&&"object"===typeof f&&"function"===typeof f.toJSON&&(f=f.toJSON(c));"function"===typeof m&&(f=m.call(g,c,f));switch(typeof f){case "string":return w(f);case "number":return isFinite(f)?""+f:"null";case "boolean":case "null":return""+
-f;case "object":if(!f)return"null";i+=p;l=[];if("[object Array]"===Object.prototype.toString.apply(f)){n=f.length;for(e=0;e<n;e+=1)l[e]=t(e,f)||"null";o=0===l.length?"[]":i?"[\n"+i+l.join(",\n"+i)+"\n"+k+"]":"["+l.join(",")+"]";i=k;return o}if(m&&"object"===typeof m){n=m.length;for(e=0;e<n;e+=1)h=m[e],"string"===typeof h&&(o=t(h,f))&&l.push(w(h)+(i?": ":":")+o)}else for(h in f)Object.hasOwnProperty.call(f,h)&&(o=t(h,f))&&l.push(w(h)+(i?": ":":")+o);o=0===l.length?"{}":i?"{\n"+i+l.join(",\n"+i)+"\n"+
-k+"}":"{"+l.join(",")+"}";i=k;return o}}window.JSON||(window.JSON={});"function"!==typeof String.prototype.toJSON&&(String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(){return this.valueOf()});var k=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,i,p,g={"\u0008":"\\b","\t":"\\t","\n":"\\n","\u000c":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},m;"function"!==typeof JSON.stringify&&(JSON.stringify=function(c,
-g,e){var h;p=i="";if("number"===typeof e)for(h=0;h<e;h+=1)p+=" ";else"string"===typeof e&&(p=e);if((m=g)&&"function"!==typeof g&&("object"!==typeof g||"number"!==typeof g.length))throw Error("JSON.stringify");return t("",{"":c})});"function"!==typeof JSON.parse&&(JSON.parse=function(c){return eval("("+c+")")})}();
-window.PUBNUB||function(){function w(a){var b={},d=a.publish_key||villo.app.pubnub.pub,s=a.subscribe_key||villo.app.pubnub.sub,j=a.ssl?"s":"",z="http"+j+"://"+(a.origin||"pubsub.pubnub.com"),q={history:function(a,b){var b=a.callback||b,d=a.limit||100,c=a.channel,e=f();if(!c)return g("Missing Channel");if(!b)return g("Missing Callback");u({c:e,url:[z,"history",s,A(c),e,d],b:function(a){b(a)},a:function(a){g(a)}})},time:function(a){var b=f();u({c:b,url:[z,"time",b],b:function(b){a(b[0])},a:function(){a(0)}})},uuid:function(a){var b=f();
-u({c:b,url:["http"+j+"://pubnub-prod.appspot.com/uuid?callback="+b],b:function(b){a(b[0])},a:function(){a(0)}})},publish:function(a,b){var b=b||a.callback||r(),c=a.message,e=a.channel,j=f();if(!c)return g("Missing Message");if(!e)return g("Missing Channel");if(!d)return g("Missing Publish Key");c=JSON.stringify(c);c=[z,"publish",d,s,0,A(e),j,A(c)];if(1800<c.join().length)return g("Message Too Big");u({c:j,b:function(a){b(a)},a:function(){b([0,"Disconnected"])},url:c})},unsubscribe:function(a){a=a.channel;
-a in b&&(b[a].d=0,b[a].e&&b[a].e(0))},subscribe:function(a,d){function e(){var a=f();b[j].d&&(b[j].e=u({c:a,url:[t,"subscribe",s,A(j),a,i],a:function(){m||(m=1,o());setTimeout(e,x);q.time(function(a){a||k()})},b:function(a){b[j].d&&(p||(p=1,l()),m&&(m=0,n()),h=B.set(s+j,i=h&&B.get(s+j)||a[1]),c(a[0],function(b){d(b,a)}),setTimeout(e,10))}}))}var j=a.channel,d=d||a.callback,h=a.restore,i=0,k=a.error||r(),l=a.connect||r(),n=a.reconnect||r(),o=a.disconnect||r(),m=0,p=0,t=M(z);if(!C)return I.push([a,
-d,q]);if(!j)return g("Missing Channel");if(!d)return g("Missing Callback");if(!s)return g("Missing Subscribe Key");j in b||(b[j]={});if(b[j].d)return g("Already Connected");b[j].d=1;e()},xdr:u,ready:D,db:B,each:c,map:G,css:H,$:p,create:l,bind:h,supplant:e,head:o,search:m,attr:n,now:k,unique:t,events:y,updater:i,init:w};return q}function t(){return"x"+ ++N+""+ +new Date}function k(){return+new Date}function i(a,b){function d(){c+b>k()?(clearTimeout(s),s=setTimeout(d,b)):(c=k(),a())}var s,c=0;return d}
-function p(a){return document.getElementById(a)}function g(a){console.log(a)}function m(a,b){var d=[];c(a.split(/\s+/),function(a){c((b||document).getElementsByTagName(a),function(a){d.push(a)})});return d}function c(a,b){if(a&&b)if("undefined"!=typeof a[0])for(var d=0,s=a.length;d<s;)b.call(a[d],a[d],d++);else for(d in a)a.hasOwnProperty&&a.hasOwnProperty(d)&&b.call(a[d],d,a[d])}function G(a,b){var d=[];c(a||[],function(a,c){d.push(b(a,c))});return d}function e(a,b){return a.replace(O,function(a,
-c){return b[c]||a})}function h(a,b,d){c(a.split(","),function(a){function c(a){a||(a=window.event);d(a)||(a.cancelBubble=!0,a.returnValue=!1,a.preventDefault&&a.preventDefault(),a.stopPropagation&&a.stopPropagation())}b.addEventListener?b.addEventListener(a,c,!1):b.attachEvent?b.attachEvent("on"+a,c):b["on"+a]=c})}function o(){return m("head")[0]}function n(a,b,d){if(d)a.setAttribute(b,d);else return a&&a.getAttribute&&a.getAttribute(b)}function H(a,b){for(var d in b)if(b.hasOwnProperty(d))try{a.style[d]=
-b[d]+(0<"|width|height|top|left|".indexOf(d)&&"number"==typeof b[d]?"px":"")}catch(c){}}function l(a){return document.createElement(a)}function f(){return E||q()?0:t()}function A(a){return G(encodeURIComponent(a).split(""),function(a){return 0>"-_.!~*'()".indexOf(a)?a:"%"+a.charCodeAt(0).toString(16).toUpperCase()}).join("")}function u(a){function b(a,b){f||(f=1,a||i(b),d.onerror=null,clearTimeout(g),setTimeout(function(){a&&h();var b=p(e),d=b&&b.parentNode;d&&d.removeChild(b)},x))}if(E||q())return P(a);
-var d=l("script"),c=a.c,e=t(),f=0,g=setTimeout(function(){b(1)},F),h=a.a||r(),i=a.b||r();window[c]=function(a){b(0,a)};d[J]=J;d.onerror=function(){b(1)};d.src=a.url.join(K);n(d,"id",e);o().appendChild(d);return b}function P(a){function b(a){e||(e=1,clearTimeout(g),c&&(c.onerror=c.onload=null,c.abort&&c.abort(),c=null),a&&h())}function d(){if(!f){f=1;clearTimeout(g);try{response=JSON.parse(c.responseText)}catch(a){return b(1)}i(response)}}var c,e=0,f=0,g=setTimeout(function(){b(1)},F),h=a.a||r(),i=
-a.b||r();try{c=q()||window.XDomainRequest&&new XDomainRequest||new XMLHttpRequest,c.onerror=c.onabort=function(){b(1)},c.onload=c.onloadend=d,c.timeout=F,c.open("GET",a.url.join(K),!0),c.send()}catch(k){return b(0),E=0,u(a)}return b}function D(){PUBNUB.time(k);PUBNUB.time(function(){setTimeout(function(){C||(C=1,c(I,function(a){a[2].subscribe(a[0],a[1])}))},x)})}function q(){if(!L.get)return 0;var a={id:q.id++,send:r(),abort:function(){a.id={}},open:function(b,c){q[a.id]=a;L.get(a.id,c)}};return a}
-window.console||(window.console=window.console||{});console.log||(console.log=(window.opera||{}).postError||r());var B=function(){var a=window.localStorage;return{get:function(b){try{return a?a.getItem(b):-1==document.cookie.indexOf(b)?null:((document.cookie||"").match(RegExp(b+"=([^;]+)"))||[])[1]||null}catch(c){}},set:function(b,c){try{if(a)return a.setItem(b,c)&&0;document.cookie=b+"="+c+"; expires=Thu, 1 Aug 2030 20:00:00 UTC; path=/"}catch(e){}}}}(),N=1,O=/{([\w\-]+)}/g,J="async",K="/",F=14E4,
-x=1E3,E=-1==navigator.userAgent.indexOf("MSIE 6"),M=function(){var a=Math.floor(9*Math.random())+1;return function(b){return 0<b.indexOf("pubsub")&&b.replace("pubsub","ps"+(10>++a?a:a=1))||b}}(),y={list:{},unbind:function(a){y.list[a]=[]},bind:function(a,b){(y.list[a]=y.list[a]||[]).push(b)},fire:function(a,b){c(y.list[a]||[],function(a){a(b)})}},v=p("pubnub")||{},C=0,I=[];PUBNUB=w({publish_key:n(v,"pub-key"),subscribe_key:n(v,"sub-key"),ssl:"on"==n(v,"ssl"),origin:n(v,"origin")});H(v,{position:"absolute",
-top:-x});if("opera"in window||n(v,"flash"))v.innerHTML="<object id=pubnubs data=https://dh15atwfs066y.cloudfront.net/pubnub.swf><param name=movie value=https://dh15atwfs066y.cloudfront.net/pubnub.swf><param name=allowscriptaccess value=always></object>";var L=p("pubnubs")||{};h("load",window,function(){setTimeout(D,0)});PUBNUB.rdx=function(a,b){if(!b)return q[a].onerror();q[a].responseText=unescape(b);q[a].onload()};q.id=x;window.jQuery&&(window.jQuery.PUBNUB=PUBNUB);"undefined"!==typeof module&&
-(module.f=PUBNUB)&&D()}();
+window.console||(window.console=window.console||{});
+console.log||(console.log=((window.opera||{}).postError||function(){}));
+
+/**
+ * UTILITIES
+ */
+function unique() { return'x'+ ++NOW+''+(+new Date) }
+function rnow() { return+new Date }
+
+/**
+ * LOCAL STORAGE OR COOKIE
+ */
+var db = (function(){
+    var ls = window['localStorage'];
+    return {
+        get : function(key) {
+            try {
+                if (ls) return ls.getItem(key);
+                if (document.cookie.indexOf(key) == -1) return null;
+                return ((document.cookie||'').match(
+                    RegExp(key+'=([^;]+)')
+                )||[])[1] || null;
+            } catch(e) { return }
+        },
+        set : function( key, value ) {
+            try {
+                if (ls) return ls.setItem( key, value ) && 0;
+                document.cookie = key + '=' + value +
+                    '; expires=Thu, 1 Aug 2030 20:00:00 UTC; path=/';
+            } catch(e) { return }
+        }
+    };
 })();
-/* END OF VILLO */
+
+/**
+ * UTIL LOCALS
+ */
+var NOW    = 1
+,   SWF    = 'https://dh15atwfs066y.cloudfront.net/pubnub.swf'
+,   REPL   = /{([\w\-]+)}/g
+,   ASYNC  = 'async'
+,   URLBIT = '/'
+,   XHRTME = 140000
+,   SECOND = 1000
+,   UA     = navigator.userAgent
+,   XORIGN = UA.indexOf('MSIE 6') == -1;
+
+/**
+ * NEXTORIGIN
+ * ==========
+ * var next_origin = nextorigin();
+ */
+var nextorigin = (function() {
+    var ori = Math.floor(Math.random() * 9) + 1;
+    return function(origin) {
+        return origin.indexOf('pubsub') > 0
+            && origin.replace(
+             'pubsub', 'ps' + (++ori < 10 ? ori : ori=1)
+            ) || origin;
+    }
+})();
+
+/**
+ * UPDATER
+ * ======
+ * var timestamp = unique();
+ */
+function updater( fun, rate ) {
+    var timeout
+    ,   last   = 0
+    ,   runnit = function() {
+        if (last + rate > rnow()) {
+            clearTimeout(timeout);
+            timeout = setTimeout( runnit, rate );
+        }
+        else {
+            last = rnow();
+            fun();
+        }
+    };
+
+    return runnit;
+}
+
+/**
+ * $
+ * =
+ * var div = $('divid');
+ */
+function $(id) { return document.getElementById(id) }
+
+/**
+ * LOG
+ * ===
+ * log('message');
+ */
+function log(message) { console['log'](message) }
+
+/**
+ * SEARCH
+ * ======
+ * var elements = search('a div span');
+ */
+function search( elements, start ) {
+    var list = [];
+    each( elements.split(/\s+/), function(el) {
+        each( (start || document).getElementsByTagName(el), function(node) {
+            list.push(node);
+        } );
+    } );
+    return list;
+}
+
+/**
+ * EACH
+ * ====
+ * each( [1,2,3], function(item) { console.log(item) } )
+ */
+function each( o, f ) {
+    if ( !o || !f ) return;
+
+    if ( typeof o[0] != 'undefined' )
+        for ( var i = 0, l = o.length; i < l; )
+            f.call( o[i], o[i], i++ );
+    else
+        for ( var i in o )
+            o.hasOwnProperty    &&
+            o.hasOwnProperty(i) &&
+            f.call( o[i], i, o[i] );
+}
+
+/**
+ * MAP
+ * ===
+ * var list = map( [1,2,3], function(item) { return item + 1 } )
+ */
+function map( list, fun ) {
+    var fin = [];
+    each( list || [], function( k, v ) { fin.push(fun( k, v )) } );
+    return fin;
+}
+
+/**
+ * GREP
+ * ====
+ * var list = grep( [1,2,3], function(item) { return item % 2 } )
+ */
+function grep( list, fun ) {
+    var fin = [];
+    each( list || [], function(l) { fun(l) && fin.push(l) } );
+    return fin
+}
+
+/**
+ * SUPPLANT
+ * ========
+ * var text = supplant( 'Hello {name}!', { name : 'John' } )
+ */
+function supplant( str, values ) {
+    return str.replace( REPL, function( _, match ) {
+        return values[match] || _
+    } );
+}
+
+/**
+ * BIND
+ * ====
+ * bind( 'keydown', search('a')[0], function(element) {
+ *     console.log( element, '1st anchor' )
+ * } );
+ */
+function bind( type, el, fun ) {
+    each( type.split(','), function(etype) {
+        var rapfun = function(e) {
+            if (!e) e = window.event;
+            if (!fun(e)) {
+                e.cancelBubble = true;
+                e.returnValue  = false;
+                e.preventDefault && e.preventDefault();
+                e.stopPropagation && e.stopPropagation();
+            }
+        };
+
+        if ( el.addEventListener ) el.addEventListener( etype, rapfun, false );
+        else if ( el.attachEvent ) el.attachEvent( 'on' + etype, rapfun );
+        else  el[ 'on' + etype ] = rapfun;
+    } );
+}
+
+/**
+ * UNBIND
+ * ======
+ * unbind( 'keydown', search('a')[0] );
+ */
+function unbind( type, el, fun ) {
+    if ( el.removeEventListener ) el.removeEventListener( type, false );
+    else if ( el.detachEvent ) el.detachEvent( 'on' + type, false );
+    else  el[ 'on' + type ] = null;
+}
+
+/**
+ * HEAD
+ * ====
+ * head().appendChild(elm);
+ */
+function head() { return search('head')[0] }
+
+/**
+ * ATTR
+ * ====
+ * var attribute = attr( node, 'attribute' );
+ */
+function attr( node, attribute, value ) {
+    if (value) node.setAttribute( attribute, value );
+    else return node && node.getAttribute && node.getAttribute(attribute);
+}
+
+/**
+ * CSS
+ * ===
+ * var obj = create('div');
+ */
+function css( element, styles ) {
+    for (var style in styles) if (styles.hasOwnProperty(style))
+        try {element.style[style] = styles[style] + (
+            '|width|height|top|left|'.indexOf(style) > 0 &&
+            typeof styles[style] == 'number'
+            ? 'px' : ''
+        )}catch(e){}
+}
+
+/**
+ * CREATE
+ * ======
+ * var obj = create('div');
+ */
+function create(element) { return document.createElement(element) }
+
+/**
+ * timeout
+ * =======
+ * timeout( function(){}, 100 );
+ */
+function timeout( fun, wait ) {
+    return setTimeout( fun, wait );
+}
+
+/**
+ * jsonp_cb
+ * ========
+ * var callback = jsonp_cb();
+ */
+function jsonp_cb() { return XORIGN || FDomainRequest() ? 0 : unique() }
+
+/**
+ * ENCODE
+ * ======
+ * var encoded_path = encode('path');
+ */
+function encode(path) {
+    return map( (encodeURIComponent(path)).split(''), function(chr) {
+        return "-_.!~*'()".indexOf(chr) < 0 ? chr :
+               "%"+chr.charCodeAt(0).toString(16).toUpperCase()
+    } ).join('');
+}
+
+/**
+ * EVENTS
+ * ======
+ * PUBNUB.events.bind( 'you-stepped-on-flower', function(message) {
+ *     // Do Stuff with message
+ * } );
+ *
+ * PUBNUB.events.fire( 'you-stepped-on-flower', "message-data" );
+ * PUBNUB.events.fire( 'you-stepped-on-flower', {message:"data"} );
+ * PUBNUB.events.fire( 'you-stepped-on-flower', [1,2,3] );
+ *
+ */
+var events = {
+    'list'   : {},
+    'unbind' : function( name ) { events.list[name] = [] },
+    'bind'   : function( name, fun ) {
+        (events.list[name] = events.list[name] || []).push(fun);
+    },
+    'fire' : function( name, data ) {
+        each(
+            events.list[name] || [],
+            function(fun) { fun(data) }
+        );
+    }
+};
+
+/**
+ * XDR Cross Domain Request
+ * ========================
+ *  xdr({
+ *     url     : ['http://www.blah.com/url'],
+ *     success : function(response) {},
+ *     fail    : function() {}
+ *  });
+ */
+function xdr( setup ) {
+    if (XORIGN || FDomainRequest()) return ajax(setup);
+
+    var script    = create('script')
+    ,   callback  = setup.callback
+    ,   id        = unique()
+    ,   finished  = 0
+    ,   timer     = timeout( function(){done(1)}, XHRTME )
+    ,   fail      = setup.fail    || function(){}
+    ,   success   = setup.success || function(){}
+
+    ,   append = function() {
+            head().appendChild(script);
+        }
+
+    ,   done = function( failed, response ) {
+            if (finished) return;
+                finished = 1;
+
+            failed || success(response);
+            script.onerror = null;
+            clearTimeout(timer);
+
+            timeout( function() {
+                failed && fail();
+                var s = $(id)
+                ,   p = s && s.parentNode;
+                p && p.removeChild(s);
+            }, SECOND );
+        };
+
+    window[callback] = function(response) {
+        done( 0, response );
+    };
+
+    script[ASYNC]  = ASYNC;
+    script.onerror = function() { done(1) };
+    script.src     = setup.url.join(URLBIT);
+
+    attr( script, 'id', id );
+
+    append();
+    return done;
+}
+
+/**
+ * CORS XHR Request
+ * ================
+ *  xdr({
+ *     url     : ['http://www.blah.com/url'],
+ *     success : function(response) {},
+ *     fail    : function() {}
+ *  });
+ */
+function ajax( setup ) {
+    var xhr
+    ,   finished = function() {
+            if (loaded) return;
+                loaded = 1;
+
+            clearTimeout(timer);
+
+            try       { response = JSON['parse'](xhr.responseText); }
+            catch (r) { return done(1); }
+
+            success(response);
+        }
+    ,   complete = 0
+    ,   loaded   = 0
+    ,   timer    = timeout( function(){done(1)}, XHRTME )
+    ,   fail     = setup.fail    || function(){}
+    ,   success  = setup.success || function(){}
+    ,   done     = function(failed) {
+            if (complete) return;
+                complete = 1;
+
+            clearTimeout(timer);
+
+            if (xhr) {
+                xhr.onerror = xhr.onload = null;
+                xhr.abort && xhr.abort();
+                xhr = null;
+            }
+
+            failed && fail();
+        };
+
+    // Send
+    try {
+        xhr = FDomainRequest()      ||
+              window.XDomainRequest &&
+              new XDomainRequest()  ||
+              new XMLHttpRequest();
+
+        xhr.onerror = xhr.onabort   = function(){ done(1) };
+        xhr.onload  = xhr.onloadend = finished;
+        xhr.timeout = XHRTME;
+
+        xhr.open( 'GET', setup.url.join(URLBIT), true );
+        xhr.send();
+    }
+    catch(eee) {
+        done(0);
+        XORIGN = 0;
+        return xdr(setup);
+    }
+
+    // Return 'done'
+    return done;
+}
+
+
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+/* =-=========================     PUBNUB     ===========================-= */
+/* =-====================================================================-= */
+/* =-====================================================================-= */
+
+var PDIV          = $('pubnub') || {}
+,   READY         = 0
+,   READY_BUFFER  = []
+,   CREATE_PUBNUB = function(setup) {
+    var CHANNELS      = {}
+    ,   PUBLISH_KEY   = setup['publish_key']   || villo.app.pubnub.pub
+    ,   SUBSCRIBE_KEY = setup['subscribe_key'] || villo.app.pubnub.sub
+    ,   SSL           = setup['ssl'] ? 's' : ''
+    ,   ORIGIN        = 'http'+SSL+'://'+(setup['origin']||'pubsub.pubnub.com')
+    ,   SELF          = {
+        /*
+            PUBNUB.history({
+                channel  : 'my_chat_channel',
+                limit    : 100,
+                callback : function(messages) { console.log(messages) }
+            });
+        */
+        'history' : function( args, callback ) {
+            var callback = args['callback'] || callback 
+            ,   limit    = args['limit'] || 100
+            ,   channel  = args['channel']
+            ,   jsonp    = jsonp_cb();
+
+            // Make sure we have a Channel
+            if (!channel)  return log('Missing Channel');
+            if (!callback) return log('Missing Callback');
+
+            // Send Message
+            xdr({
+                callback : jsonp,
+                url      : [
+                    ORIGIN, 'history',
+                    SUBSCRIBE_KEY, encode(channel),
+                    jsonp, limit
+                ],
+                success  : function(response) { callback(response) },
+                fail     : function(response) { log(response) }
+            });
+        },
+
+        /*
+            PUBNUB.time(function(time){ console.log(time) });
+        */
+        'time' : function(callback) {
+            var jsonp = jsonp_cb();
+            xdr({
+                callback : jsonp,
+                url      : [ORIGIN, 'time', jsonp],
+                success  : function(response) { callback(response[0]) },
+                fail     : function() { callback(0) }
+            });
+        },
+
+        /*
+            PUBNUB.uuid(function(uuid) { console.log(uuid) });
+        */
+        'uuid' : function(callback) {
+            var jsonp = jsonp_cb();
+            xdr({
+                callback : jsonp,
+                url      : [
+                    'http' + SSL +
+                    '://pubnub-prod.appspot.com/uuid?callback=' + jsonp
+                ],
+                success  : function(response) { callback(response[0]) },
+                fail     : function() { callback(0) }
+            });
+        },
+
+        /*
+            PUBNUB.publish({
+                channel : 'my_chat_channel',
+                message : 'hello!'
+            });
+        */
+        'publish' : function( args, callback ) {
+            var callback = callback || args['callback'] || function(){}
+            ,   message  = args['message']
+            ,   channel  = args['channel']
+            ,   jsonp    = jsonp_cb()
+            ,   url;
+
+            if (!message)     return log('Missing Message');
+            if (!channel)     return log('Missing Channel');
+            if (!PUBLISH_KEY) return log('Missing Publish Key');
+
+            // If trying to send Object
+            message = JSON['stringify'](message);
+
+            // Create URL
+            url = [
+                ORIGIN, 'publish',
+                PUBLISH_KEY, SUBSCRIBE_KEY,
+                0, encode(channel),
+                jsonp, encode(message)
+            ];
+
+            // Send Message
+            xdr({
+                callback : jsonp,
+                success  : function(response) { callback(response) },
+                fail     : function() { callback([ 0, 'Disconnected' ]) },
+                url      : url
+            });
+        },
+
+        /*
+            PUBNUB.unsubscribe({ channel : 'my_chat' });
+        */
+        'unsubscribe' : function(args) {
+            var channel = args['channel'];
+
+            // Leave if there never was a channel.
+            if (!(channel in CHANNELS)) return;
+
+            // Disable Channel
+            CHANNELS[channel].connected = 0;
+
+            // Abort and Remove Script
+            CHANNELS[channel].done && 
+            CHANNELS[channel].done(0);
+        },
+
+        /*
+            PUBNUB.subscribe({
+                channel  : 'my_chat'
+                callback : function(message) { console.log(message) }
+            });
+        */
+        'subscribe' : function( args, callback ) {
+
+            var channel      = args['channel']
+            ,   callback     = callback || args['callback']
+            ,   restore      = args['restore']
+            ,   timetoken    = 0
+            ,   error        = args['error'] || function(){}
+            ,   connect      = args['connect'] || function(){}
+            ,   reconnect    = args['reconnect'] || function(){}
+            ,   disconnect   = args['disconnect'] || function(){}
+            ,   disconnected = 0
+            ,   connected    = 0
+            ,   origin       = nextorigin(ORIGIN);
+
+            // Reduce Status Flicker
+            if (!READY) return READY_BUFFER.push([ args, callback, SELF ]);
+
+            // Make sure we have a Channel
+            if (!channel)       return log('Missing Channel');
+            if (!callback)      return log('Missing Callback');
+            if (!SUBSCRIBE_KEY) return log('Missing Subscribe Key');
+
+            if (!(channel in CHANNELS)) CHANNELS[channel] = {};
+
+            // Make sure we have a Channel
+            if (CHANNELS[channel].connected) return log('Already Connected');
+                CHANNELS[channel].connected = 1;
+
+            // Recurse Subscribe
+            function pubnub() {
+                var jsonp = jsonp_cb();
+
+                // Stop Connection
+                if (!CHANNELS[channel].connected) return;
+
+                // Connect to PubNub Subscribe Servers
+                CHANNELS[channel].done = xdr({
+                    callback : jsonp,
+                    url      : [
+                        origin, 'subscribe',
+                        SUBSCRIBE_KEY, encode(channel),
+                        jsonp, timetoken
+                    ],
+                    fail : function() {
+                        // Disconnect
+                        if (!disconnected) {
+                            disconnected = 1;
+                            disconnect();
+                        }
+                        timeout( pubnub, SECOND );
+                        SELF['time'](function(success){
+                            success || error();
+                        });
+                    },
+                    success : function(messages) {
+                        if (!CHANNELS[channel].connected) return;
+
+                        // Connect
+                        if (!connected) {
+                            connected = 1;
+                            connect();
+                        }
+
+                        // Reconnect
+                        if (disconnected) {
+                            disconnected = 0;
+                            reconnect();
+                        }
+
+                        // Restore Previous Connection Point if Needed
+                        // Also Update Timetoken
+                        restore = db.set(
+                            SUBSCRIBE_KEY + channel,
+                            timetoken = restore && db.get(
+                                SUBSCRIBE_KEY + channel
+                            ) || messages[1]
+                        );
+
+                        each( messages[0], function(msg) {
+                            callback( msg, messages );
+                        } );
+
+                        timeout( pubnub, 10 );
+                    }
+                });
+            }
+
+            // Begin Recursive Subscribe
+            pubnub();
+        },
+
+        // Expose PUBNUB Functions
+        'xdr'      : xdr,
+        'ready'    : ready,
+        'db'       : db,
+        'each'     : each,
+        'map'      : map,
+        'css'      : css,
+        '$'        : $,
+        'create'   : create,
+        'bind'     : bind,
+        'supplant' : supplant,
+        'head'     : head,
+        'search'   : search,
+        'attr'     : attr,
+        'now'      : rnow,
+        'unique'   : unique,
+        'events'   : events,
+        'updater'  : updater,
+        'init'     : CREATE_PUBNUB
+    };
+
+    return SELF;
+};
+
+// CREATE A PUBNUB GLOBAL OBJECT
+PUBNUB = CREATE_PUBNUB({
+    'publish_key'   : attr( PDIV, 'pub-key' ),
+    'subscribe_key' : attr( PDIV, 'sub-key' ),
+    'ssl'           : attr( PDIV, 'ssl' ) == 'on',
+    'origin'        : attr( PDIV, 'origin' )
+});
+
+// PUBNUB Flash Socket
+css( PDIV, { 'position' : 'absolute', 'top' : -SECOND } );
+
+if ('opera' in window || attr( PDIV, 'flash' )) PDIV['innerHTML'] =
+    '<object id=pubnubs data='  + SWF +
+    '><param name=movie value=' + SWF +
+    '><param name=allowscriptaccess value=always></object>';
+
+var pubnubs = $('pubnubs') || {};
+
+// PUBNUB READY TO CONNECT
+function ready() { PUBNUB['time'](rnow);
+PUBNUB['time'](function(t){ timeout( function() {
+    if (READY) return;
+    READY = 1;
+    each( READY_BUFFER, function(sub) {
+        sub[2]['subscribe']( sub[0], sub[1] )
+    } );
+}, SECOND ); }); }
+
+// Bind for PUBNUB Readiness to Subscribe
+bind( 'load', window, function(){ timeout( ready, 0 ) } );
+
+// Create Interface for Opera Flash
+PUBNUB['rdx'] = function( id, data ) {
+    if (!data) return FDomainRequest[id]['onerror']();
+    FDomainRequest[id]['responseText'] = unescape(data);
+    FDomainRequest[id]['onload']();
+};
+
+function FDomainRequest() {
+    if (!pubnubs['get']) return 0;
+
+    var fdomainrequest = {
+        'id'    : FDomainRequest['id']++,
+        'send'  : function() {},
+        'abort' : function() { fdomainrequest['id'] = {} },
+        'open'  : function( method, url ) {
+            FDomainRequest[fdomainrequest['id']] = fdomainrequest;
+            pubnubs['get']( fdomainrequest['id'], url );
+        }
+    };
+
+    return fdomainrequest;
+}
+FDomainRequest['id'] = SECOND;
+
+// jQuery Interface
+window['jQuery'] && (window['jQuery']['PUBNUB'] = PUBNUB);
+
+// For Testling.js - http://testling.com/
+typeof module !== 'undefined' && (module.exports = PUBNUB) && ready();
+
+})();
+/* Copyright (c) 2010-2012 Marcus Westin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+;(function(){
+	var store = {},
+		win = window,
+		doc = win.document,
+		localStorageName = 'localStorage',
+		globalStorageName = 'globalStorage',
+		namespace = '__storejs__',
+		storage
+
+	store.disabled = false
+	store.set = function(key, value) {}
+	store.get = function(key) {}
+	store.remove = function(key) {}
+	store.clear = function() {}
+	store.transact = function(key, defaultVal, transactionFn) {
+		var val = store.get(key)
+		if (transactionFn == null) {
+			transactionFn = defaultVal
+			defaultVal = null
+		}
+		if (typeof val == 'undefined') { val = defaultVal || {} }
+		transactionFn(val)
+		store.set(key, val)
+	}
+	store.getAll = function() {}
+
+	store.serialize = function(value) {
+		return JSON.stringify(value)
+	}
+	store.deserialize = function(value) {
+		if (typeof value != 'string') { return undefined }
+		return JSON.parse(value)
+	}
+
+	// Functions to encapsulate questionable FireFox 3.6.13 behavior
+	// when about.config::dom.storage.enabled === false
+	// See https://github.com/marcuswestin/store.js/issues#issue/13
+	function isLocalStorageNameSupported() {
+		try { return (localStorageName in win && win[localStorageName]) }
+		catch(err) { return false }
+	}
+
+	function isGlobalStorageNameSupported() {
+		try { return (globalStorageName in win && win[globalStorageName] && win[globalStorageName][win.location.hostname]) }
+		catch(err) { return false }
+	}
+
+	if (isLocalStorageNameSupported()) {
+		storage = win[localStorageName]
+		store.set = function(key, val) {
+			if (val === undefined) { return store.remove(key) }
+			storage.setItem(key, store.serialize(val))
+		}
+		store.get = function(key) { return store.deserialize(storage.getItem(key)) }
+		store.remove = function(key) { storage.removeItem(key) }
+		store.clear = function() { storage.clear() }
+		store.getAll = function() {
+			var ret = {}
+			for (var i=0; i<storage.length; ++i) {
+				var key = storage.key(i)
+				ret[key] = store.get(key)
+			}
+			return ret
+		}
+	} else if (isGlobalStorageNameSupported()) {
+		storage = win[globalStorageName][win.location.hostname]
+		store.set = function(key, val) {
+			if (val === undefined) { return store.remove(key) }
+			storage[key] = store.serialize(val)
+		}
+		store.get = function(key) { return store.deserialize(storage[key] && storage[key].value) }
+		store.remove = function(key) { delete storage[key] }
+		store.clear = function() { for (var key in storage ) { delete storage[key] } }
+		store.getAll = function() {
+			var ret = {}
+			for (var i=0; i<storage.length; ++i) {
+				var key = storage.key(i)
+				ret[key] = store.get(key)
+			}
+			return ret
+		}
+
+	} else if (doc.documentElement.addBehavior) {
+		var storageOwner,
+			storageContainer
+		// Since #userData storage applies only to specific paths, we need to
+		// somehow link our data to a specific path.  We choose /favicon.ico
+		// as a pretty safe option, since all browsers already make a request to
+		// this URL anyway and being a 404 will not hurt us here.  We wrap an
+		// iframe pointing to the favicon in an ActiveXObject(htmlfile) object
+		// (see: http://msdn.microsoft.com/en-us/library/aa752574(v=VS.85).aspx)
+		// since the iframe access rules appear to allow direct access and
+		// manipulation of the document element, even for a 404 page.  This
+		// document can be used instead of the current document (which would
+		// have been limited to the current path) to perform #userData storage.
+		try {
+			storageContainer = new ActiveXObject('htmlfile')
+			storageContainer.open()
+			storageContainer.write('<s' + 'cript>document.w=window</s' + 'cript><iframe src="/favicon.ico"></frame>')
+			storageContainer.close()
+			storageOwner = storageContainer.w.frames[0].document
+			storage = storageOwner.createElement('div')
+		} catch(e) {
+			// somehow ActiveXObject instantiation failed (perhaps some special
+			// security settings or otherwse), fall back to per-path storage
+			storage = doc.createElement('div')
+			storageOwner = doc.body
+		}
+		function withIEStorage(storeFunction) {
+			return function() {
+				var args = Array.prototype.slice.call(arguments, 0)
+				args.unshift(storage)
+				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
+				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
+				storageOwner.appendChild(storage)
+				storage.addBehavior('#default#userData')
+				storage.load(localStorageName)
+				var result = storeFunction.apply(store, args)
+				storageOwner.removeChild(storage)
+				return result
+			}
+		}
+		function ieKeyFix(key) {
+			// In IE7, keys may not begin with numbers.
+			// See https://github.com/marcuswestin/store.js/issues/40#issuecomment-4617842
+			return '_'+key
+		}
+		store.set = withIEStorage(function(storage, key, val) {
+			key = ieKeyFix(key)
+			if (val === undefined) { return store.remove(key) }
+			storage.setAttribute(key, store.serialize(val))
+			storage.save(localStorageName)
+		})
+		store.get = withIEStorage(function(storage, key) {
+			key = ieKeyFix(key)
+			return store.deserialize(storage.getAttribute(key))
+		})
+		store.remove = withIEStorage(function(storage, key) {
+			key = ieKeyFix(key)
+			storage.removeAttribute(key)
+			storage.save(localStorageName)
+		})
+		store.clear = withIEStorage(function(storage) {
+			var attributes = storage.XMLDocument.documentElement.attributes
+			storage.load(localStorageName)
+			for (var i=0, attr; attr=attributes[i]; i++) {
+				storage.removeAttribute(attr.name)
+			}
+			storage.save(localStorageName)
+		})
+		store.getAll = withIEStorage(function(storage) {
+			var attributes = storage.XMLDocument.documentElement.attributes
+			storage.load(localStorageName)
+			var ret = {}
+			for (var i=0, attr; attr=attributes[i]; ++i) {
+				ret[attr] = store.get(attr)
+			}
+			return ret
+		})
+	}
+
+	try {
+		store.set(namespace, namespace)
+		if (store.get(namespace) != namespace) { store.disabled = true }
+		store.remove(namespace)
+	} catch(e) {
+		store.disabled = true
+	}
+	
+	if (typeof module != 'undefined' && typeof module != 'function') { module.exports = store }
+	else if (typeof define === 'function' && define.amd) { define(store) }
+	else { this.store = store }
+})()

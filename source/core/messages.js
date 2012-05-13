@@ -1,0 +1,3 @@
+
+/* Villo Messages */
+villo.messages = {};

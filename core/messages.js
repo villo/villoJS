@@ -1,3 +1,0 @@
-
-/* Villo Messages */
-villo.messages = {}
