@@ -82,7 +82,7 @@ villo.Game = function(gameObject){
 	villo.mixin(this, gameObject);
 	
 	//Check to see if we should call the type function:
-	var invoker = function(name){
+	var invoker = villo.bind(this, function(name){
 		if(villo.Game.invoke[name]){
 			//Check to see if we want to inherit, and if the inherit type exists:
 			if(villo.Game.invoke[name].inherit && villo.Game.invoke[name].inherit !== "" && villo.Game.invoke[villo.Game.invoke[name].inherit]){
@@ -92,7 +92,7 @@ villo.Game = function(gameObject){
 			//Call the invoke function, binding scope:
 			villo.Game.invoke[name].create.call(this, true);
 		}
-	};
+	});
 	//Run the invoker:
 	if(invoke){
 		invoker(this.type);

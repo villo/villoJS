@@ -361,13 +361,20 @@ villo.extend(villo, {
 				this.__class__.patch.init();
 			}
 		},
-		//TODO: Redo this with hooks:
 		patch: {
 			init: function(){
 				module("Patch");
 				test("remote patch file test", villo.bind(this, function(){
-					equal((villo.patched || false), true, "We expect Villo to be patched.")
-					this.end();
+					stop();
+					villo.hooks.listen({
+						name: "patch",
+						retroactive: true,
+						callback: villo.bind(this, function(){
+							start();
+							equal((villo.patched || false), true, "We expect Villo to be patched.")
+							this.end();
+						})
+					});
 				}));
 			},
 			end: function(){

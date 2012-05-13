@@ -9,7 +9,6 @@ villo.load({
 	"type": "mobile",
 	"title": "Your App",
 	"api": "YOURAPIKEY",
-	"push": true,
 	//Now functionally identical to include:
 	"extensions": [
 	],
