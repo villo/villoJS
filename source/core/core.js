@@ -22,10 +22,8 @@
  * OF SUCH DAMAGE.
  */
 
-/*jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true, undef:true, curly:true, browser:true, devel:true, */
-
 var villo;
-(function( window, undefined ) {
+(function( window ) {
 	villo = window.villo || {};
 	
 	villo.apiKey = "";

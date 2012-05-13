@@ -22,10 +22,8 @@
  * OF SUCH DAMAGE.
  */
 
-/*jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true, undef:true, curly:true, browser:true, devel:true, */
-
 var villo;
-(function( window, undefined ) {
+(function( window ) {
 	villo = window.villo || {};
 	
 	villo.apiKey = "";
@@ -865,6 +863,17 @@ villo.Game = function(gameObject){
 	if(gameObject.events){
 		this.events = gameObject.events;
 		delete gameObject.events;
+		//Create the tiggerEvent function:
+		this.triggerEvent = function(triggerObject){
+			//Event exists:
+			if(this.events[triggerObject.name]){
+				this[this.events[triggerObject.name]](triggerObject.data || true);
+				return true;
+			}else{
+				//Event doesn't exist:
+				return false;
+			}
+		}
 	}
 	
 	//Import the create function, to be called after the general mixin and invoke type.
@@ -918,7 +927,6 @@ villo.Game.feature = function(featureObject){
 
 //Define a type:
 villo.Game.type = function(typeObject){
-	console.log("new type");
 	//Extract name:
 	villo.Game.invoke[typeObject.name] = typeObject.create || function(){};
 };
@@ -987,8 +995,11 @@ villo.Game.type({
 		if(this.chat){
 			this.chat.join({
 				room: "game/" + this.name,
-				callback: villo.bind(this, function(){
-					//Trigger Events
+				callback: villo.bind(this, function(callbackObject){
+					this.triggerEvent({
+						name: "chat",
+						data: callbackObject
+					});
 				})
 			});
 		}
