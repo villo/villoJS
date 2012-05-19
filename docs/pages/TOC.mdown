@@ -1,6 +1,6 @@
 <!-- setting special stuff for use in a frameset -->
 <base target="content"/>
-<link rel="stylesheet" type="text/css" href="contents.css"/>
+<link rel="stylesheet" type="text/css" href="../css/docbody_contents.css"/>
 
 <!-- markdown-based, put anything you want -->
 <!-- replace {path} to match your project -->

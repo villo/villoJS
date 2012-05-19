@@ -6,5 +6,5 @@ villo.load({
 	"title": "Unit Tests",
 	"api": "39929f283058e6b1a46d93e586697068",
 	"push": true,
-	"verbose": true //Turn on logging.
+	"verbose": false
 });

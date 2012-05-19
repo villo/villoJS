@@ -44,7 +44,7 @@ villo.extend(villo, {
 			},
 			getUsername: function(){
 				test("getUsername test", function(){
-					equal(villo.user.getUsername(), villo.user.username || false, "We expect the username to be returned.")
+					equal(villo.user.getUsername(), "asdf", "We expect the username to be returned.")
 				});
 				this.register();
 			},
@@ -383,7 +383,7 @@ villo.extend(villo, {
 		},
 		leaders: {
 			init: function(){
-				
+				this.end();
 			},
 			submit: function(){
 				

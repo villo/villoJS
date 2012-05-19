@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="../css/docbody.css">
+    <link rel="stylesheet" type="text/css" href="../css/doc.css">
+	<title>joDoc</title>
+</head>
+<body>
+<h1><a name="villo.resource">villo.resource</a></h1>
+
+<p>Loads JavaScript files asynchronously. This function can be accessed by called <a href="source_core_init.js.html#villo.load">villo.load</a> after you have initialized your application.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="source_core_init.js.html#villo.resource">villo.resource</a>({resources: [], callback: function})</code></p>
+
+<ul>
+<li>The "resources" parameter should be an array containing the JavaScript files you wish to load.</li>
+<li>The "callback" parameter should be a function which is called when the scripts are loaded.</li>
+</ul>
+
+<h2>Returns</h2>
+
+<p>Returns true if the resources were loaded.</p>
+
+<h2>Use</h2>
+
+<pre><code><a href="source_core_init.js.html#villo.resource">villo.resource</a>({
+    resources: [
+        "source/demo/test.js",
+        "source/app.js"
+    ],
+    callback: function(){
+        //Scripts loaded.
+    }
+});
+</code></pre>
+
+<h2>Notes</h2>
+
+<p>You can call <a href="source_core_init.js.html#villo.load">villo.load</a> with the same arguments that you would call <a href="source_core_init.js.html#villo.resource">villo.resource</a> with once you have initialized your application. </p>
+
+<p>If you wish to call <a href="source_core_init.js.html#villo.load">villo.load</a> with initialization parameters after your application has been initialized, set "forceReload" to true in the object you pass <a href="source_core_init.js.html#villo.load">villo.load</a>.</p>
+
+<p>If you specify a folder in the resources array, it will attempt to load an info.villo.js file in that folder.</p>
+
+<h1><a name="villo.load">villo.load</a></h1>
+
+<p>The load function can be called for two things. It is used to initialize the Villo library, and it can be used to load resources (acting as a medium to <a href="source_core_init.js.html#villo.resource">villo.resource</a>). </p>
+
+<h2>Initialization</h2>
+
+<p>The recommended way to initialize Villo is to create a file called "info.villo.js". This file should be called after villo.js.</p>
+
+<pre><code>&lt;script type="text/javascript" src="villo.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="info.villo.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<p>This file should contain the call to <a href="source_core_init.js.html#villo.load">villo.load</a>, which will allow you to access Villo's APIs.</p>
+
+<h2>Resources</h2>
+
+<p>Once Villo has been initialized, it will act as a medium to <a href="source_core_init.js.html#villo.resource">villo.resource</a>, allowing you to load any resources with <a href="source_core_init.js.html#villo.load">villo.load</a>.</p>
+
+<h2>Calling</h2>
+
+<p><code><a href="source_core_init.js.html#villo.load">villo.load</a>({id: string, version: string, developer: string, type: string, title: string, api: string, push: boolean, extensions: array, include: array})</code></p>
+
+<ul>
+<li>The "id" should be your application id, EXACTLY as you registered it at http://dev.villo.me.</li>
+<li>The "version" is a string containing your application version. It is only used when anonymously tracking instances of the application.</li>
+<li>"Developer" is the name of your development company. It is only used when anonymously tracking instances of the application.</li>
+<li>The "type" is a string containing the platform type your application is running on. Supported types are "desktop" and "mobile". Currently, this is not used, but still needs to be specified.</li>
+<li>"Title" is the title of your application. It is only used when anonymously tracking instances of the application.</li>
+<li>The "api" parameter is a string containing your API key EXACTLY as it appears at http://dev.villo.me. </li>
+<li>The "push" parameter should specify whether your application plans on using PubNub's push services (required for villo.chat, villo.presence, villo.feeds, and others). As of Villo 1.0.0, this parameter is not required because PubNub is included by default.</li>
+<li>The "extensions" array is an array of paths to JavaScript files containing Villo extensions, relative to the location of villo.js. This parameter is optional.</li>
+<li>The "include" array is an array of paths to JavaScript files for any use, relative to the root of your application. This parameter is optional.</li>
+</ul>
+
+<h2>Use</h2>
+
+<p>An example of <a href="source_core_init.js.html#villo.load">villo.load</a> used in an info.villo.js file:</p>
+
+<pre><code><a href="source_core_init.js.html#villo.load">villo.load</a>({
+    "id": "your.app.id",
+    "version": "1.0.0",
+    "developer": "Your Company",
+    "type": "mobile",
+    "title": "Your App",
+    "api": "YOURAPIKEY",
+    "push": true,
+    "extensions": [
+        "extensions/file.js"
+    ],
+    "include": [
+        "source/app.js",
+        "source/other.js"
+    ],
+});
+</code></pre>
+
+<h2>Notes</h2>
+
+<p>If you wish to call <a href="source_core_init.js.html#villo.load">villo.load</a> with initialization parameters after your application has been initialized (and not let it act as a medium to <a href="source_core_init.js.html#villo.resource">villo.resource</a>), then set "forceReload" to true in the object you pass <a href="source_core_init.js.html#villo.load">villo.load</a>.</p>
+
+</body>
+</html>
+

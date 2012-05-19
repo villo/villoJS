@@ -161,7 +161,7 @@ villo.load = function(options){
 	}
 	
 	//Passed App Information
-	villo.app.platform = options.platform || "";
+	villo.app.type = options.type || "";
 	villo.app.title = options.title || "";
 	villo.app.id = options.id || "";
 	villo.app.version = options.version || "";
