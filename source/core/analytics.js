@@ -2,31 +2,78 @@
 /* Villo Analytics */
 
 villo.analytics = {
+	enable: function(){
+		this.enabled = true;
+		//Load this up:
+		this.load();
+	},
+	disable: function(){
+		this.enabled = false;
+	},
 	send: function(sender){
+		console.log("Sending");
 		if(typeof(sender) === "string"){
-			//system analytics
-			if(sender === "launch"){
-				
-			}else if(sender === "login"){
-				//Send login analytic:
-				
-			}else if(sender === "register"){
-				//Send register analytic:
-				
-				//NOTE: we don't send a user analytic because that is determined server-side.
-			}else if(sender === ""){
-				
+			//Only send system analytics if they're enabled:
+			if(this.enabled){
+				if(sender === "launch"){
+					//Only send a launch once:
+					if(this.launched){
+						this.launched = true;
+						this.sendAnalytic({
+							title: "villo-launch",
+							data: "true"
+						});
+					}else{
+						//Already sent this instance:
+						return true;
+					}
+				}else if(sender === "login"){
+					//Send login analytic:
+					this.sendAnalytic({
+						title: "villo-login",
+						data: "true"
+					});
+				}else if(sender === "register"){
+					//Send register analytic:
+					this.sendAnalytic({
+						title: "villo-register",
+						data: "true"
+					});
+				}
+			}else{
+				return false;
 			}
 		}else if(typeof(sender) === "object"){
 			//custom analytics
+			if(!this.enabled){
+				if(sender.force && sender.force === true){
+					//Continue, my brave soldier...
+				}else{
+					//Analytics stopped by disable function:
+					return false;
+				}
+			}
+			
+			if(sender.title && sender.data && sender.title !== "" && sender.data !== ""){
+				if(typeof(sender.data) === "object"){
+					sender.data = JSON.stringify(sender.data);
+				}
+				this.sendAnalytic({
+					title: sender.title,
+					data: sender.data
+				});
+				return true;
+			}
+			return false;
 		}else{
 			//You can't just send empty analytics.
 			return false;
 		}
 	},
+	//
+	// Utility function, should not be called:
+	//
 	sendAnalytic: function(analyticData){
-		//TODO: Snag platform information
-		//Send UA
 		villo.ajax("https://api.villo.me/analytics.php", {
 			method: 'post',
 			parameters: {
@@ -40,8 +87,6 @@ villo.analytics = {
 				version: villo.app.version,
 				title: villo.app.title,
 				type: villo.app.type,
-				//Browser data:
-				//TODO
 				//Patched?
 				patched: villo.patched ? "yes" : "no",
 				//Raw analytic information:
@@ -49,11 +94,44 @@ villo.analytics = {
 				data: analyticData.data
 			},
 			onSuccess: function(transport){
-				
+				console.log(transport);
 			},
 			onFailure: function(err){
 				
 			}
 		});
-	}
+	},
+	//
+	// Utility function, should not be called:
+	//
+	load: function(){
+		if(!this.loaded){
+			//Set up hooks for system events:
+			villo.hooks.listen({
+				name: "load",
+				retroactive: true,
+				callback: function(){
+					villo.analytics.send("launch");
+				}
+			});
+			villo.hooks.listen({
+				name: "login",
+				retroactive: true,
+				callback: function(){
+					villo.analytics.send("login");
+				}
+			});
+			villo.hooks.listen({
+				name: "register",
+				retroactive: true,
+				callback: function(){
+					villo.analytics.send("register");
+				}
+			});
+			this.loaded = true;
+		}
+	},
+	// Utility Variables: 
+	loaded: false,
+	launched: false
 };

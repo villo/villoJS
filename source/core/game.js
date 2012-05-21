@@ -1,7 +1,45 @@
 
-/*
- * Experimental
- */
+/**
+	villo.Game
+	==================
+	
+    Provides an easy-to-use, object-oriented framework for making multi-player games.
+    
+    For more information on using villo.Game, see "Building Games in Villo".
+    
+	Calling
+	-------
+
+	`new villo.Game({name: string, type: string, use: array, events: object, create: function)`
+	
+	- The "name" is a string given to the game instance. Games use the given name to communicate.
+	- The "type" is defines the type of game that you are creating, and sets up different channels of communication based that type. Currently, the two built-in types are "all" and "none".
+	- Use (optional)
+	- Events (optional)
+	- Create (optional)
+	
+	Additionally, you can put any other properties in the call and they will be added to the prototype.
+
+	Returns
+	-------
+		
+	Returns the prototype object of the constructed game. This allows you to store the return to a variable and reference the constructed game object.
+		
+	Use
+	---
+		
+		var mmo = new villo.Game({
+			
+		});
+		
+	For a better use example, see "Game Demo" in the examples folder.
+	
+	Notes
+	-----
+	
+	This is only designed to handle the online interactions in games, and is not designed to handle any actual game mechanics.
+
+*/
 
 villo.Game = function(gameObject){
 	

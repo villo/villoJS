@@ -33,31 +33,78 @@ var villo;
 /* Villo Analytics */
 
 villo.analytics = {
+	enable: function(){
+		this.enabled = true;
+		//Load this up:
+		this.load();
+	},
+	disable: function(){
+		this.enabled = false;
+	},
 	send: function(sender){
+		console.log("Sending");
 		if(typeof(sender) === "string"){
-			//system analytics
-			if(sender === "launch"){
-				
-			}else if(sender === "login"){
-				//Send login analytic:
-				
-			}else if(sender === "register"){
-				//Send register analytic:
-				
-				//NOTE: we don't send a user analytic because that is determined server-side.
-			}else if(sender === ""){
-				
+			//Only send system analytics if they're enabled:
+			if(this.enabled){
+				if(sender === "launch"){
+					//Only send a launch once:
+					if(this.launched){
+						this.launched = true;
+						this.sendAnalytic({
+							title: "villo-launch",
+							data: "true"
+						});
+					}else{
+						//Already sent this instance:
+						return true;
+					}
+				}else if(sender === "login"){
+					//Send login analytic:
+					this.sendAnalytic({
+						title: "villo-login",
+						data: "true"
+					});
+				}else if(sender === "register"){
+					//Send register analytic:
+					this.sendAnalytic({
+						title: "villo-register",
+						data: "true"
+					});
+				}
+			}else{
+				return false;
 			}
 		}else if(typeof(sender) === "object"){
 			//custom analytics
+			if(!this.enabled){
+				if(sender.force && sender.force === true){
+					//Continue, my brave soldier...
+				}else{
+					//Analytics stopped by disable function:
+					return false;
+				}
+			}
+			
+			if(sender.title && sender.data && sender.title !== "" && sender.data !== ""){
+				if(typeof(sender.data) === "object"){
+					sender.data = JSON.stringify(sender.data);
+				}
+				this.sendAnalytic({
+					title: sender.title,
+					data: sender.data
+				});
+				return true;
+			}
+			return false;
 		}else{
 			//You can't just send empty analytics.
 			return false;
 		}
 	},
+	//
+	// Utility function, should not be called:
+	//
 	sendAnalytic: function(analyticData){
-		//TODO: Snag platform information
-		//Send UA
 		villo.ajax("https://api.villo.me/analytics.php", {
 			method: 'post',
 			parameters: {
@@ -71,8 +118,6 @@ villo.analytics = {
 				version: villo.app.version,
 				title: villo.app.title,
 				type: villo.app.type,
-				//Browser data:
-				//TODO
 				//Patched?
 				patched: villo.patched ? "yes" : "no",
 				//Raw analytic information:
@@ -80,13 +125,46 @@ villo.analytics = {
 				data: analyticData.data
 			},
 			onSuccess: function(transport){
-				
+				console.log(transport);
 			},
 			onFailure: function(err){
 				
 			}
 		});
-	}
+	},
+	//
+	// Utility function, should not be called:
+	//
+	load: function(){
+		if(!this.loaded){
+			//Set up hooks for system events:
+			villo.hooks.listen({
+				name: "load",
+				retroactive: true,
+				callback: function(){
+					villo.analytics.send("launch");
+				}
+			});
+			villo.hooks.listen({
+				name: "login",
+				retroactive: true,
+				callback: function(){
+					villo.analytics.send("login");
+				}
+			});
+			villo.hooks.listen({
+				name: "register",
+				retroactive: true,
+				callback: function(){
+					villo.analytics.send("register");
+				}
+			});
+			this.loaded = true;
+		}
+	},
+	// Utility Variables: 
+	loaded: false,
+	launched: false
 };
 
 
@@ -859,9 +937,47 @@ villo.friends = {
 
 
 
-/*
- * Experimental
- */
+/**
+	villo.Game
+	==================
+	
+    Provides an easy-to-use, object-oriented framework for making multi-player games.
+    
+    For more information on using villo.Game, see "Building Games in Villo".
+    
+	Calling
+	-------
+
+	`new villo.Game({name: string, type: string, use: array, events: object, create: function)`
+	
+	- The "name" is a string given to the game instance. Games use the given name to communicate.
+	- The "type" is defines the type of game that you are creating, and sets up different channels of communication based that type. Currently, the two built-in types are "all" and "none".
+	- Use (optional)
+	- Events (optional)
+	- Create (optional)
+	
+	Additionally, you can put any other properties in the call and they will be added to the prototype.
+
+	Returns
+	-------
+		
+	Returns the prototype object of the constructed game. This allows you to store the return to a variable and reference the constructed game object.
+		
+	Use
+	---
+		
+		var mmo = new villo.Game({
+			
+		});
+		
+	For a better use example, see "Game Demo" in the examples folder.
+	
+	Notes
+	-----
+	
+	This is only designed to handle the online interactions in games, and is not designed to handle any actual game mechanics.
+
+*/
 
 villo.Game = function(gameObject){
 	
@@ -1434,9 +1550,7 @@ villo.load = function(options){
 	// Villo Initialization:
 	//
 	
-	if (options.api) {
-		villo.apiKey = options.api;
-	}
+	villo.apiKey = options.api || "";
 	
 	//Passed App Information
 	villo.app.type = options.type || "";
@@ -1450,6 +1564,13 @@ villo.load = function(options){
 		villo.settings.load({
 			callback: villo.doNothing
 		});
+	}
+	
+	//Have to do it this way because false is to turn it off:
+	if("analytics" in options && options.analytics === false){
+		villo.analytics.disable();
+	}else{
+		villo.analytics.enable();
 	}
 	
 	//Optional: Turn on logging.
@@ -2604,34 +2725,27 @@ villo.user = {
 				if (token === 1 || token === 2 || token === 33 || token === 99) {
 					//Error, call back with our error codes.
 					//We also are using the newer callback syntax here.
-					if (callback) {
-						callback(token);
-					} else {
-						userObject.callback(token);
-					}
+					callback ? callback(token) : userObject.callback(token);
 				} else 
 					if (token.length === 32) {
 						
 						villo.user.strapLogin({username: userObject.username, token: token});
 						
-						if (callback) {
-							callback(true);
-						} else {
-							userObject.callback(true);
-						}
+						//Support old callback method:
+						callback ? callback(true) : userObject.callback(true);
 						
 						villo.sync();
 						
-						//Call the hook, retroactive account.
+						//Call the login hook.
 						villo.hooks.call({name: "login"});
 					} else {
-						callback(33);
+						callback ? callback(33) : userObject.callback(33);
 						villo.verbose && villo.log(33);
 						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 					}
 			},
 			onFailure: function(failure){
-				callback(33);
+				callback ? callback(33) : userObject.callback(33);
 			}
 		});
 	},
@@ -2669,8 +2783,8 @@ villo.user = {
 		villo.store.remove("token.user");
 		villo.store.remove("token.token");
 		//Remove the variables we're working with locally.
-		villo.user.username = null;
-		villo.user.token = null;
+		delete villo.user.username;
+		delete villo.user.token;
 		//Call a logout hook.
 		villo.hooks.call({name: "logout"});
 		//We did it!
@@ -2811,41 +2925,28 @@ villo.user = {
 				var token = villo.trim(transport);
 				if (token === 1 || token === 2 || token === 33 || token === 99) {
 					//Error, call back with our error codes.
-					if (callback) {
-						callback(token);
-					} else {
-						userObject.callback(token);
-					}
+					callback ? callback(token) : userObject.callback(token);
 				} else 
 					if (token.length === 32) {
 						
 						villo.user.strapLogin({username: userObject.username, token: token});
 						
-						if (callback) {
-							callback(true);
-						} else {
-							userObject.callback(true);
-						}
+						
+						callback ? callback(true) : userObject.callback(true);
+						
 						villo.sync();
 						
 						//Call the hook
 						villo.hooks.call({name: "register"});
 					} else {
-						if (callback) {
-							callback(33);
-						} else {
-							userObject.callback(33);
-						}
+						callback ? callback(33) : userObject.callback(33);
+						
 						villo.verbose && villo.log(33);
 						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 					}
 			},
 			onFailure: function(failure){
-				if (callback) {
-					callback(33);
-				} else {
-					userObject.callback(33);
-				}
+				callback ? callback(33) : userObject.callback(33);
 			}
 		});
 	},

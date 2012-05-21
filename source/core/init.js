@@ -156,9 +156,7 @@ villo.load = function(options){
 	// Villo Initialization:
 	//
 	
-	if (options.api) {
-		villo.apiKey = options.api;
-	}
+	villo.apiKey = options.api || "";
 	
 	//Passed App Information
 	villo.app.type = options.type || "";
@@ -172,6 +170,13 @@ villo.load = function(options){
 		villo.settings.load({
 			callback: villo.doNothing
 		});
+	}
+	
+	//Have to do it this way because false is to turn it off:
+	if("analytics" in options && options.analytics === false){
+		villo.analytics.disable();
+	}else{
+		villo.analytics.enable();
 	}
 	
 	//Optional: Turn on logging.

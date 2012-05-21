@@ -60,34 +60,27 @@ villo.user = {
 				if (token === 1 || token === 2 || token === 33 || token === 99) {
 					//Error, call back with our error codes.
 					//We also are using the newer callback syntax here.
-					if (callback) {
-						callback(token);
-					} else {
-						userObject.callback(token);
-					}
+					callback ? callback(token) : userObject.callback(token);
 				} else 
 					if (token.length === 32) {
 						
 						villo.user.strapLogin({username: userObject.username, token: token});
 						
-						if (callback) {
-							callback(true);
-						} else {
-							userObject.callback(true);
-						}
+						//Support old callback method:
+						callback ? callback(true) : userObject.callback(true);
 						
 						villo.sync();
 						
-						//Call the hook, retroactive account.
+						//Call the login hook.
 						villo.hooks.call({name: "login"});
 					} else {
-						callback(33);
+						callback ? callback(33) : userObject.callback(33);
 						villo.verbose && villo.log(33);
 						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 					}
 			},
 			onFailure: function(failure){
-				callback(33);
+				callback ? callback(33) : userObject.callback(33);
 			}
 		});
 	},
@@ -125,8 +118,8 @@ villo.user = {
 		villo.store.remove("token.user");
 		villo.store.remove("token.token");
 		//Remove the variables we're working with locally.
-		villo.user.username = null;
-		villo.user.token = null;
+		delete villo.user.username;
+		delete villo.user.token;
 		//Call a logout hook.
 		villo.hooks.call({name: "logout"});
 		//We did it!
@@ -267,41 +260,28 @@ villo.user = {
 				var token = villo.trim(transport);
 				if (token === 1 || token === 2 || token === 33 || token === 99) {
 					//Error, call back with our error codes.
-					if (callback) {
-						callback(token);
-					} else {
-						userObject.callback(token);
-					}
+					callback ? callback(token) : userObject.callback(token);
 				} else 
 					if (token.length === 32) {
 						
 						villo.user.strapLogin({username: userObject.username, token: token});
 						
-						if (callback) {
-							callback(true);
-						} else {
-							userObject.callback(true);
-						}
+						
+						callback ? callback(true) : userObject.callback(true);
+						
 						villo.sync();
 						
 						//Call the hook
 						villo.hooks.call({name: "register"});
 					} else {
-						if (callback) {
-							callback(33);
-						} else {
-							userObject.callback(33);
-						}
+						callback ? callback(33) : userObject.callback(33);
+						
 						villo.verbose && villo.log(33);
 						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 					}
 			},
 			onFailure: function(failure){
-				if (callback) {
-					callback(33);
-				} else {
-					userObject.callback(33);
-				}
+				callback ? callback(33) : userObject.callback(33);
 			}
 		});
 	},
