@@ -3621,7 +3621,7 @@ villo.store = (function(){
 			if(ls){
 				ls.removeItem(name);
 			}else{
-				document.cookie = name + "=" + value + "; expires=Thu, 1 Aug 2000 20:00:00 UTC; path=/";
+				document.cookie = name + "=" + "" + "; expires=Thu, 1 Aug 2000 20:00:00 UTC; path=/";
 			}
 		}
 	};
