@@ -1021,14 +1021,14 @@ villo.Game = function(gameObject){
 					//Do they want it?
 					if(this.use[x] === true){
 						//Add it in:
-						this[x] = villo.Game.features[x];
+						this[x] = villo.clone(villo.Game.features[x]);
 					}
 				}
 			}
 		}
 	}else{
 		//Import all features:
-		villo.mixin(this, villo.Game.features);
+		villo.mixin(this, villo.clone(villo.Game.features));
 	}
 	
 	//Import the events. Its up to the invoke type to call the events.
@@ -3276,6 +3276,26 @@ villo.mixin = function(destination, source){
 		}
 	}
 	return destination;
+};
+
+//Undocumented Object Clone Function:
+villo.clone = function(obj){
+	if (typeof obj !== "object"){
+		return obj;
+	}
+	if (obj.constructor === RegExp){
+		return obj;
+	}
+	
+	var retVal = new obj.constructor();
+	
+	for (var key in obj) {
+		if(obj.hasOwnProperty(key)){
+			retVal[key] = villo.clone(obj[key]);
+		}
+	}
+	
+	return retVal;
 };
 
 /**

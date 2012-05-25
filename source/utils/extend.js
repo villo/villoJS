@@ -18,6 +18,26 @@ villo.mixin = function(destination, source){
 	return destination;
 };
 
+//Undocumented Object Clone Function:
+villo.clone = function(obj){
+	if (typeof obj !== "object"){
+		return obj;
+	}
+	if (obj.constructor === RegExp){
+		return obj;
+	}
+	
+	var retVal = new obj.constructor();
+	
+	for (var key in obj) {
+		if(obj.hasOwnProperty(key)){
+			retVal[key] = villo.clone(obj[key]);
+		}
+	}
+	
+	return retVal;
+};
+
 /**
 	villo.extend
 	=================

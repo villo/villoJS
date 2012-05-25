@@ -83,14 +83,14 @@ villo.Game = function(gameObject){
 					//Do they want it?
 					if(this.use[x] === true){
 						//Add it in:
-						this[x] = villo.Game.features[x];
+						this[x] = villo.clone(villo.Game.features[x]);
 					}
 				}
 			}
 		}
 	}else{
 		//Import all features:
-		villo.mixin(this, villo.Game.features);
+		villo.mixin(this, villo.clone(villo.Game.features));
 	}
 	
 	//Import the events. Its up to the invoke type to call the events.
