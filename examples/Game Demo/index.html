@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Villo Game Demo</title>
+		<!-- Villo: -->
+		<script type="text/javascript" src="../../villo.js"></script>
+		<script type="text/javascript" src="js/villo/info.villo.js"></script>
+		
+		<!--<link rel="stylesheet" href="css/qunit.css">-->
+	</head>
+	<body>
+		<script type="text/javascript">
+			//Set up a hook for when Villo is done loading.
+			villo.hooks.listen({
+				name: "load",
+				retroactive: true,
+				callback: function(){
+					//Start a new game. The "myGame" variable is established in the game.js file:
+					myGame.start();
+				}
+			});
+		</script>
+	</body>
+</html>
