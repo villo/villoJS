@@ -1,4 +1,3 @@
-
 /* Villo User */
 villo.user = {
 /**
@@ -111,9 +110,11 @@ villo.user = {
 	-----
 	
 	Villo removes the username and unique app token used to authenticate API requests once a user is logged out, so the user will need to login again if they logout.   
-
+	
+	Logout doesn't remove any settings or other stored data. This may cause problems if you plan on having multi-account setups. Be sure to remove any residual user data that may exist in settings, states, or storage when logging out.
+	
 */
-	logout: function(){
+	logout: function(){		
 		//destroy user tokens and logout.
 		villo.store.remove("token.user");
 		villo.store.remove("token.token");
