@@ -50,7 +50,7 @@ villo.clone = function(obj){
 	`villo.extend(object (to extend), object (extensions))`
 	
 	- The first object is the object that you want to extend.
-	- The second object is the object which you wish to add to the first. Additionally, if you define a function named "init" in the object, the function will run when the extension is loaded.
+	- The second object is the object which you wish to add to the first. Additionally, if you define a function named "create" in the object, the function will run when the extension is loaded.
 	
 	Returns
 	-------
@@ -68,9 +68,9 @@ villo.clone = function(obj){
 					return this.users;
 				}
 			},
-			init: function(){
+			create: function(){
 				//This will be executed when the extension is loaded.
-				villo.log("Init functionw was called.");
+				villo.log("Create function was called.");
 			}
 		});
 		
@@ -81,18 +81,18 @@ villo.clone = function(obj){
 	
 	Any methods added through villo.extend will override other methods if they already exist.
 	
-	If you define an init function in the object, then it will be run when the extension is loaded. The init function will be deleted after it is run.
+	If you define an create function in the object, then it will be run when the extension is loaded. The create function will be deleted after it is run.
 
 */
 villo.extend = function(that, obj){
 	villo.verbose && console.log("Extending Villo:", that);
 	villo.mixin(that, obj);
-	if (typeof(that.init) === "function") {
-		that.init();
+	if (typeof(that.create) === "function") {
+		that.create();
 		if(that._ext && that._ext.keepit && that._ext.keepit === true){
 			delete that._ext;
 		}else{
-			delete that.init;
+			delete that.create;
 		}
 	}
 	return that;

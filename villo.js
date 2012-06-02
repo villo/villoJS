@@ -42,7 +42,7 @@ villo.analytics = {
 		this.enabled = false;
 	},
 	send: function(sender){
-		console.log("Sending");
+		//System analytics: 
 		if(typeof(sender) === "string"){
 			//Only send system analytics if they're enabled:
 			if(this.enabled){
@@ -132,11 +132,14 @@ villo.analytics = {
 			}
 		});
 	},
+	
 	//
-	// Utility function, should not be called:
+	// Utility functions, should not be called:
 	//
 	load: function(){
 		if(!this.loaded){
+			//Prevent this from being called again:
+			this.loaded = true;
 			//Set up hooks for system events:
 			villo.hooks.listen({
 				name: "load",
@@ -159,16 +162,14 @@ villo.analytics = {
 					villo.analytics.send("register");
 				}
 			});
-			this.loaded = true;
 		}
 	},
+	
 	// Utility Variables: 
 	loaded: false,
 	launched: false
 };
 
-
-/* Villo Bridge: Removed from roadmap */
 
 /* Villo Push Chat */
 villo.chat = {
@@ -1393,7 +1394,7 @@ villo.gift = {
 };
 
 
-/* Villo Init/Load */
+/* Villo Load */
 
 //We aren't loaded yet
 villo.isLoaded = false;
@@ -1611,6 +1612,8 @@ villo.load = function(options){
 	}
 };
 
+
+//FIXME: Put this as a var scoped function in villo.load?
 villo.doPushLoad = function(options){
 	villo.isLoaded = true;
 	villo.hooks.call({name: "load"});
@@ -1629,12 +1632,6 @@ villo.doPushLoad = function(options){
 		});
 	}
 	
-};
-
-//When extensions are loaded, they will run this init function by defualt, unless they package their own.
-
-villo.init = function(){
-	return true;
 };
 
 
@@ -1917,6 +1914,10 @@ villo.presence = {
 	rooms: {},
 
 	join: function(joinObject){
+		
+		//Standardize:
+		joinObject.room = joinObject.room.toUpperCase();
+		
 		this.rooms[joinObject.room] = {users: []};
 
 		this._timeouts[joinObject.room] = {};
@@ -1983,6 +1984,9 @@ villo.presence = {
 	
 	//Also use get as a medium to access villo.presence.get ???
 	get: function(getObject){
+		
+		getObject.room = getObject.room.toUpperCase();
+		
 		//TODO: Check to see if we're already subscribed. If we are, we can pass them the current object, we don't need to go through this process.
 		this._get[getObject.room] = {};
 
@@ -2023,6 +2027,9 @@ villo.presence = {
 	},
 
 	leave: function(leaveObject){
+		
+		leaveObject.room = leaveObject.room.toUpperCase();
+		
 		PUBNUB.unsubscribe({
 			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + leaveObject.room.toUpperCase()
 		});
@@ -3310,7 +3317,7 @@ villo.clone = function(obj){
 	`villo.extend(object (to extend), object (extensions))`
 	
 	- The first object is the object that you want to extend.
-	- The second object is the object which you wish to add to the first. Additionally, if you define a function named "init" in the object, the function will run when the extension is loaded.
+	- The second object is the object which you wish to add to the first. Additionally, if you define a function named "create" in the object, the function will run when the extension is loaded.
 	
 	Returns
 	-------
@@ -3328,9 +3335,9 @@ villo.clone = function(obj){
 					return this.users;
 				}
 			},
-			init: function(){
+			create: function(){
 				//This will be executed when the extension is loaded.
-				villo.log("Init functionw was called.");
+				villo.log("Create function was called.");
 			}
 		});
 		
@@ -3341,18 +3348,18 @@ villo.clone = function(obj){
 	
 	Any methods added through villo.extend will override other methods if they already exist.
 	
-	If you define an init function in the object, then it will be run when the extension is loaded. The init function will be deleted after it is run.
+	If you define an create function in the object, then it will be run when the extension is loaded. The create function will be deleted after it is run.
 
 */
 villo.extend = function(that, obj){
 	villo.verbose && console.log("Extending Villo:", that);
 	villo.mixin(that, obj);
-	if (typeof(that.init) === "function") {
-		that.init();
+	if (typeof(that.create) === "function") {
+		that.create();
 		if(that._ext && that._ext.keepit && that._ext.keepit === true){
 			delete that._ext;
 		}else{
-			delete that.init;
+			delete that.create;
 		}
 	}
 	return that;

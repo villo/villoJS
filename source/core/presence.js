@@ -3,6 +3,10 @@ villo.presence = {
 	rooms: {},
 
 	join: function(joinObject){
+		
+		//Standardize:
+		joinObject.room = joinObject.room.toUpperCase();
+		
 		this.rooms[joinObject.room] = {users: []};
 
 		this._timeouts[joinObject.room] = {};
@@ -69,6 +73,9 @@ villo.presence = {
 	
 	//Also use get as a medium to access villo.presence.get ???
 	get: function(getObject){
+		
+		getObject.room = getObject.room.toUpperCase();
+		
 		//TODO: Check to see if we're already subscribed. If we are, we can pass them the current object, we don't need to go through this process.
 		this._get[getObject.room] = {};
 
@@ -109,6 +116,9 @@ villo.presence = {
 	},
 
 	leave: function(leaveObject){
+		
+		leaveObject.room = leaveObject.room.toUpperCase();
+		
 		PUBNUB.unsubscribe({
 			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + leaveObject.room.toUpperCase()
 		});

@@ -11,7 +11,7 @@ villo.analytics = {
 		this.enabled = false;
 	},
 	send: function(sender){
-		console.log("Sending");
+		//System analytics: 
 		if(typeof(sender) === "string"){
 			//Only send system analytics if they're enabled:
 			if(this.enabled){
@@ -101,11 +101,14 @@ villo.analytics = {
 			}
 		});
 	},
+	
 	//
-	// Utility function, should not be called:
+	// Utility functions, should not be called:
 	//
 	load: function(){
 		if(!this.loaded){
+			//Prevent this from being called again:
+			this.loaded = true;
 			//Set up hooks for system events:
 			villo.hooks.listen({
 				name: "load",
@@ -128,9 +131,9 @@ villo.analytics = {
 					villo.analytics.send("register");
 				}
 			});
-			this.loaded = true;
 		}
 	},
+	
 	// Utility Variables: 
 	loaded: false,
 	launched: false

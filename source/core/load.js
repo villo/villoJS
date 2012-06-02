@@ -1,5 +1,5 @@
 
-/* Villo Init/Load */
+/* Villo Load */
 
 //We aren't loaded yet
 villo.isLoaded = false;
@@ -217,6 +217,8 @@ villo.load = function(options){
 	}
 };
 
+
+//FIXME: Put this as a var scoped function in villo.load?
 villo.doPushLoad = function(options){
 	villo.isLoaded = true;
 	villo.hooks.call({name: "load"});
@@ -235,10 +237,4 @@ villo.doPushLoad = function(options){
 		});
 	}
 	
-};
-
-//When extensions are loaded, they will run this init function by defualt, unless they package their own.
-
-villo.init = function(){
-	return true;
 };
