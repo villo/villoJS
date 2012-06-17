@@ -1,11 +1,10 @@
 
-/* Villo Push Chat */
 villo.chat = {
 	rooms: [],
 
 /**
 	villo.chat.join
-	==================
+	===============
 	
     Subscribes to messages in a given chat room.
     
@@ -123,7 +122,7 @@ villo.chat = {
 	},
 /**
 	villo.chat.send
-	==================
+	===============
 	
     Send a message into any given chat room.
     
@@ -176,7 +175,7 @@ villo.chat = {
 	},
 /**
 	villo.chat.leaveAll
-	==================
+	===================
 	
     Closes all of the open connections to chat rooms. If a presence room was joined when the function was loaded, the connection to the presence rooms will also be closed.
     
@@ -220,7 +219,7 @@ villo.chat = {
 	},
 /**
 	villo.chat.leave
-	==================
+	================
 	
     Closes a connection to a specific chat room. If a presence room was joined when the chat room was joined, the connection to the presence room will also be closed.
     

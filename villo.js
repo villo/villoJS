@@ -85,7 +85,7 @@ villo.analytics = {
 				}
 			}
 			
-			if(sender.title && sender.data && sender.title !== "" && sender.data !== ""){
+			if(sender.title && sender.data && villo.trim(sender.title) !== "" && villo.trim(sender.data) !== ""){
 				if(typeof(sender.data) === "object"){
 					sender.data = JSON.stringify(sender.data);
 				}
@@ -171,13 +171,12 @@ villo.analytics = {
 };
 
 
-/* Villo Push Chat */
 villo.chat = {
 	rooms: [],
 
 /**
 	villo.chat.join
-	==================
+	===============
 	
     Subscribes to messages in a given chat room.
     
@@ -295,7 +294,7 @@ villo.chat = {
 	},
 /**
 	villo.chat.send
-	==================
+	===============
 	
     Send a message into any given chat room.
     
@@ -348,7 +347,7 @@ villo.chat = {
 	},
 /**
 	villo.chat.leaveAll
-	==================
+	===================
 	
     Closes all of the open connections to chat rooms. If a presence room was joined when the function was loaded, the connection to the presence rooms will also be closed.
     
@@ -392,7 +391,7 @@ villo.chat = {
 	},
 /**
 	villo.chat.leave
-	==================
+	================
 	
     Closes a connection to a specific chat room. If a presence room was joined when the chat room was joined, the connection to the presence room will also be closed.
     
@@ -937,10 +936,9 @@ villo.friends = {
 };
 
 
-
 /**
 	villo.Game
-	==================
+	==========
 	
     Provides an easy-to-use, object-oriented framework for making multi-player games.
     
@@ -1404,7 +1402,7 @@ villo.verbose = false;
 	villo.resource
 	==============
 	
-    Loads JavaScript files asynchronously. This function can be accessed by called villo.load after you have initialized your application.
+    Loads JavaScript files asynchronously. This function can be accessed by calling villo.load after you have initialized your application.
     
     
 	Calling
@@ -1448,10 +1446,7 @@ villo.resource = function(options){
 		var o = options.resources;
 		var scripts = [];
 		for(var x in o){
-			//We technically support CSS files, but we can't use callbacks with it:
-			if(o[x].slice(-3) === "css"){
-				villo.style.add(o[x]);
-			}else if(o[x].slice(-2) === "js"){
+			if(o[x].slice(-2) === "js"){
 				scripts.push(o[x]);
 			}else{
 				//Try info.villo.js loader:
@@ -1464,7 +1459,6 @@ villo.resource = function(options){
 		}
 		var callback = options.callback || function(){};
 		$LAB.script(scripts).wait(callback);
-		//$script(scripts, callback);
 	}	
 };
 /**
@@ -1491,16 +1485,16 @@ villo.resource = function(options){
 	Calling
 	-------
 
-	`villo.load({id: string, version: string, developer: string, type: string, title: string, api: string, push: boolean, extensions: array, include: array})`
+	`villo.load({id: string, version: string, developer: string, type: string, title: string, api: string, analytics: boolean, extensions: array, include: array})`
 	
 	- The "id" should be your application id, EXACTLY as you registered it at http://dev.villo.me.
 	- The "version" is a string containing your application version. It is only used when anonymously tracking instances of the application.
 	- "Developer" is the name of your development company. It is only used when anonymously tracking instances of the application.
-	- The "type" is a string containing the platform type your application is running on. Supported types are "desktop" and "mobile". Currently, this is not used, but still needs to be specified.
+	- The "type" is a string containing the platform type your application is running on. Supported types are "desktop" and "mobile". Currently, this is not used, but still should be specified for future compatibility.
 	- "Title" is the title of your application. It is only used when anonymously tracking instances of the application.
 	- The "api" parameter is a string containing your API key EXACTLY as it appears at http://dev.villo.me. 
-	- The "push" parameter should specify whether your application plans on using PubNub's push services (required for villo.chat, villo.presence, villo.feeds, and others). As of Villo 1.0.0, this parameter is not required because PubNub is included by default.
-	- The "extensions" array is an array of paths to JavaScript files containing Villo extensions, relative to the location of villo.js. This parameter is optional.
+	- The "analytics" boolean lets you enable and disable all of Villo's Analytic tracking. This parameter is optional, and defaults to true (analytics enabled). You can also manage analytic tracking using villo.analytics.enable and villo.analytics.disable.
+	- The "extensions" array is an array of paths to JavaScript files, ideally containing Villo extensions, relative to the root of your application. As of Villo 1.0.0, this is funtionally identical to the "include" parameter. This parameter is optional.
 	- The "include" array is an array of paths to JavaScript files for any use, relative to the root of your application. This parameter is optional.
 
 		
@@ -1515,10 +1509,9 @@ villo.resource = function(options){
 			"developer": "Your Company",
 			"type": "mobile",
 			"title": "Your App",
-			"api": "YOURAPIKEY",
-			"push": true,
+			"api": "YOURAPIKEY1234",
 			"extensions": [
-				"extensions/file.js"
+				"source/extensions/file.js"
 			],
 			"include": [
 				"source/app.js",
@@ -1613,7 +1606,7 @@ villo.load = function(options){
 };
 
 
-//FIXME: Put this as a var scoped function in villo.load?
+//FIXME: Put this as a var scoped function in villo.load.
 villo.doPushLoad = function(options){
 	villo.isLoaded = true;
 	villo.hooks.call({name: "load"});
@@ -1635,7 +1628,9 @@ villo.doPushLoad = function(options){
 };
 
 
-/* Villo Leaders */
+/** MODULE
+	name:Leader Boards
+*/
 villo.leaders = {		
 /**
 	villo.leaders.get
@@ -2670,7 +2665,6 @@ villo.storage = {
 	}
 };
 
-
 /* Villo User */
 villo.user = {
 /**
@@ -2783,9 +2777,11 @@ villo.user = {
 	-----
 	
 	Villo removes the username and unique app token used to authenticate API requests once a user is logged out, so the user will need to login again if they logout.   
-
+	
+	Logout doesn't remove any settings or other stored data. This may cause problems if you plan on having multi-account setups. Be sure to remove any residual user data that may exist in settings, states, or storage when logging out.
+	
 */
-	logout: function(){
+	logout: function(){		
 		//destroy user tokens and logout.
 		villo.store.remove("token.user");
 		villo.store.remove("token.token");
@@ -3314,7 +3310,7 @@ villo.clone = function(obj){
 	Calling
 	-------
 
-	`villo.extend(object (to extend), object (extensions))`
+	`villo.extend(object (to extend), object (extension))`
 	
 	- The first object is the object that you want to extend.
 	- The second object is the object which you wish to add to the first. Additionally, if you define a function named "create" in the object, the function will run when the extension is loaded.
@@ -3340,15 +3336,15 @@ villo.clone = function(obj){
 				villo.log("Create function was called.");
 			}
 		});
+		//Sample call to our extension:
+		var users = villo.suggest.get();
 		
 	Notes
 	-----
 
-	For example, to extend the villo.profile, object, you call `villo.profile.extend({"suggest": function(){}});`, which would add the suggest method to villo.profile.
-	
 	Any methods added through villo.extend will override other methods if they already exist.
 	
-	If you define an create function in the object, then it will be run when the extension is loaded. The create function will be deleted after it is run.
+	If you define an create function in the object, then it will be run when the extension is loaded. The create function will be destroyed after it is run.
 
 */
 villo.extend = function(that, obj){

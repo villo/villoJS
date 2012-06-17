@@ -1,7 +1,6 @@
-
 /**
 	villo.Game
-	==================
+	==========
 	
     Provides an easy-to-use, object-oriented framework for making multi-player games.
     

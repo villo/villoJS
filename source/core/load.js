@@ -9,7 +9,7 @@ villo.verbose = false;
 	villo.resource
 	==============
 	
-    Loads JavaScript files asynchronously. This function can be accessed by called villo.load after you have initialized your application.
+    Loads JavaScript files asynchronously. This function can be accessed by calling villo.load after you have initialized your application.
     
     
 	Calling
@@ -53,10 +53,7 @@ villo.resource = function(options){
 		var o = options.resources;
 		var scripts = [];
 		for(var x in o){
-			//We technically support CSS files, but we can't use callbacks with it:
-			if(o[x].slice(-3) === "css"){
-				villo.style.add(o[x]);
-			}else if(o[x].slice(-2) === "js"){
+			if(o[x].slice(-2) === "js"){
 				scripts.push(o[x]);
 			}else{
 				//Try info.villo.js loader:
@@ -69,7 +66,6 @@ villo.resource = function(options){
 		}
 		var callback = options.callback || function(){};
 		$LAB.script(scripts).wait(callback);
-		//$script(scripts, callback);
 	}	
 };
 /**
@@ -96,16 +92,16 @@ villo.resource = function(options){
 	Calling
 	-------
 
-	`villo.load({id: string, version: string, developer: string, type: string, title: string, api: string, push: boolean, extensions: array, include: array})`
+	`villo.load({id: string, version: string, developer: string, type: string, title: string, api: string, analytics: boolean, extensions: array, include: array})`
 	
 	- The "id" should be your application id, EXACTLY as you registered it at http://dev.villo.me.
 	- The "version" is a string containing your application version. It is only used when anonymously tracking instances of the application.
 	- "Developer" is the name of your development company. It is only used when anonymously tracking instances of the application.
-	- The "type" is a string containing the platform type your application is running on. Supported types are "desktop" and "mobile". Currently, this is not used, but still needs to be specified.
+	- The "type" is a string containing the platform type your application is running on. Supported types are "desktop" and "mobile". Currently, this is not used, but still should be specified for future compatibility.
 	- "Title" is the title of your application. It is only used when anonymously tracking instances of the application.
 	- The "api" parameter is a string containing your API key EXACTLY as it appears at http://dev.villo.me. 
-	- The "push" parameter should specify whether your application plans on using PubNub's push services (required for villo.chat, villo.presence, villo.feeds, and others). As of Villo 1.0.0, this parameter is not required because PubNub is included by default.
-	- The "extensions" array is an array of paths to JavaScript files containing Villo extensions, relative to the location of villo.js. This parameter is optional.
+	- The "analytics" boolean lets you enable and disable all of Villo's Analytic tracking. This parameter is optional, and defaults to true (analytics enabled). You can also manage analytic tracking using villo.analytics.enable and villo.analytics.disable.
+	- The "extensions" array is an array of paths to JavaScript files, ideally containing Villo extensions, relative to the root of your application. As of Villo 1.0.0, this is funtionally identical to the "include" parameter. This parameter is optional.
 	- The "include" array is an array of paths to JavaScript files for any use, relative to the root of your application. This parameter is optional.
 
 		
@@ -120,10 +116,9 @@ villo.resource = function(options){
 			"developer": "Your Company",
 			"type": "mobile",
 			"title": "Your App",
-			"api": "YOURAPIKEY",
-			"push": true,
+			"api": "YOURAPIKEY1234",
 			"extensions": [
-				"extensions/file.js"
+				"source/extensions/file.js"
 			],
 			"include": [
 				"source/app.js",
@@ -218,7 +213,7 @@ villo.load = function(options){
 };
 
 
-//FIXME: Put this as a var scoped function in villo.load?
+//FIXME: Put this as a var scoped function in villo.load.
 villo.doPushLoad = function(options){
 	villo.isLoaded = true;
 	villo.hooks.call({name: "load"});

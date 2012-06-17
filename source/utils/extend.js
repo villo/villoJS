@@ -47,7 +47,7 @@ villo.clone = function(obj){
 	Calling
 	-------
 
-	`villo.extend(object (to extend), object (extensions))`
+	`villo.extend(object (to extend), object (extension))`
 	
 	- The first object is the object that you want to extend.
 	- The second object is the object which you wish to add to the first. Additionally, if you define a function named "create" in the object, the function will run when the extension is loaded.
@@ -73,15 +73,15 @@ villo.clone = function(obj){
 				villo.log("Create function was called.");
 			}
 		});
+		//Sample call to our extension:
+		var users = villo.suggest.get();
 		
 	Notes
 	-----
 
-	For example, to extend the villo.profile, object, you call `villo.profile.extend({"suggest": function(){}});`, which would add the suggest method to villo.profile.
-	
 	Any methods added through villo.extend will override other methods if they already exist.
 	
-	If you define an create function in the object, then it will be run when the extension is loaded. The create function will be deleted after it is run.
+	If you define an create function in the object, then it will be run when the extension is loaded. The create function will be destroyed after it is run.
 
 */
 villo.extend = function(that, obj){

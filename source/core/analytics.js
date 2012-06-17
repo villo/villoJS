@@ -54,7 +54,7 @@ villo.analytics = {
 				}
 			}
 			
-			if(sender.title && sender.data && sender.title !== "" && sender.data !== ""){
+			if(sender.title && sender.data && villo.trim(sender.title) !== "" && villo.trim(sender.data) !== ""){
 				if(typeof(sender.data) === "object"){
 					sender.data = JSON.stringify(sender.data);
 				}

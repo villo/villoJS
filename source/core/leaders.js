@@ -1,5 +1,7 @@
 
-/* Villo Leaders */
+/** MODULE
+	name:Leader Boards
+*/
 villo.leaders = {		
 /**
 	villo.leaders.get
