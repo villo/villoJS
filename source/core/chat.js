@@ -28,9 +28,12 @@ villo.chat = {
 	An object will be passed to the callback function when a message is received in the chat room, and will be formatted like this:
 		
 		{
-			username: "Kesne",
-			message: "Hey man, how's it going?"
+			"username": "Kesne",
+			"message"": "Hey man, how's it going?",
+			"timestamp": 1339990741554
 		}
+		
+	As of Villo 1.0.0, the "timestamp" parameter will be added by default.
 		
 	Use
 	---
@@ -115,6 +118,7 @@ villo.chat = {
 			if (villo.chat.rooms.hasOwnProperty(x)) {
 				if (villo.chat.rooms[x].name.toUpperCase() === roomString.toUpperCase()) {
 					c = true;
+					break;
 				}
 			}
 		}
@@ -158,8 +162,10 @@ villo.chat = {
 			//Build the JSON to push to the server.
 			var pushMessage = {
 				"username": villo.user.username,
-				"message": messageObject.message
+				"message": messageObject.message,
+				"timestamp": new Date().getTime()
 			};
+			//Use the first room by default:
 			if(!messageObject.room){
 				messageObject.room = villo.chat.rooms[0].name;
 			}

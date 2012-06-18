@@ -30,8 +30,9 @@ The following should realistically be completed by the 1.0 release.
 - Update presence (beta) handling.
 	- Add docs.
 - Fix small bugs in chat implementation.
+	- Add support for all PubNub handlers.
 - Finish villo.Game (beta).
-	- Finish game example, and write a simple "getting started with villo.Game guide".
+	- Finish game example, and write a simple "getting started with villo.Game" guide.
 - villo.feature?
 - Finish feeds.
 	- Add docs.
@@ -39,7 +40,8 @@ The following should realistically be completed by the 1.0 release.
 	- Documentation on methods.
 	- Small write-up on what is tracked, how it's tracked, how to enable/disable.
 - Document villo.hooks.
-- Fix sync.
+- Fix villo.sync.
+- New documentation system.
 	
 Eventual Roadmap
 ----------------
