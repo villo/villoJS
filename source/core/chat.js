@@ -29,7 +29,7 @@ villo.chat = {
 		
 		{
 			"username": "Kesne",
-			"message"": "Hey man, how's it going?",
+			"message": "Hey man, how's it going?",
 			"timestamp": 1339990741554
 		}
 		

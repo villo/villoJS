@@ -73,6 +73,7 @@ villo.ajax = function(url, modifiers){
 			villo.verbose && console.log(error);
 			modifiers.onFailure(error);
 		},
+		forceXHR: modifiers.forceXHR || false,
 		jsonp: modifiers.jsonp || false
 	});	
 };
@@ -113,7 +114,7 @@ villo.jsonp = {
 villo._do_ajax = function(options){
 	//Internet Explorer checker:
 	var is_iexplorer = function() {
-        return navigator.userAgent.indexOf('MSIE') !== -1;
+        return false;
 	};
     
     var url = options.url;
@@ -122,18 +123,20 @@ villo._do_ajax = function(options){
     var error = options.error;
     var data = options.data;
     
+    var forceXHR = options.forceXHR || false;
+    
     var jsonp = options.jsonp || false;
 	
     var xhr = new XMLHttpRequest();
 	if (xhr && "withCredentials" in xhr && jsonp === true) {
 		delete xhr.withCredentials;
 	}
-
-    if (xhr && "withCredentials" in xhr) {
+	
+    if (xhr && ("withCredentials" in xhr || forceXHR === true)) {
         xhr.open(type, url, true);
     }else{
 		//JSONP
-		villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){
+		villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){			
 			//Add debugging info:
 			try{transit.query.url = url; transit.query.data = data;}catch(e){}
 			//See if the stuff we care about is actually there:

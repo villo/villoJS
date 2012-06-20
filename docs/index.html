@@ -1,29 +1,101 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
-   "http://www.w3.org/TR/html4/strict.dtd">
-
-<html lang="en">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <link rel="stylesheet" type="text/css" href="html/css/docbody.css">
-    <link rel="stylesheet" type="text/css" href="html/css/doc.css">
-	<title>Villo Documentation</title>
-</head>
-
-<!--
-	Sample frameset wrapper for multi-file docs. Change the URL
-	for the "content" frame to a default page for your docs and
-	add this file to your output directory.
--->
-<frameset cols="30%, 70%">
-	<frame name="toc" src="html/_content.html">
-	<frame name="content" src="html/pages_ABOUT.mdown.html">
-</frameset>
-
-<noframe>
-    <body>
-    Error!
-    </body>
-</noframe>
-
-
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>VilloJS Documentation</title>
+		
+		<!-- jQuery: -->
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="js/typeahead.js"></script>
+		
+		<!-- Villo: -->
+		<script type="text/javascript" src="../villo.js"></script>
+		<script type="text/javascript" src="js/villo/info.villo.js"></script>
+		
+		<!--  -->
+		<link href="prettyprint/prettify.css" type="text/css" rel="stylesheet" />
+		<script type="text/javascript" src="prettyprint/prettify.js"></script>
+		
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+		
+		<style>
+			body {
+				margin-top: 60px;
+			}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+			//Set up a hook for when Villo is done loading.
+			villo.hooks.listen({
+				name: "load",
+				retroactive: true,
+				callback: function(){
+					//Build the documentation. The "docs" variable is established in the docs.js file:
+					villo.docs.build({
+						"title": "Villo",
+						"sourceFolder": "../source/",
+						//The modules define what goes in the left-hand navigation.
+						"module": {
+							//Required, not used.
+							"title": "API Reference",
+							//This option isn't used just yet:
+							"expand": true,
+							//These are imported by the system. They do NOT use the sourceFolder variable:
+							"pages": [
+								"pages/about.mdown",
+								"pages/guide.mdown",
+								"pages/license.mdown"
+							],
+							//Everything else is counted as a code module. These use sourceFolder for location:
+							"Core": [
+								//"core/analytics.js",
+								"core/chat.js",
+								"core/clipboard.js",
+								"core/friends.js",
+								"core/game.js",
+								"core/gift.js",								
+								"core/leaders.js",
+								"core/load.js",
+								//"core/messages.js",
+								//"core/presence.js",
+								"core/profile.js",
+								"core/settings.js",
+								"core/states.js",
+								"core/storage.js",
+								"core/user.js"
+							],
+							"Utilities": [
+								"utils/ajax.js",
+								"utils/extend.js",
+								"utils/log.js"
+							]
+						}
+					});
+				}
+			});
+		</script>
+		<div class="navbar navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<a class="brand" href="#">
+						VilloJS Documentation
+					</a>
+					<div class="navbar-form pull-right">
+						<input type="search" class="search-query" placeholder="search..." id="search">
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="row-fluid">
+				<div class="span3" id="sidebar">
+				</div>
+				<!--/span-->
+				<div class="span9" id="content">
+				</div>
+				<!--/span-->
+			</div>
+			<!--/row-->
+		</div>		
+	</body>
 </html>

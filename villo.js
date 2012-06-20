@@ -200,9 +200,12 @@ villo.chat = {
 	An object will be passed to the callback function when a message is received in the chat room, and will be formatted like this:
 		
 		{
-			username: "Kesne",
-			message: "Hey man, how's it going?"
+			"username": "Kesne",
+			"message": "Hey man, how's it going?",
+			"timestamp": 1339990741554
 		}
+		
+	As of Villo 1.0.0, the "timestamp" parameter will be added by default.
 		
 	Use
 	---
@@ -287,6 +290,7 @@ villo.chat = {
 			if (villo.chat.rooms.hasOwnProperty(x)) {
 				if (villo.chat.rooms[x].name.toUpperCase() === roomString.toUpperCase()) {
 					c = true;
+					break;
 				}
 			}
 		}
@@ -330,8 +334,10 @@ villo.chat = {
 			//Build the JSON to push to the server.
 			var pushMessage = {
 				"username": villo.user.username,
-				"message": messageObject.message
+				"message": messageObject.message,
+				"timestamp": new Date().getTime()
 			};
+			//Use the first room by default:
 			if(!messageObject.room){
 				messageObject.room = villo.chat.rooms[0].name;
 			}
@@ -3103,6 +3109,7 @@ villo.ajax = function(url, modifiers){
 			villo.verbose && console.log(error);
 			modifiers.onFailure(error);
 		},
+		forceXHR: modifiers.forceXHR || false,
 		jsonp: modifiers.jsonp || false
 	});	
 };
@@ -3143,7 +3150,7 @@ villo.jsonp = {
 villo._do_ajax = function(options){
 	//Internet Explorer checker:
 	var is_iexplorer = function() {
-        return navigator.userAgent.indexOf('MSIE') !== -1;
+        return false;
 	};
     
     var url = options.url;
@@ -3152,18 +3159,20 @@ villo._do_ajax = function(options){
     var error = options.error;
     var data = options.data;
     
+    var forceXHR = options.forceXHR || false;
+    
     var jsonp = options.jsonp || false;
 	
     var xhr = new XMLHttpRequest();
 	if (xhr && "withCredentials" in xhr && jsonp === true) {
 		delete xhr.withCredentials;
 	}
-
-    if (xhr && "withCredentials" in xhr) {
+	
+    if (xhr && ("withCredentials" in xhr || forceXHR === true)) {
         xhr.open(type, url, true);
     }else{
 		//JSONP
-		villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){
+		villo.jsonp.fetch('http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from html where url="' + url + "?" + data + '"') + '&format=json&callback=JSONPCallback', function(transit){			
 			//Add debugging info:
 			try{transit.query.url = url; transit.query.data = data;}catch(e){}
 			//See if the stuff we care about is actually there:
@@ -3236,7 +3245,7 @@ villo.app = {
 };
 
 
-/* Villo Do Functions */
+/* Villo "Do" Functions */
 villo.doNothing = function(){
 	//We successfully did nothing! Yay!
 	return true;
@@ -3403,7 +3412,6 @@ villo.hooks = {
 };
 
 
-/* Villo Slash Control */
 //Adds slashes into any string to prevent it from breaking the JS.
 villo.addSlashes = function(str){
 	str = str.replace(/\\/g, '\\\\');
@@ -3440,7 +3448,6 @@ villo.cap = function(str) {
 	return str.slice(0, 1).toUpperCase() + str.slice(1);
 };
 
-/* Villo Log */
 /**
 	villo.log
 	=================

@@ -1,5 +1,5 @@
 
-/* Villo Do Functions */
+/* Villo "Do" Functions */
 villo.doNothing = function(){
 	//We successfully did nothing! Yay!
 	return true;

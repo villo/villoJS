@@ -1,5 +1,4 @@
 
-/* Villo Slash Control */
 //Adds slashes into any string to prevent it from breaking the JS.
 villo.addSlashes = function(str){
 	str = str.replace(/\\/g, '\\\\');
