@@ -3,12 +3,12 @@
  * 	This relies too much on file-based project management. It works for Villo fine, but is not ideal in general.
  * 	The "/** MODULE" comment should be able to initiate new modules on-the-fly, not just override the file name.
  * 	This isn't as flexible as it should be when it comes to modules. It's currently fixed to three levels.
- * 	Add auto-linking methods.
  */
 
 /*
- * We're using jQuery ajax functions until we can revamp villo.ajax (again).
- * The first attempt of fixing the ajax function was customized for Villo's APIs. Which is really okay.
+ * NOTES:
+ * 	We're using jQuery ajax functions until we can revamp villo.ajax (again).
+ * 	The first attempt of fixing the ajax function was customized for Villo's APIs. Which is really okay.
  */
 
 villo.extend(villo, {
@@ -75,9 +75,19 @@ villo.extend(villo, {
 			
 			divTop.append($("<h2></h2>").html(this.options.topTitle));
 			
+			var pageArray = [];
 			for(var x in this.pages){
-				divTop.append($("<a href='#" + x + "'>" + x + "</a>").append("<br />"));
+				this.pages[x].name = x;
+				if(this.pages[x].position){
+					pageArray[this.pages[x].position-1] = this.pages[x];
+				}else{
+					pageArray.push(this.pages[x]);
+				}
 			}
+			
+			pageArray.forEach(function(item){
+				divTop.append($("<a href='#" + item.name + "'>" + item.name + "</a>").append("<br />"));
+			})
 
 			
 			//Generate Div:
@@ -122,6 +132,7 @@ villo.extend(villo, {
 		
 		//Searches all of the code documents for
 		autolink: function(){
+			//TODO: Auto Link pages.
 			//Source array to link:
 			var source = [];
 			for(var x in this.docs){
@@ -234,8 +245,18 @@ villo.extend(villo, {
 						name = lines[0].split(".")[1].split("-")[0];
 					}
 					
+					//Get position:
+					var order;
+					var splitter = parseInt(src.split("?")[src.split("?").length-1]);
+					if(typeof(splitter) === "number"){
+						order = splitter;
+					}else{
+						order = false;
+					}
+					
 					this.pages[name] = {
-						markdown: trans
+						markdown: trans,
+						position: order
 					};
 					this.doneCode(src);
 				}),
