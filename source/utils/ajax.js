@@ -1,10 +1,13 @@
 
-/* Villo Ajax */
+// TODO: eventually we should probably make this a more flexible ajax wrapper.
+
 /**
 	villo.ajax
 	=================
 	
     Cross-platform, cross-browser Ajax function. This is used by Villo to connect to the Villo APIs.
+    
+    Use of this method is not recommended outside of calls to api.villo.me, as they are not tested and likely will cause errors.
     
 	Calling
 	-------
@@ -20,7 +23,7 @@
 	Use
 	---
 	
-		villo.ajax("http://mysite", {
+		villo.ajax("http://mysite.com", {
 			method: 'post', //You can also set this to "get".
 			parameters: {
 				"hello": "world"
@@ -38,7 +41,7 @@
 	
 	On most modern browsers, cross-domain Ajax requests are allowed. However, there may still be issues with the server rejecting requests from different origins.
 	
-	Most of the Villo APIs require that your web browser supports cross-domain Ajax requests. If your browser does not support them, then you will likely not be able to use a majorty of Villo features.
+	Most of the Villo APIs require that your web browser supports cross-domain Ajax requests. If your browser does not support them, then you will likely not be able to use a majority of Villo features.
 
 */
 villo.ajax = function(url, modifiers){

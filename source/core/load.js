@@ -163,7 +163,9 @@ villo.load = function(options){
 	//Load up the settings (includes sync + cloud).
 	if (villo.store.get("VilloSettingsProp")) {
 		villo.settings.load({
-			callback: villo.doNothing
+			callback: function(){
+				villo.hooks.call({name: "settings"});
+			}
 		});
 	}
 	

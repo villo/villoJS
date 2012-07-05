@@ -29,9 +29,6 @@ villo.extend(villo, {
 			this.module(options.module);
 		},
 		
-		//no longer used:
-		process: [],
-		
 		toProcess: 0,
 		
 		module: function(options){
@@ -132,7 +129,6 @@ villo.extend(villo, {
 		
 		//Searches all of the code documents for
 		autolink: function(){
-			//TODO: Auto Link pages.
 			//Source array to link:
 			var source = [];
 			for(var x in this.docs){
@@ -272,7 +268,7 @@ villo.extend(villo, {
 			$.ajax({
 				url: src,
 				//We need this so that we can get the latest code all the time:
-				cache: false,
+				cache: false,	
 				success: villo.bind(this, function(trans) {
 					
 					//The documentation gets dumped into here:
@@ -418,30 +414,44 @@ villo.extend(villo, {
 		
 		//Manages the hash urls:
 		hash: function(){
+			
+			//404 Error:
+			var err404 = function(){
+				$("#content").html("<h1>Page Not Found</h1> It appears that the page you're looking for cannot be found. Please check the url and try again.");
+			};
+			
 			var hash = location.hash.substring(1);
 			if(villo.trim(hash) !== ""){
 				//TODO: 404
 				var hashArr = hash.split("/");
 				if(hashArr.length === 3){
-					var doc = this.docs[hashArr[0]][hashArr[1]][hashArr[2]];
-					$("#content").html(doc.html);
-					
-					var strip = function(og){
-						return og.replace(/(<([^>]+)>)/ig, "");
+					if(this.docs[hashArr[0]][hashArr[1]][hashArr[2]]){
+						var doc = this.docs[hashArr[0]][hashArr[1]][hashArr[2]];
+						$("#content").html(doc.html);
+						
+						var strip = function(og){
+							return og.replace(/(<([^>]+)>)/ig, "");
+						}
+						
+						//Strip HTML tags from code elements: 
+						$("code").each(function(index){
+							var newText = strip($(this).text());
+							$(this).text(newText);
+						});
+						
+						$("p > code").addClass("prettyprint");
+						$("pre > code").addClass("prettyprint linenums");
+						prettyPrint();
+					}else{
+						err404();
 					}
-					
-					//Strip HTML tags from code elements: 
-					$("code").each(function(index){
-						var newText = strip($(this).text());
-						$(this).text(newText);
-					});
-					
-					$("p > code").addClass("prettyprint");
-					$("pre > code").addClass("prettyprint linenums");
-					prettyPrint();
 				}else{
-					var page = this.pages[hash];
-					$("#content").html(page.html);
+					if(this.pages[hash]){
+						var page = this.pages[hash];
+						$("#content").html(page.html);
+					}else{
+						err404();
+					}
 				}
 			}else{
 				var page;

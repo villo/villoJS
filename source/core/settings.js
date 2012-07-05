@@ -83,9 +83,14 @@ villo.settings = {
 		if (loadObject.instant && loadObject.instant === true) {
 			if(villo.store.get("VilloSettingsProp")){
 				villo.app.settings = villo.store.get("VilloSettingsProp").settings;
-				//TODO: Callback, baby
+				if(loadObject.callback){
+					loadObject.callback(villo.app.settings);
+				}
 				return villo.app.settings;
 			}else{
+				if(loadObject.callback){
+					loadObject.callback(false);
+				}
 				return false;
 			}
 		} else {
