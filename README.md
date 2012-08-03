@@ -30,7 +30,6 @@ The following should be completed by the 1.0 release.
 - Update presence (beta) handling.
 	- Add docs.
 - Fix small bugs in chat implementation.
-	- Add support for all PubNub handlers.
 - Finish villo.Game (beta).
 	- Finish game example, and write a simple "getting started with villo.Game" guide.
 - villo.feature?

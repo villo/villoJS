@@ -57,9 +57,9 @@ villo.chat = {
 						chatObject.callback(message);
 					},
 					connect: chatObject.connect || function(){},
-					error: function(e){
-						//Error connecting. PubNub will automatically attempt to reconnect.
-					}
+					error: chatObject.error || function(){},
+					reconnect: chatObject.reconnect || function(){},
+					disconnect: chatObject.disconnect || function(){}
 				});
 				
 				//FIXME: This is all handled inline now:
@@ -111,7 +111,6 @@ villo.chat = {
 		villo.chat.isSubscribed("main");
 
 */
-
 	isSubscribed: function(roomString){
 		var c = false;
 		for (var x in villo.chat.rooms) {
