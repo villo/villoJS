@@ -80,7 +80,7 @@ villo.hooks = {
 		//Set retroactive to false in the listen function to turn off the retroactive calling.
 		if(setObject.retroactive && setObject.retroactive === true){
 			if(this.called[setObject.name]){
-				setObject.callback(this.called[setObject.name].args);
+				setObject.callback.apply(this, this.called[setObject.name].args || [true]);
 			}
 		}
 		var obj = {
@@ -88,7 +88,7 @@ villo.hooks = {
 			callback: setObject.callback,
 			protect: setObject.protect || false
 		};
-		return this.hooks.push(obj);
+		return (parseInt(this.hooks.push(obj), 10) - 1);
 	},
 /**
 	villo.hooks.unlisten
@@ -127,11 +127,15 @@ villo.hooks = {
 
 */
 	unlisten: function(index){
-		//Block protected listeners:
-		if(!this.hooks[index].protect){
-			//Using splice resets the indexes:
-			delete this.hooks[index];
-			return true;
+		if(this.hooks[index]){
+			//Block protected listeners:
+			if(!this.hooks[index].protect){
+				//Using splice resets the indexes:
+				delete this.hooks[index];
+				return true;
+			}else{
+				return false;
+			}
 		}else{
 			return false;
 		}
@@ -196,7 +200,7 @@ villo.hooks = {
 			//Don't add retroactive calling.
 		}else{
 			//Update with latest arguments:
-			this.called[callObject.name] = {name: callObject.name, args: callObject.args || true};
+			this.called[callObject.name] = {name: callObject.name, args: callObject.args || [true]};
 		}
 		
 		var asyncCaller = villo.bind(this, function(callback){

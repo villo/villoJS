@@ -395,21 +395,41 @@ villo.extend(villo, {
 				
 			},
 			end: function(){
-				this.__class__.utilities.init();
+				this.__class__.messages.init();
 			}
 		},
-		messages: {},
+		messages: {
+			init: function(){
+				this.end();
+			},
+			end: function(){
+				this.__class__.storage.init();
+			}
+		},
 		storage: {
+			init: function(){
+				this.end();
+			},
 			end: function(){
 				this.__class__.settings.init();
 			}
 		},
 		settings: {
+			init: function(){
+				this.end();
+			},
 			end: function(){
 				this.__class__.states.init();
 			}
 		},
-		states: {},
+		states: {
+			init: function(){
+				this.end();
+			},
+			end: function(){
+				this.__class__.utilities.init();
+			}
+		},
 		utilities: {
 			init: function(){
 				module("Utilities");
@@ -423,11 +443,51 @@ villo.extend(villo, {
 						onSuccess: villo.bind(this, function(t){
 							start();
 							equal(t, "Hello, world!", "We expect a specific string to be returned by the server.");
-							this.extend();
+							this.hooks();
 						}),
 						onFailure: villo.bind(this, function(t){
 							start();
 							ok(false);
+							this.hooks();
+						})
+					});
+				}));
+			},
+			hooks: function(){
+				test("hooks test", villo.bind(this, function(){
+					stop();
+					var hook = villo.hooks.listen({
+						name: "hookTest",
+						callback: villo.bind(this, function(isit){
+							start();
+							equal(isit.working, true, "We expect the hook to be called.");
+							
+							//Test the unlisten function while we're at it.
+							villo.hooks.unlisten(hook);
+							
+							if(isit.working){
+								villo.hooks.call({name: "hookTest", args: [{working: false}]});
+							}else{
+								return;
+							}
+							
+							this.retroactive();
+						})
+					});
+					
+					villo.hooks.call({name: "hookTest", args: [{working: true}]});
+				}));
+			},
+			retroactive: function(){
+				test("retroactive hooks test", villo.bind(this, function(){
+					stop();
+					villo.hooks.call({name: "retroHook", args: [{working: true}]});
+					villo.hooks.listen({
+						name: "retroHook",
+						retroactive: true,
+						callback: villo.bind(this, function(isit){
+							start();
+							equal(isit.working, true, "We expect the hook to be called retroactively.");
 							this.extend();
 						})
 					});

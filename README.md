@@ -39,7 +39,6 @@ The following should be completed by the 1.0 release.
 - Analytics (server-side).
 	- Documentation on methods.
 	- Small write-up on what is tracked, how it's tracked, how to enable/disable.
-- Document villo.hooks.
 - Fix villo.sync.
 	
 Roadmap
@@ -48,7 +47,7 @@ Roadmap
 These features are currently planned to be added to future version of VilloJS, though they are all subject to change.
 
 - VQL
-	- VQT
+	- NodeJS
 - villo.spine
 	- HTTP Rest API for developers.
 - villo.dom?
