@@ -115,21 +115,24 @@ villo.analytics = {
 				retroactive: true,
 				callback: function(){
 					villo.analytics.send("launch");
-				}
+				},
+				protect: true
 			});
 			villo.hooks.listen({
 				name: "login",
 				retroactive: true,
 				callback: function(){
 					villo.analytics.send("login");
-				}
+				},
+				protect: true
 			});
 			villo.hooks.listen({
 				name: "register",
 				retroactive: true,
 				callback: function(){
 					villo.analytics.send("register");
-				}
+				},
+				protect: true
 			});
 		}
 	},

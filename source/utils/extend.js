@@ -3,6 +3,12 @@
 
 //Undocumented Bind Function:
 villo.bind = function(scope, _function) {
+	if(typeof(_function) === "string"){
+		if (scope[_function]) {
+			_function = scope[_function];
+		}
+	}
+	
 	return function() {
 		return _function.apply(scope, arguments);
 	};

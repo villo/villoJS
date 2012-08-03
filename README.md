@@ -22,7 +22,7 @@ If your pull request conflicts with pending changes, we'll do our best to manual
 Version 1.0 Todo 
 ----------------
 
-The following should realistically be completed by the 1.0 release.
+The following should be completed by the 1.0 release.
 
 - Finish full unit test suite.
 - Native JSON handling in storage.
@@ -41,22 +41,25 @@ The following should realistically be completed by the 1.0 release.
 	- Small write-up on what is tracked, how it's tracked, how to enable/disable.
 - Document villo.hooks.
 - Fix villo.sync.
-- New documentation system.
 	
-Eventual Roadmap
-----------------
+Roadmap
+-------
 
+These features are currently planned to be added to future version of VilloJS, though they are all subject to change.
+
+- VQL
+	- VQT
 - villo.spine
 	- HTTP Rest API for developers.
 - villo.dom?
 	- villo.animation?
 - Remove $LABJS dependency.
 - Villo Push?
-- PhoneGap connectors (with things like clipboard)? 
 - Better Cross-Platform
-- Standardized Settings with web UI.
-- Chat Plus
-- Swap everything over to villo.feature.
+- Standardized Settings with web UI?
+- Chat Plus?
+- Swap everything over to villo.feature?
 - Build out villo.Game.
-- Bring back gift.
+- Bring back gift (rebrand as shop).
 - Clean up villo.resource method.
+- Redo Ajax to work outside of the villo API context.

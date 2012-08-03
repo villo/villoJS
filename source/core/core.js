@@ -23,8 +23,10 @@
  */
 
 var villo;
-(function( window ) {
-	villo = window.villo || {};
+(function() {
+	villo = this.villo || {};
 	
-	villo.version = "0.9.9 z1";
-})(window);
+	villo.version = "0.9.9 x1";
+	
+	villo.global = this;
+})();

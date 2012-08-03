@@ -1,7 +1,6 @@
 
 /* Villo Profile */
 villo.profile = {
-	//TODO: Figure out the callback for non-existing users.
 /**
 	villo.profile.get
 	=================
@@ -208,7 +207,7 @@ villo.profile = {
 
 */
 	friends: function(updateObject){
-		villo.verbose && villo.log("called");
+		villo.verbose && villo.log("villo.profile.friends called");
 		villo.ajax("https://api.villo.me/profile.php", {
 			method: 'post',
 			parameters: {
@@ -235,7 +234,7 @@ villo.profile = {
 				}
 			},
 			onFailure: function(){
-				villo.verbose && villo.log("fail");
+				villo.verbose && villo.log("failed request");
 				updateObject.callback(33);
 			}
 		});
@@ -272,6 +271,12 @@ villo.profile = {
 
 */
 	avatar: function(avatarObject){
-		
+		var size = "full";
+		if(avatarObject.size === "thumbnail"){
+			size = "thumbnail";
+		}else if(avatarObject.size === "small"){
+			size = "small";
+		}
+		return "https://api.villo.me/avatar.php?username=" + encodeURIComponent(avatarObject.username) + "&" + size + "=true";
 	}
 };

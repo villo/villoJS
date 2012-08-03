@@ -23,11 +23,13 @@
  */
 
 var villo;
-(function( window ) {
-	villo = window.villo || {};
+(function() {
+	villo = this.villo || {};
 	
-	villo.version = "0.9.9 z1";
-})(window);
+	villo.version = "0.9.9 x1";
+	
+	villo.global = this;
+})();
 
 /* Villo Analytics */
 
@@ -145,21 +147,24 @@ villo.analytics = {
 				retroactive: true,
 				callback: function(){
 					villo.analytics.send("launch");
-				}
+				},
+				protect: true
 			});
 			villo.hooks.listen({
 				name: "login",
 				retroactive: true,
 				callback: function(){
 					villo.analytics.send("login");
-				}
+				},
+				protect: true
 			});
 			villo.hooks.listen({
 				name: "register",
 				retroactive: true,
 				callback: function(){
 					villo.analytics.send("register");
-				}
+				},
+				protect: true
 			});
 		}
 	},
@@ -2052,7 +2057,6 @@ villo.presence = {
 
 /* Villo Profile */
 villo.profile = {
-	//TODO: Figure out the callback for non-existing users.
 /**
 	villo.profile.get
 	=================
@@ -2259,7 +2263,7 @@ villo.profile = {
 
 */
 	friends: function(updateObject){
-		villo.verbose && villo.log("called");
+		villo.verbose && villo.log("villo.profile.friends called");
 		villo.ajax("https://api.villo.me/profile.php", {
 			method: 'post',
 			parameters: {
@@ -2286,7 +2290,7 @@ villo.profile = {
 				}
 			},
 			onFailure: function(){
-				villo.verbose && villo.log("fail");
+				villo.verbose && villo.log("failed request");
 				updateObject.callback(33);
 			}
 		});
@@ -2323,7 +2327,13 @@ villo.profile = {
 
 */
 	avatar: function(avatarObject){
-		
+		var size = "full";
+		if(avatarObject.size === "thumbnail"){
+			size = "thumbnail";
+		}else if(avatarObject.size === "small"){
+			size = "small";
+		}
+		return "https://api.villo.me/avatar.php?username=" + encodeURIComponent(avatarObject.username) + "&" + size + "=true";
 	}
 };
 
@@ -3284,6 +3294,12 @@ villo.doSomething = function(){
 
 //Undocumented Bind Function:
 villo.bind = function(scope, _function) {
+	if(typeof(_function) === "string"){
+		if (scope[_function]) {
+			_function = scope[_function];
+		}
+	}
+	
 	return function() {
 		return _function.apply(scope, arguments);
 	};
@@ -3388,6 +3404,16 @@ villo.hooks = {
 	hooks: [],
 	//The events that have been called.
 	called: {},
+	//Reserved hook names. We don't do anything with these, but it's handy to have a reference.
+	reserved: [
+		"login",
+		"register",
+		"logout",
+		"account",
+		"load",
+		"patch",
+		"settings"
+	],
 	
 /**
 	villo.hooks.listen
@@ -3403,6 +3429,11 @@ villo.hooks = {
 	- The "name" string is the name of the hook that you want to listen to.
 	- The "callback" is the function that is called once the hook is triggered by villo.hooks.call.
 	- The "retroactive" boolean lets you listen to hooks that have already been called before the listen method is run. This defaults to false.
+	
+	Returns
+	-------
+	
+	Returns a reference to the listener, which you can use to remove the listener through villo.hooks.unlisten.
 	
 	Callback
 	--------
@@ -3449,12 +3480,113 @@ villo.hooks = {
 				setObject.callback(this.called[setObject.name].args);
 			}
 		}
-		this.hooks.push({name: setObject.name, callback: setObject.callback});
+		var obj = {
+			name: setObject.name,
+			callback: setObject.callback,
+			protect: setObject.protect || false
+		};
+		return this.hooks.push(obj);
 	},
-	unlisten: function(){
-		//TODO
+/**
+	villo.hooks.unlisten
+	====================
+	
+	Removes a callback on a specific hook that has previously been registered through villo.hooks.listen.
+    
+	Calling
+	-------
+
+	`villo.hooks.unlisten(hookReference)`
+	
+	- The only argument the function takes is a reference to the original villo.hooks.listen call.
+	
+	Returns
+	-------
+	
+	Will return true if the the hook listener was removed.
+		
+	Use
+	---
+		
+		var hook = villo.hooks.listen({
+			name: "myHook",
+			callback: function(){
+				alert("The hook was called!");
+			},
+		});
+		
+		villo.hooks.unlisten(hook);
+	
+	Notes
+	-----
+	
+	Because villo.hooks.listen returns an index of the listener, you can pass villo.hooks.unlisten a number as well. This is not recommended.
+
+*/
+	unlisten: function(index){
+		//Block protected listeners:
+		if(!this.hooks[index].protect){
+			//Using splice resets the indexes:
+			delete this.hooks[index];
+			return true;
+		}else{
+			return false;
+		}
 	},
-	//Call a hook
+/**
+	villo.hooks.call
+	================
+	
+	Calls a specific hook, which triggers all of the callbacks registered to that hook to fire.
+    
+	Calling
+	-------
+
+	`villo.hooks.unlisten({name: string, args: array, async: boolean})`
+	
+	- The "name" string is the name of the hook that you want to call.
+	- The "args" array will be sent to all of the listener callbacks, created with villo.hooks.listen.
+	- The "async" boolean allows you to call the functions asynchronously. This defaults to false, and is optional. 
+	
+	Returns
+	-------
+	
+	Will return true if the the hook was called.
+		
+	Use
+	---
+		
+		villo.hooks.listen({
+			name: "myHook",
+			callback: function(yourName, myName){
+				alert("Hello, " + yourName + ". My name is " + myName + "." );
+			},
+		});
+		
+		villo.hooks.call({
+			name: "myHook",
+			args: ["Jordan", "Jeff"]
+		});
+	
+	Hooks
+	-----
+	
+	Villo will automatically call certain hooks, which are outlined below. It is recommended that you do _not_ call these hooks in your own code.
+	
+	- *login*
+	- *register*
+	- *logout*
+	- *account*
+	- *load*
+	- *patch*
+	- *settings*
+	
+	Notes
+	-----
+	
+	The args array will get applied to the function, and will not be passed as a traditional array. You can read about the apply method [here](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/apply).
+
+*/
 	call: function(callObject){
 		//Prevent retroactive calling.
 		if(callObject.retroactive && callObject.retroactive === false){
@@ -3463,15 +3595,27 @@ villo.hooks = {
 			//Update with latest arguments:
 			this.called[callObject.name] = {name: callObject.name, args: callObject.args || true};
 		}
+		
+		var asyncCaller = villo.bind(this, function(callback){
+			return function(){
+				callback.apply(villo.global, callObject.args || [true]);
+			};
+		});
+		
 		//Loop through hooks, trigger ones with the same name:
 		for(var x in this.hooks){
 			if(this.hooks.hasOwnProperty(x)){
 				if(this.hooks[x].name === callObject.name){
-					//Same name, trigger it!
-					this.hooks[x].callback(callObject.args || true);
+					if(callObject.async){
+						window.setTimeout(asyncCaller(this.hooks[x].callback), 1);
+					}else{
+						this.hooks[x].callback.apply(villo.global, callObject.args || [true]);
+					}
 				}
 			}
 		}
+		
+		return true;
 	}
 };
 

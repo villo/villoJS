@@ -448,7 +448,7 @@ villo.extend(villo, {
 					equal(villo.extender.working, true, "We expect the second sub-extension to load.");
 					
 					villo.extend(villo.extender, {
-						init: function(){
+						create: function(){
 							this.initRun = true;
 						}
 					});
@@ -483,7 +483,7 @@ villo.extend(villo, {
 			}
 		}
 	},
-	init: function(){
+	create: function(){
 		this.tests.init();
 	}
 });
