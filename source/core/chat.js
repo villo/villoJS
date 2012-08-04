@@ -1,7 +1,12 @@
 
+//TODO: Presence Callbacks:
+
 villo.chat = {
 	rooms: [],
-
+	//Generates room name:
+	buildName: function(name){
+		return "VILLO.CHAT." + villo.app.id.toUpperCase() + "." + name.toUpperCase();
+	},
 /**
 	villo.chat.join
 	===============
@@ -11,11 +16,11 @@ villo.chat = {
 	Calling
 	-------
 
-	`villo.chat.join({room: string, callback: function, presence: {enabled: boolean})`
+	`villo.chat.join({room: string, callback: function, presence: function)`
 	
-	- "Room" is the name of the chat room you want to join. Rooms are app-dependent.
-	- The "callback" is called when a chat message is received. 
-	- The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.presence.join
+	- "Room" is the name of the chat room you want to join. Rooms are app-specific, not universal.
+	- The "callback" is called whenever a chat message is received. 
+	- The "presence" function is called whenever a user enters or leaves the chat room. Additionally, you can get a list of users currently connected with villo.chat.presence. This parameter is optional.
 
 	Returns
 	-------
@@ -34,7 +39,27 @@ villo.chat = {
 		}
 		
 	As of Villo 1.0.0, the "timestamp" parameter will be added by default.
+	
+	Presence
+	--------
+	
+	If you pass a function in the presence parameter, then presence will automatically be enabled on the room. Whenever a presence event occurs, data will be passed to the presence function.
+	The data passed to the function will be formatted like this:
+	
+		{
+			"action": "join",
+			"username": "admin",
+			"occupancy": 12,
+			"timestamp": 1339990741554,
+		}
 		
+	- The "action" will always be "join", "leave", or "timeout".
+	- The "username" is the Villo username of the user the action is associated with.
+	- The "occupancy" is the current number of users in the room.
+	- The "timestamp" is epoch time, in milliseconds.
+	
+	Additionally, you can request presence information for a specific room using villo.chat.presence.
+	
 	Use
 	---
 		
@@ -42,50 +67,106 @@ villo.chat = {
 			room: "main",
 			callback: function(message){
 				//The message variable is where the goods are.
+			},
+			presence: function(presence){
+				console.log(presence);
+				if(presence.action === "join"){
+					alert("User Joined! :)");
+				}
+				if(presence.action === "leave"){
+					alert("User Left! :(")
+				}
+				if(presence.action === "timeout"){
+					alert("User Timed Out :(")
+				}
 			}
 		});
 
 */
 	join: function(chatObject){
-		//FIXME
-		if ('PUBNUB' in window) {
-			//FIXME
-			if (villo.chat.isSubscribed(chatObject.room) === false) {
-				PUBNUB.subscribe({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + chatObject.room.toUpperCase(),
-					callback: function(message){
-						chatObject.callback(message);
-					},
-					connect: chatObject.connect || function(){},
-					error: chatObject.error || function(){},
-					reconnect: chatObject.reconnect || function(){},
-					disconnect: chatObject.disconnect || function(){}
-				});
+		if (villo.chat.isSubscribed(chatObject.room) === false) {
+			
+			//Wrappers FTW:
+			var presenceEvent = function(message){
+				//Pubnub uses uuid, we use username.
+				message.username = message.uuid;
+				delete message.uuid;
+				chatObject.presence(message);
+			};
+			
+			PUBNUB.subscribe({
+				restore: true,
+				channel: villo.chat.buildName(chatObject.room),
+				callback: (typeof(chatObject.callback) === "function") ? function(message){chatObject.callback(message);} : function(){},
+				connect: chatObject.connect || function(){},
+				error: chatObject.error || function(){},
+				reconnect: chatObject.reconnect || function(){},
+				disconnect: chatObject.disconnect || function(){},
 				
-				//FIXME: This is all handled inline now:
-				if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled === true){
-					villo.presence.join({
-						room: chatObject.room,
-						callback: (chatObject.presence.callback || "")
-					});
-					villo.chat.rooms.push({
-						"name": chatObject.room.toUpperCase(),
-						"presence": true
-					});
-				}else{
-					villo.chat.rooms.push({
-						"name": chatObject.room.toUpperCase(),
-						"presence": false
-					});
-				}
-				
-				return true;
-			} else {
-				return true;
-			}
+				presence: (typeof(chatObject.presence) === "function") ? presenceEvent : false
+			});
+			
+			villo.chat.rooms.push({
+				"name": chatObject.room.toUpperCase()
+			});
+			
+			return true;
 		} else {
-			return false;
+			return true;
 		}
+	},
+/**
+	villo.chat.presence
+	===================
+	
+    Retrieves the current presence information, specifically the users online, for a given chat room. 
+    
+	Calling
+	-------
+
+	`villo.chat.presence({room: string, callback: function)`
+	
+	- "Room" is the name of the chat room you wish to retrieve presence information for.
+	- The "callback" is called when the presence data is received. 
+		
+	Callback
+	--------
+		
+	An object will be passed to the callback function when the presence information is received for the chat room, and will be formatted like this:
+		
+		{
+			"occupancy": 4,
+			"users": [
+				"kesne",
+				"admin",
+				"jeff",
+				"john"
+			]
+		}
+	
+	Use
+	---
+		
+		villo.chat.presence({
+			room: "main",
+			callback: function(message){
+				//This will alert with the number of users online:
+				alert(message.occupancy);
+			}
+		});
+		
+	Notes
+	-----
+	
+	You can call villo.chat.presence without joining a chat room. If you wish to get push information on the presence of a specific chat room, use villo.chat.join and pass a "presence" function.
+
+*/	
+	presence: function(presenceObject){
+		PUBNUB.here_now({channel: villo.chat.buildName(presenceObject.room), callback: function(message){
+			message.users = message.uuids;
+			delete message.uuids;
+			presenceObject.callback(message);
+		}});
 	},
 /**
 	villo.chat.isSubscribed
@@ -134,8 +215,8 @@ villo.chat = {
 
 	`villo.chat.send({room: string, message: string})`
 	
-	- "Room" is the name of the chat room you want to join. Rooms are app-dependent, and you cannot send messages accross different applications.
-	- The "message" is a string which is a message that you want to send. You can also pass objects in the message parameter, instead of string. 
+	- "Room" is the name of the chat room you want to join. Rooms are app-specific, and you cannot send messages across different applications.
+	- The "message" is a string which is a message that you want to send. You can also pass objects in the message parameter, instead of string.
 
 	Returns
 	-------
@@ -154,35 +235,32 @@ villo.chat = {
 	-----
 	
 	If you have joined a chat room, when a message is sent, it will be received through the callback defined in the join function call.
+	
+	If you pass an object in the message parameter, it will also be passed to the callback function as an object.
 
 */
 	send: function(messageObject){
-		if ('PUBNUB' in window) {
-			//Build the JSON to push to the server.
-			var pushMessage = {
-				"username": villo.user.username,
-				"message": messageObject.message,
-				"timestamp": new Date().getTime()
-			};
-			//Use the first room by default:
-			if(!messageObject.room){
-				messageObject.room = villo.chat.rooms[0].name;
-			}
-			PUBNUB.publish({
-				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + messageObject.room.toUpperCase(),
-				message: pushMessage
-			});
-			return true;
-		} else {
-			return false;
+		//Build the JSON to push to the server.
+		var pushMessage = {
+			"username": villo.user.username,
+			"message": messageObject.message,
+			"timestamp": new Date().getTime()
+		};
+		//Use the first room by default:
+		if(!messageObject.room){
+			messageObject.room = villo.chat.rooms[0].name;
 		}
-		
+		PUBNUB.publish({
+			channel: villo.chat.buildName(messageObject.room),
+			message: pushMessage
+		});
+		return true;
 	},
 /**
 	villo.chat.leaveAll
 	===================
 	
-    Closes all of the open connections to chat rooms. If a presence room was joined when the function was loaded, the connection to the presence rooms will also be closed.
+    Closes all of the open connections to chat rooms.
     
 	Calling
 	-------
@@ -200,33 +278,29 @@ villo.chat = {
 	---
 		
 		villo.chat.leaveAll();
+		
+	Notes
+	-----
+	
+	After leaving a chat room, both the message updates and presence updates will no longer be passed to their respective callbacks.
 
 */
 	leaveAll: function(){
-		if ('PUBNUB' in window) {
-			for (var x in villo.chat.rooms) {
-				if (villo.chat.rooms.hasOwnProperty(x)) {
-					PUBNUB.unsubscribe({
-						channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
-					});
-					if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence === true){
-						villo.presence.leave({
-							room: villo.chat.rooms[x].name
-						});
-					}
-				}
+		for (var x in villo.chat.rooms) {
+			if (villo.chat.rooms.hasOwnProperty(x)) {
+				PUBNUB.unsubscribe({
+					channel: villo.chat.buildName(villo.chat.rooms[x].name)
+				});
 			}
-			villo.chat.rooms = [];
-			return true;
-		} else {
-			return false;
 		}
+		villo.chat.rooms = [];
+		return true;
 	},
 /**
 	villo.chat.leave
 	================
 	
-    Closes a connection to a specific chat room. If a presence room was joined when the chat room was joined, the connection to the presence room will also be closed.
+    Closes a connection to a specific chat room.
     
 	Calling
 	-------
@@ -244,31 +318,27 @@ villo.chat = {
 	---
 		
 		villo.chat.leave("main");
+		
+	Notes
+	-----
+	
+	After leaving a chat room, both the message updates and presence updates will no longer be passed to their respective callbacks.
 
 */
 	leave: function(closerObject){
-		if ('PUBNUB' in window) {
-			PUBNUB.unsubscribe({
-				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.toUpperCase()
-			});
-			var rmv = "";
-			for (var x in villo.chat.rooms) {
-				if (villo.chat.rooms.hasOwnProperty(x)) {
-					if (villo.chat.rooms[x].name === closerObject) {
-						rmv = x;
-						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence === true){
-							villo.presence.leave({
-								room: villo.chat.rooms[x].name
-							});
-						}
-					}
+		PUBNUB.unsubscribe({
+			channel: villo.chat.buildName(closerObject)
+		});
+		var rmv = "";
+		for (var x in villo.chat.rooms) {
+			if (villo.chat.rooms.hasOwnProperty(x)) {
+				if (villo.chat.rooms[x].name === closerObject) {
+					villo.chat.rooms.splice(x, 1);
+					break;
 				}
 			}
-			villo.chat.rooms.splice(rmv, 1);
-			return true;
-		} else {
-			return false;
 		}
+		return true;
 	},
 		
 /**
@@ -315,14 +385,12 @@ villo.chat = {
 
 */
 	history: function(historyObject){
-		if('PUBNUB' in window){
-			PUBNUB.history({
-				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + historyObject.room.toUpperCase(),
-				limit: (historyObject.limit || 25),
-				callback: function(data){
-					historyObject.callback(data);
-				}
-			});
-		}
+		PUBNUB.history({
+			channel: villo.chat.buildName(historyObject.room),
+			limit: (historyObject.limit || 25),
+			callback: function(data){
+				historyObject.callback(data);
+			}
+		});
 	}
 };

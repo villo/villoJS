@@ -93,6 +93,7 @@ villo.jsonp = {
 		
 		var scriptTag = document.createElement('SCRIPT');
 		scriptTag.src = url;
+		scriptTag.onerror = window[fn];
 		document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
 	},
 	evalJSONP: function(callback) {

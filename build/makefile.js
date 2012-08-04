@@ -20,7 +20,6 @@ var files = [
 	core + "load.js",
 	core + "leaders.js",
 	core + "messages.js",
-	core + "presence.js",
 	core + "profile.js",
 	core + "settings.js",
 	core + "states.js",

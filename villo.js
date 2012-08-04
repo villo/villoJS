@@ -175,9 +175,14 @@ villo.analytics = {
 };
 
 
+//TODO: Presence Callbacks:
+
 villo.chat = {
 	rooms: [],
-
+	//Generates room name:
+	buildName: function(name){
+		return "VILLO.CHAT." + villo.app.id.toUpperCase() + "." + name.toUpperCase();
+	},
 /**
 	villo.chat.join
 	===============
@@ -187,11 +192,11 @@ villo.chat = {
 	Calling
 	-------
 
-	`villo.chat.join({room: string, callback: function, presence: {enabled: boolean})`
+	`villo.chat.join({room: string, callback: function, presence: function)`
 	
-	- "Room" is the name of the chat room you want to join. Rooms are app-dependent.
-	- The "callback" is called when a chat message is received. 
-	- The "presence" object contains the "enabled" bool. Setting this to true opens up a presence channel, which tracks the users in a given chatroom. This can also be done with villo.presence.join
+	- "Room" is the name of the chat room you want to join. Rooms are app-specific, not universal.
+	- The "callback" is called whenever a chat message is received. 
+	- The "presence" function is called whenever a user enters or leaves the chat room. Additionally, you can get a list of users currently connected with villo.chat.presence. This parameter is optional.
 
 	Returns
 	-------
@@ -210,7 +215,27 @@ villo.chat = {
 		}
 		
 	As of Villo 1.0.0, the "timestamp" parameter will be added by default.
+	
+	Presence
+	--------
+	
+	If you pass a function in the presence parameter, then presence will automatically be enabled on the room. Whenever a presence event occurs, data will be passed to the presence function.
+	The data passed to the function will be formatted like this:
+	
+		{
+			"action": "join",
+			"username": "admin",
+			"occupancy": 12,
+			"timestamp": 1339990741554,
+		}
 		
+	- The "action" will always be "join", "leave", or "timeout".
+	- The "username" is the Villo username of the user the action is associated with.
+	- The "occupancy" is the current number of users in the room.
+	- The "timestamp" is epoch time, in milliseconds.
+	
+	Additionally, you can request presence information for a specific room using villo.chat.presence.
+	
 	Use
 	---
 		
@@ -218,50 +243,106 @@ villo.chat = {
 			room: "main",
 			callback: function(message){
 				//The message variable is where the goods are.
+			},
+			presence: function(presence){
+				console.log(presence);
+				if(presence.action === "join"){
+					alert("User Joined! :)");
+				}
+				if(presence.action === "leave"){
+					alert("User Left! :(")
+				}
+				if(presence.action === "timeout"){
+					alert("User Timed Out :(")
+				}
 			}
 		});
 
 */
 	join: function(chatObject){
-		//FIXME
-		if ('PUBNUB' in window) {
-			//FIXME
-			if (villo.chat.isSubscribed(chatObject.room) === false) {
-				PUBNUB.subscribe({
-					channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + chatObject.room.toUpperCase(),
-					callback: function(message){
-						chatObject.callback(message);
-					},
-					connect: chatObject.connect || function(){},
-					error: function(e){
-						//Error connecting. PubNub will automatically attempt to reconnect.
-					}
-				});
+		if (villo.chat.isSubscribed(chatObject.room) === false) {
+			
+			//Wrappers FTW:
+			var presenceEvent = function(message){
+				//Pubnub uses uuid, we use username.
+				message.username = message.uuid;
+				delete message.uuid;
+				chatObject.presence(message);
+			};
+			
+			PUBNUB.subscribe({
+				restore: true,
+				channel: villo.chat.buildName(chatObject.room),
+				callback: (typeof(chatObject.callback) === "function") ? function(message){chatObject.callback(message);} : function(){},
+				connect: chatObject.connect || function(){},
+				error: chatObject.error || function(){},
+				reconnect: chatObject.reconnect || function(){},
+				disconnect: chatObject.disconnect || function(){},
 				
-				//FIXME: This is all handled inline now:
-				if(chatObject.presence && chatObject.presence.enabled && chatObject.presence.enabled === true){
-					villo.presence.join({
-						room: chatObject.room,
-						callback: (chatObject.presence.callback || "")
-					});
-					villo.chat.rooms.push({
-						"name": chatObject.room.toUpperCase(),
-						"presence": true
-					});
-				}else{
-					villo.chat.rooms.push({
-						"name": chatObject.room.toUpperCase(),
-						"presence": false
-					});
-				}
-				
-				return true;
-			} else {
-				return true;
-			}
+				presence: (typeof(chatObject.presence) === "function") ? presenceEvent : false
+			});
+			
+			villo.chat.rooms.push({
+				"name": chatObject.room.toUpperCase()
+			});
+			
+			return true;
 		} else {
-			return false;
+			return true;
 		}
+	},
+/**
+	villo.chat.presence
+	===================
+	
+    Retrieves the current presence information, specifically the users online, for a given chat room. 
+    
+	Calling
+	-------
+
+	`villo.chat.presence({room: string, callback: function)`
+	
+	- "Room" is the name of the chat room you wish to retrieve presence information for.
+	- The "callback" is called when the presence data is received. 
+		
+	Callback
+	--------
+		
+	An object will be passed to the callback function when the presence information is received for the chat room, and will be formatted like this:
+		
+		{
+			"occupancy": 4,
+			"users": [
+				"kesne",
+				"admin",
+				"jeff",
+				"john"
+			]
+		}
+	
+	Use
+	---
+		
+		villo.chat.presence({
+			room: "main",
+			callback: function(message){
+				//This will alert with the number of users online:
+				alert(message.occupancy);
+			}
+		});
+		
+	Notes
+	-----
+	
+	You can call villo.chat.presence without joining a chat room. If you wish to get push information on the presence of a specific chat room, use villo.chat.join and pass a "presence" function.
+
+*/	
+	presence: function(presenceObject){
+		PUBNUB.here_now({channel: villo.chat.buildName(presenceObject.room), callback: function(message){
+			message.users = message.uuids;
+			delete message.uuids;
+			presenceObject.callback(message);
+		}});
 	},
 /**
 	villo.chat.isSubscribed
@@ -287,7 +368,6 @@ villo.chat = {
 		villo.chat.isSubscribed("main");
 
 */
-
 	isSubscribed: function(roomString){
 		var c = false;
 		for (var x in villo.chat.rooms) {
@@ -311,8 +391,8 @@ villo.chat = {
 
 	`villo.chat.send({room: string, message: string})`
 	
-	- "Room" is the name of the chat room you want to join. Rooms are app-dependent, and you cannot send messages accross different applications.
-	- The "message" is a string which is a message that you want to send. You can also pass objects in the message parameter, instead of string. 
+	- "Room" is the name of the chat room you want to join. Rooms are app-specific, and you cannot send messages across different applications.
+	- The "message" is a string which is a message that you want to send. You can also pass objects in the message parameter, instead of string.
 
 	Returns
 	-------
@@ -331,35 +411,32 @@ villo.chat = {
 	-----
 	
 	If you have joined a chat room, when a message is sent, it will be received through the callback defined in the join function call.
+	
+	If you pass an object in the message parameter, it will also be passed to the callback function as an object.
 
 */
 	send: function(messageObject){
-		if ('PUBNUB' in window) {
-			//Build the JSON to push to the server.
-			var pushMessage = {
-				"username": villo.user.username,
-				"message": messageObject.message,
-				"timestamp": new Date().getTime()
-			};
-			//Use the first room by default:
-			if(!messageObject.room){
-				messageObject.room = villo.chat.rooms[0].name;
-			}
-			PUBNUB.publish({
-				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + messageObject.room.toUpperCase(),
-				message: pushMessage
-			});
-			return true;
-		} else {
-			return false;
+		//Build the JSON to push to the server.
+		var pushMessage = {
+			"username": villo.user.username,
+			"message": messageObject.message,
+			"timestamp": new Date().getTime()
+		};
+		//Use the first room by default:
+		if(!messageObject.room){
+			messageObject.room = villo.chat.rooms[0].name;
 		}
-		
+		PUBNUB.publish({
+			channel: villo.chat.buildName(messageObject.room),
+			message: pushMessage
+		});
+		return true;
 	},
 /**
 	villo.chat.leaveAll
 	===================
 	
-    Closes all of the open connections to chat rooms. If a presence room was joined when the function was loaded, the connection to the presence rooms will also be closed.
+    Closes all of the open connections to chat rooms.
     
 	Calling
 	-------
@@ -377,33 +454,29 @@ villo.chat = {
 	---
 		
 		villo.chat.leaveAll();
+		
+	Notes
+	-----
+	
+	After leaving a chat room, both the message updates and presence updates will no longer be passed to their respective callbacks.
 
 */
 	leaveAll: function(){
-		if ('PUBNUB' in window) {
-			for (var x in villo.chat.rooms) {
-				if (villo.chat.rooms.hasOwnProperty(x)) {
-					PUBNUB.unsubscribe({
-						channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + villo.chat.rooms[x].name.toUpperCase()
-					});
-					if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence === true){
-						villo.presence.leave({
-							room: villo.chat.rooms[x].name
-						});
-					}
-				}
+		for (var x in villo.chat.rooms) {
+			if (villo.chat.rooms.hasOwnProperty(x)) {
+				PUBNUB.unsubscribe({
+					channel: villo.chat.buildName(villo.chat.rooms[x].name)
+				});
 			}
-			villo.chat.rooms = [];
-			return true;
-		} else {
-			return false;
 		}
+		villo.chat.rooms = [];
+		return true;
 	},
 /**
 	villo.chat.leave
 	================
 	
-    Closes a connection to a specific chat room. If a presence room was joined when the chat room was joined, the connection to the presence room will also be closed.
+    Closes a connection to a specific chat room.
     
 	Calling
 	-------
@@ -421,31 +494,27 @@ villo.chat = {
 	---
 		
 		villo.chat.leave("main");
+		
+	Notes
+	-----
+	
+	After leaving a chat room, both the message updates and presence updates will no longer be passed to their respective callbacks.
 
 */
 	leave: function(closerObject){
-		if ('PUBNUB' in window) {
-			PUBNUB.unsubscribe({
-				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + closerObject.toUpperCase()
-			});
-			var rmv = "";
-			for (var x in villo.chat.rooms) {
-				if (villo.chat.rooms.hasOwnProperty(x)) {
-					if (villo.chat.rooms[x].name === closerObject) {
-						rmv = x;
-						if(villo.chat.rooms[x].presence && villo.chat.rooms[x].presence === true){
-							villo.presence.leave({
-								room: villo.chat.rooms[x].name
-							});
-						}
-					}
+		PUBNUB.unsubscribe({
+			channel: villo.chat.buildName(closerObject)
+		});
+		var rmv = "";
+		for (var x in villo.chat.rooms) {
+			if (villo.chat.rooms.hasOwnProperty(x)) {
+				if (villo.chat.rooms[x].name === closerObject) {
+					villo.chat.rooms.splice(x, 1);
+					break;
 				}
 			}
-			villo.chat.rooms.splice(rmv, 1);
-			return true;
-		} else {
-			return false;
 		}
+		return true;
 	},
 		
 /**
@@ -492,15 +561,13 @@ villo.chat = {
 
 */
 	history: function(historyObject){
-		if('PUBNUB' in window){
-			PUBNUB.history({
-				channel: "VILLO/CHAT/" + villo.app.id.toUpperCase() + "/" + historyObject.room.toUpperCase(),
-				limit: (historyObject.limit || 25),
-				callback: function(data){
-					historyObject.callback(data);
-				}
-			});
-		}
+		PUBNUB.history({
+			channel: villo.chat.buildName(historyObject.room),
+			limit: (historyObject.limit || 25),
+			callback: function(data){
+				historyObject.callback(data);
+			}
+		});
 	}
 };
 
@@ -970,7 +1037,7 @@ villo.friends = {
 	Returns
 	-------
 		
-	Returns the prototype object of the constructed game. This allows you to store the return to a variable and reference the constructed game object.
+	Returns the object of the constructed game. This allows you to store the return value to a variable and reference the constructed game object to call methods.
 		
 	Use
 	---
@@ -1018,15 +1085,16 @@ villo.Game = function(gameObject){
 	}
 	
 	if(gameObject.use){
-		if(gameObject.use.clean && gameObject.use.clean === true){
+		if(gameObject.indexOf().clean && gameObject.use.clean === true){
 			invoke = false;
 		}
 		this.use = gameObject.use;
 		delete gameObject.use;
 		for(var x in this.use){
 			if(this.use.hasOwnProperty(x)){
-				//Ensure that the feature exists:
-				if(villo.Game.features[x]){
+				if(this.use[x] === "clean"){
+					invoke = false;
+				}else if(villo.Game.features[x]){
 					//Do they want it?
 					if(this.use[x] === true){
 						//Add it in:
@@ -1915,144 +1983,6 @@ villo.leaders = {
 
 /* Villo Messages */
 villo.messages = {};
-
-
-villo.presence = {
-	rooms: {},
-
-	join: function(joinObject){
-		
-		//Standardize:
-		joinObject.room = joinObject.room.toUpperCase();
-		
-		this.rooms[joinObject.room] = {users: []};
-
-		this._timeouts[joinObject.room] = {};
-
-		PUBNUB.subscribe({
-			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + joinObject.room.toUpperCase() + "",
-			callback: function(evt){
-				if (evt.name === "user-presence") {
-					var user = evt.data.username;
-
-					if (villo.presence._timeouts[joinObject.room][user]) {
-						clearTimeout(villo.presence._timeouts[joinObject.room][user]);
-					} else {
-						villo.presence.rooms[joinObject.room].users.push(user);
-						//New User, so push event to the callback:
-						if(joinObject.callback && typeof(joinObject.callback) === "function"){
-							joinObject.callback({
-								name: "new-user",
-								data: villo.presence.rooms[joinObject.room]
-							});
-						}
-					}
-
-					villo.presence._timeouts[joinObject.room][user] = setTimeout(function(){
-						villo.presence.rooms[joinObject.room].users.splice([villo.presence.rooms[joinObject.room].users.indexOf(user)], 1);
-						delete villo.presence._timeouts[joinObject.room][user];
-						joinObject.callback({
-							name: "exit-user",
-							data: villo.presence.rooms[joinObject.room]
-						});
-					}, 5000);
-				} else {
-					//Some other event. We just leave this here for potential future expansion.
-				}
-			}
-		});
-
-		// Announce our first presence, then keep announcing it.
-
-		PUBNUB.publish({
-			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + joinObject.room.toUpperCase(),
-			message: {
-				name: 'user-presence',
-				data: {
-					username: villo.user.username
-				}
-			}
-		});
-
-		this._intervals[joinObject.room] = window.setInterval(function(){
-			PUBNUB.publish({
-				channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + joinObject.room.toUpperCase(),
-				message: {
-					name: 'user-presence',
-					data: {
-						username: villo.user.username
-					}
-				}
-			});
-		}, 3000);
-
-		return true;
-	},
-	
-	//Also use get as a medium to access villo.presence.get ???
-	get: function(getObject){
-		
-		getObject.room = getObject.room.toUpperCase();
-		
-		//TODO: Check to see if we're already subscribed. If we are, we can pass them the current object, we don't need to go through this process.
-		this._get[getObject.room] = {};
-
-		PUBNUB.subscribe({
-			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + getObject.room.toUpperCase(),
-			callback: function(evt){
-				if (evt.name === "user-presence") {
-					var user = evt.data.username;
-
-					if (villo.presence._get[getObject.room][user]) {
-
-					} else {
-
-					}
-
-					villo.presence._get[getObject.room][user] = {"username": user};
-				} else {
-					//Some other event. We just leave this here for potential future expansion.
-				}
-			}
-		});
-
-		window.setTimeout(function(){
-			PUBNUB.unsubscribe({
-				channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + getObject.room.toUpperCase()
-			});
-			var returnObject = {
-				room: getObject.room,
-				users: []
-			};
-			for(var x in villo.presence._get[getObject.room]){
-				if(villo.presence._get[getObject.room].hasOwnProperty(x)){
-					returnObject.users.push(villo.presence._get[getObject.room][x].username);
-				}
-			}
-			getObject.callback(returnObject);
-		}, 4000);
-	},
-
-	leave: function(leaveObject){
-		
-		leaveObject.room = leaveObject.room.toUpperCase();
-		
-		PUBNUB.unsubscribe({
-			channel: "VILLO/PRESENCE/" + villo.app.id.toUpperCase() + "/" + leaveObject.room.toUpperCase()
-		});
-		clearInterval(this._intervals[leaveObject.room]);
-		delete this._intervals[leaveObject.room];
-		delete this._timeouts[leaveObject.room];
-		delete this.rooms[leaveObject.room];
-		return true;
-	},
-
-	// These are the private variables, they should only be referenced by the Villo framework itself.
-
-	_timeouts: {},
-	_intervals: {},
-	_get: {}
-};
 
 
 /* Villo Profile */
@@ -3145,6 +3075,7 @@ villo.jsonp = {
 		
 		var scriptTag = document.createElement('SCRIPT');
 		scriptTag.src = url;
+		scriptTag.onerror = window[fn];
 		document.getElementsByTagName('HEAD')[0].appendChild(scriptTag);
 	},
 	evalJSONP: function(callback) {
@@ -4690,7 +4621,7 @@ function rnow() { return+new Date }
 var db = (function(){
     var ls = window['localStorage'];
     return {
-        get : function(key) {
+        'get' : function(key) {
             try {
                 if (ls) return ls.getItem(key);
                 if (document.cookie.indexOf(key) == -1) return null;
@@ -4699,7 +4630,7 @@ var db = (function(){
                 )||[])[1] || null;
             } catch(e) { return }
         },
-        set : function( key, value ) {
+        'set' : function( key, value ) {
             try {
                 if (ls) return ls.setItem( key, value ) && 0;
                 document.cookie = key + '=' + value +
@@ -4717,7 +4648,7 @@ var NOW    = 1
 ,   REPL   = /{([\w\-]+)}/g
 ,   ASYNC  = 'async'
 ,   URLBIT = '/'
-,   XHRTME = 140000
+,   XHRTME = 310000
 ,   SECOND = 1000
 ,   UA     = navigator.userAgent
 ,   XORIGN = UA.indexOf('MSIE 6') == -1;
@@ -5014,6 +4945,12 @@ function xdr( setup ) {
     script[ASYNC]  = ASYNC;
     script.onerror = function() { done(1) };
     script.src     = setup.url.join(URLBIT);
+    if (setup.data) {
+        script.src += "?";
+        for (key in setup.data) {
+            script.src += key+"="+setup.data[key]+"&";
+        }
+    }
 
     attr( script, 'id', id );
 
@@ -5073,8 +5010,16 @@ function ajax( setup ) {
         xhr.onerror = xhr.onabort   = function(){ done(1) };
         xhr.onload  = xhr.onloadend = finished;
         xhr.timeout = XHRTME;
-
-        xhr.open( 'GET', setup.url.join(URLBIT), true );
+        
+        url     = setup.url.join(URLBIT);
+        if (setup.data) {
+            url += "?";
+            for (key in setup.data) {
+                url += key+"="+setup.data[key]+"&";
+            }
+        }
+        
+        xhr.open( 'GET', url, true );
         xhr.send();
     }
     catch(eee) {
@@ -5099,9 +5044,10 @@ var PDIV          = $('pubnub') || {}
 ,   READY_BUFFER  = []
 ,   CREATE_PUBNUB = function(setup) {
     var CHANNELS      = {}
-    ,   PUBLISH_KEY   = setup['publish_key']   || villo.app.pubnub.pub
-    ,   SUBSCRIBE_KEY = setup['subscribe_key'] || villo.app.pubnub.sub
+    ,   PUBLISH_KEY   = setup['publish_key']   || 'pub-42c6b905-6d4e-4896-b74f-c1065ab0dc10'
+    ,   SUBSCRIBE_KEY = setup['subscribe_key'] || 'sub-4e37d063-edfa-11df-8f1a-517217f921a4'
     ,   SSL           = setup['ssl'] ? 's' : ''
+    ,   UUID          = (function(){return villo.user.getUsername() || "Guest"})()
     ,   ORIGIN        = 'http'+SSL+'://'+(setup['origin']||'pubsub.pubnub.com')
     ,   SELF          = {
         /*
@@ -5151,16 +5097,13 @@ var PDIV          = $('pubnub') || {}
             PUBNUB.uuid(function(uuid) { console.log(uuid) });
         */
         'uuid' : function(callback) {
-            var jsonp = jsonp_cb();
-            xdr({
-                callback : jsonp,
-                url      : [
-                    'http' + SSL +
-                    '://pubnub-prod.appspot.com/uuid?callback=' + jsonp
-                ],
-                success  : function(response) { callback(response[0]) },
-                fail     : function() { callback(0) }
+        	return villo.user.getUsername() || "Guest"
+            var u = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+                return v.toString(16);
             });
+            if (callback) callback(u);
+            return u;
         },
 
         /*
@@ -5190,16 +5133,18 @@ var PDIV          = $('pubnub') || {}
                 0, encode(channel),
                 jsonp, encode(message)
             ];
+            
+            UUID = SELF.uuid();
 
             // Send Message
             xdr({
                 callback : jsonp,
                 success  : function(response) { callback(response) },
                 fail     : function() { callback([ 0, 'Disconnected' ]) },
-                url      : url
+                url      : url,
+                data     : { uuid: UUID }
             });
         },
-
         /*
             PUBNUB.unsubscribe({ channel : 'my_chat' });
         */
@@ -5224,15 +5169,16 @@ var PDIV          = $('pubnub') || {}
             });
         */
         'subscribe' : function( args, callback ) {
-
             var channel      = args['channel']
             ,   callback     = callback || args['callback']
+            ,   subscribe_key= args['subscribe_key'] || SUBSCRIBE_KEY
             ,   restore      = args['restore']
             ,   timetoken    = 0
             ,   error        = args['error'] || function(){}
             ,   connect      = args['connect'] || function(){}
             ,   reconnect    = args['reconnect'] || function(){}
             ,   disconnect   = args['disconnect'] || function(){}
+            ,   presence     = args['presence'] || function(){}
             ,   disconnected = 0
             ,   connected    = 0
             ,   origin       = nextorigin(ORIGIN);
@@ -5257,15 +5203,18 @@ var PDIV          = $('pubnub') || {}
 
                 // Stop Connection
                 if (!CHANNELS[channel].connected) return;
-
+				
+				UUID = SELF.uuid();
+				
                 // Connect to PubNub Subscribe Servers
                 CHANNELS[channel].done = xdr({
                     callback : jsonp,
                     url      : [
                         origin, 'subscribe',
-                        SUBSCRIBE_KEY, encode(channel),
+                        subscribe_key, encode(channel),
                         jsonp, timetoken
                     ],
+                    data     : { uuid: UUID },
                     fail : function() {
                         // Disconnect
                         if (!disconnected) {
@@ -5274,7 +5223,14 @@ var PDIV          = $('pubnub') || {}
                         }
                         timeout( pubnub, SECOND );
                         SELF['time'](function(success){
-                            success || error();
+                            // Reconnect
+                            if (success && disconnected) {
+                                disconnected = 0;
+                                reconnect();
+                            }
+                            else {
+                                error();
+                            }
                         });
                     },
                     success : function(messages) {
@@ -5297,7 +5253,7 @@ var PDIV          = $('pubnub') || {}
                         restore = db.set(
                             SUBSCRIBE_KEY + channel,
                             timetoken = restore && db.get(
-                                SUBSCRIBE_KEY + channel
+                                subscribe_key + channel
                             ) || messages[1]
                         );
 
@@ -5306,12 +5262,47 @@ var PDIV          = $('pubnub') || {}
                         } );
 
                         timeout( pubnub, 10 );
-                    }
+                    },
+                    
                 });
             }
 
             // Begin Recursive Subscribe
             pubnub();
+            
+            if (args['presence']) {
+                SELF.subscribe({
+                    channel: args['channel']+"-pnpres",
+                    callback: presence,
+                    restore: args['restore']
+                });
+            }
+        },
+        'here_now' : function( args, callback ) {
+            var callback = args['callback'] || callback 
+            ,   channel  = args['channel']
+            ,   jsonp    = jsonp_cb()
+            ,   origin   = nextorigin(ORIGIN);
+
+            // Make sure we have a Channel
+            if (!channel)  return log('Missing Channel');
+            if (!callback) return log('Missing Callback');
+            
+            data = null;
+            if (jsonp != '0') { data['callback']=jsonp; }
+            
+            // Send Message
+            xdr({
+                callback : jsonp,
+                url      : [
+                    origin, 'v2', 'presence',
+                    'sub_key', SUBSCRIBE_KEY, 
+                    'channel', encode(channel)
+                ],
+                data: data,
+                success  : function(response) { callback(response) },
+                fail     : function(response) { log(response) }
+            });
         },
 
         // Expose PUBNUB Functions
@@ -5334,7 +5325,9 @@ var PDIV          = $('pubnub') || {}
         'updater'  : updater,
         'init'     : CREATE_PUBNUB
     };
-
+    
+    if (UUID == '') UUID = SELF.uuid();
+    
     return SELF;
 };
 
@@ -5343,7 +5336,8 @@ PUBNUB = CREATE_PUBNUB({
     'publish_key'   : attr( PDIV, 'pub-key' ),
     'subscribe_key' : attr( PDIV, 'sub-key' ),
     'ssl'           : attr( PDIV, 'ssl' ) == 'on',
-    'origin'        : attr( PDIV, 'origin' )
+    'origin'        : attr( PDIV, 'origin' ),
+    'uuid'          : attr( PDIV, 'uuid' )
 });
 
 // PUBNUB Flash Socket

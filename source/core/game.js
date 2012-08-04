@@ -22,7 +22,7 @@
 	Returns
 	-------
 		
-	Returns the prototype object of the constructed game. This allows you to store the return to a variable and reference the constructed game object.
+	Returns the object of the constructed game. This allows you to store the return value to a variable and reference the constructed game object to call methods.
 		
 	Use
 	---
@@ -70,15 +70,16 @@ villo.Game = function(gameObject){
 	}
 	
 	if(gameObject.use){
-		if(gameObject.use.clean && gameObject.use.clean === true){
+		if(gameObject.indexOf().clean && gameObject.use.clean === true){
 			invoke = false;
 		}
 		this.use = gameObject.use;
 		delete gameObject.use;
 		for(var x in this.use){
 			if(this.use.hasOwnProperty(x)){
-				//Ensure that the feature exists:
-				if(villo.Game.features[x]){
+				if(this.use[x] === "clean"){
+					invoke = false;
+				}else if(villo.Game.features[x]){
 					//Do they want it?
 					if(this.use[x] === true){
 						//Add it in:

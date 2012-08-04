@@ -99,12 +99,23 @@ villo.extend(villo, {
 				div.append($("<h3></h3>").html(x));
 				var nav = $("<ul></ul>");
 				//nav.addClass("nav nav-list");
-				for(var y in this.docs[x]){
+				
+				var sdocs = [];
+				$.map(this.docs[x], function(value, key) {
+					sdocs.push(key);
+				});
+				sdocs.sort();
+				var docsx = {};
+				$.map(sdocs, villo.bind(this, function(val){
+					docsx[val] = this.docs[x][val];
+				}));
+				
+				for(var y in docsx){
 					var sub = $("<li></li>");
 					sub.html(y);
 					var bel = $("<ul><ul>");
 					//bel.addClass("nav nav-list");
-					for(var z in this.docs[x][y]){
+					for(var z in docsx[y]){
 						var bot = $("<li></li>");
 						bot.html("<a href='#" + x + "/" + y + "/" + z + "'>" + z + "</a>");
 						bel.append(bot);
