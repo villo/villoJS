@@ -11,7 +11,7 @@ The best way to get started with VilloJS is to take a look at the [Villo Develop
 Contributing
 ------------
 
-If you would like to contribute to VilloJS, just follow these steps:
+If you would like to contribute to VilloJS, just follow these super easy steps:
 
 - Fork this repository.
 - Make the changes that you want.
@@ -28,12 +28,11 @@ The following should be completed by the 1.0 release.
 - Native JSON handling in storage.
 - Finish villo.Game (beta).
 	- Finish game example, and write a simple "getting started with villo.Game" guide.
-- Finish feeds.
+- Finish feeds (get + repost).
 	- Add docs.
 - Analytics (server-side).
 	- Documentation on methods.
 	- Small write-up on what is tracked, how it's tracked, how to enable/disable.
-- Fix villo.sync.
 	
 Roadmap
 -------

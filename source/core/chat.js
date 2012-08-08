@@ -1,6 +1,4 @@
 
-//TODO: Presence Callbacks:
-
 villo.chat = {
 	rooms: [],
 	//Generates room name:

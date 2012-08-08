@@ -68,8 +68,6 @@ villo.user = {
 						//Support old callback method:
 						callback ? callback(true) : userObject.callback(true);
 						
-						villo.sync();
-						
 						//Call the login hook.
 						villo.hooks.call({name: "login"});
 					} else {
@@ -270,8 +268,6 @@ villo.user = {
 						
 						callback ? callback(true) : userObject.callback(true);
 						
-						villo.sync();
-						
 						//Call the hook
 						villo.hooks.call({name: "register"});
 					} else {
@@ -329,7 +325,6 @@ villo.user = {
 		villo.sync();
 		return true;
 	},
-		
 /**
 	villo.user.getUsername
 	==================

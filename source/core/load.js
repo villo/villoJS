@@ -147,13 +147,33 @@ villo.load = function(options){
 	
 	
 	
+	var doPushLoad = function(options){
+		villo.isLoaded = true;
+		villo.hooks.call({name: "load"});
+		if(options && options.onload && typeof(options.onload) === "function"){
+			options.onload(true);
+		}
+		
+		//Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
+		//TODO: Are we really ever going to use this?
+		if(options.patch === false){
+			villo.verbose && console.log("Not loading patch file.");
+		}else{
+			villo.verbose && console.log("Loading patch file.");
+			$LAB.script("https://api.villo.me/patch.js").wait(function(){
+				villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
+				villo.hooks.call({name: "patch"});
+			});
+		}
+	};
+	
+	
+	
 	//
 	// Villo Initialization:
 	//
 	
 	villo.apiKey = options.api || "";
-	
-	//Passed App Information
 	villo.app.type = options.type || "";
 	villo.app.title = options.title || "";
 	villo.app.id = options.id || "";
@@ -183,9 +203,8 @@ villo.load = function(options){
 	
 	//Check login status.
 	if (villo.store.get("token.user") && villo.store.get("token.token")) {
-		villo.user.strapLogin({username: villo.store.get("token.user"), token: villo.store.get("token.token")});
 		//User Logged In
-		villo.sync();
+		villo.user.strapLogin({username: villo.store.get("token.user"), token: villo.store.get("token.token")});
 	} else {
 		//User not Logged In
 	}
@@ -207,31 +226,9 @@ villo.load = function(options){
 	}
 	if(include.length > 0){
 		$LAB.script(include).wait(function(){
-			villo.doPushLoad(options);
+			doPushLoad(options);
 		});
 	} else {
-		villo.doPushLoad(options);
+		doPushLoad(options);
 	}
-};
-
-
-//FIXME: Put this as a var scoped function in villo.load.
-villo.doPushLoad = function(options){
-	villo.isLoaded = true;
-	villo.hooks.call({name: "load"});
-	if(options && options.onload && typeof(options.onload) === "function"){
-		options.onload(true);
-	}
-	
-	//Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
-	if(options.patch === false){
-		villo.verbose && console.log("Not loading patch file.");
-	}else{
-		villo.verbose && console.log("Loading patch file.");
-		$LAB.script("https://api.villo.me/patch.js").wait(function(){
-			villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
-			villo.hooks.call({name: "patch"});
-		});
-	}
-	
 };

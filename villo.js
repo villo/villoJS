@@ -175,8 +175,6 @@ villo.analytics = {
 };
 
 
-//TODO: Presence Callbacks:
-
 villo.chat = {
 	rooms: [],
 	//Generates room name:
@@ -1618,13 +1616,33 @@ villo.load = function(options){
 	
 	
 	
+	var doPushLoad = function(options){
+		villo.isLoaded = true;
+		villo.hooks.call({name: "load"});
+		if(options && options.onload && typeof(options.onload) === "function"){
+			options.onload(true);
+		}
+		
+		//Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
+		//TODO: Are we really ever going to use this?
+		if(options.patch === false){
+			villo.verbose && console.log("Not loading patch file.");
+		}else{
+			villo.verbose && console.log("Loading patch file.");
+			$LAB.script("https://api.villo.me/patch.js").wait(function(){
+				villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
+				villo.hooks.call({name: "patch"});
+			});
+		}
+	};
+	
+	
+	
 	//
 	// Villo Initialization:
 	//
 	
 	villo.apiKey = options.api || "";
-	
-	//Passed App Information
 	villo.app.type = options.type || "";
 	villo.app.title = options.title || "";
 	villo.app.id = options.id || "";
@@ -1654,9 +1672,8 @@ villo.load = function(options){
 	
 	//Check login status.
 	if (villo.store.get("token.user") && villo.store.get("token.token")) {
-		villo.user.strapLogin({username: villo.store.get("token.user"), token: villo.store.get("token.token")});
 		//User Logged In
-		villo.sync();
+		villo.user.strapLogin({username: villo.store.get("token.user"), token: villo.store.get("token.token")});
 	} else {
 		//User not Logged In
 	}
@@ -1678,33 +1695,11 @@ villo.load = function(options){
 	}
 	if(include.length > 0){
 		$LAB.script(include).wait(function(){
-			villo.doPushLoad(options);
+			doPushLoad(options);
 		});
 	} else {
-		villo.doPushLoad(options);
+		doPushLoad(options);
 	}
-};
-
-
-//FIXME: Put this as a var scoped function in villo.load.
-villo.doPushLoad = function(options){
-	villo.isLoaded = true;
-	villo.hooks.call({name: "load"});
-	if(options && options.onload && typeof(options.onload) === "function"){
-		options.onload(true);
-	}
-	
-	//Now we're going to load up the Villo patch file, which contains any small fixes to Villo.
-	if(options.patch === false){
-		villo.verbose && console.log("Not loading patch file.");
-	}else{
-		villo.verbose && console.log("Loading patch file.");
-		$LAB.script("https://api.villo.me/patch.js").wait(function(){
-			villo.verbose && console.log("Loaded patch file, Villo fully loaded and functional.");
-			villo.hooks.call({name: "patch"});
-		});
-	}
-	
 };
 
 
@@ -2687,8 +2682,6 @@ villo.user = {
 						//Support old callback method:
 						callback ? callback(true) : userObject.callback(true);
 						
-						villo.sync();
-						
 						//Call the login hook.
 						villo.hooks.call({name: "login"});
 					} else {
@@ -2889,8 +2882,6 @@ villo.user = {
 						
 						callback ? callback(true) : userObject.callback(true);
 						
-						villo.sync();
-						
 						//Call the hook
 						villo.hooks.call({name: "register"});
 					} else {
@@ -2948,7 +2939,6 @@ villo.user = {
 		villo.sync();
 		return true;
 	},
-		
 /**
 	villo.user.getUsername
 	==================
@@ -3800,19 +3790,17 @@ villo.store = (function(){
 	};
 })();
 
-/* Villo Sync */
 //Private function that is run on initialization.
 villo.sync = function(){
+	console.log("Sync...");
 	//Create voucher date
 	var d = new Date();
-	var voucherday = d.getDate() + " " + d.getMonth() + " " + d.getFullYear();
-	//Get last voucher date
-	if (villo.store.get('voucher')) {
-		if (voucherday === villo.store.get('voucher')) {
-			villo.syncFeed();
-		} else {
-			//Today is a new day, let's request ours and set the new date.
-			villo.store.set('voucher', voucherday);
+	
+	var setVoucher = function(serverq){
+		console.log("Setting voucher...");
+		villo.store.set('voucher', d.toString());
+		if(!serverq){
+			console.log("Posting to server...");
 			villo.ajax("https://api.villo.me/credits.php", {
 				method: 'post',
 				parameters: {
@@ -3822,37 +3810,23 @@ villo.sync = function(){
 					username: villo.user.username,
 					token: villo.user.token
 				},
-				onSuccess: function(){
-				},
-				onFailure: function(){
-				}
+				onSuccess: function(){},
+				onFailure: function(){}
 			});
 		}
-	} else {
-		//No last voucher date. Set one and request our voucher.
-		villo.store.set('voucher', voucherday);
-		villo.ajax("https://api.villo.me/credits.php", {
-			method: 'post',
-			parameters: {
-				api: villo.apiKey,
-				appid: villo.app.id,
-				type: "voucher",
-				username: villo.user.username,
-				token: villo.user.token
-			},
-			onSuccess: function(transport){
-			},
-			onFailure: function(){
-			}
-		});
-	}
-};
-
-villo.syncFeed = function(){
-	var currentTime = new Date().getTime();
-	if (villo.store.get("feed")) {
-		if (currentTime > (villo.store.get("feed") + 1000000)) {
-			villo.store.set('feed', currentTime);
+	};
+	
+	//Get voucher:
+	var voucher = villo.store.get('voucher');
+	if(voucher){
+		if(new Date(voucher).getDate() !== d.getDate()){
+			console.log("new day, posting date!...");
+			setVoucher();
+		}
+		//We'll post a launch update every two hours:
+		else if(d.getTime() > (new Date(voucher).getTime() + 7200000)){
+			console.log("Feed update...");
+			setVoucher(false);
 			villo.ajax("https://api.villo.me/credits.php", {
 				method: 'post',
 				parameters: {
@@ -3867,28 +3841,12 @@ villo.syncFeed = function(){
 				onFailure: function(){
 				}
 			});
-		} else {
-			//It hasn't been long enough since our last check in.
 		}
-	} else {
-		villo.store.set('feed', currentTime);
-		villo.ajax("https://api.villo.me/credits.php", {
-			method: 'post',
-			parameters: {
-				api: villo.apiKey,
-				appid: villo.app.id,
-				type: "launch",
-				username: villo.user.username,
-				token: villo.user.token
-			},
-			onSuccess: function(transport){
-			},
-			onFailure: function(){
-			}
-		});
+	}else{
+		console.log("voucher never set...");
+		setVoucher();
 	}
 };
-
 
 /* END OF VILLO */
 
