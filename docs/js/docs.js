@@ -462,6 +462,10 @@ villo.extend(villo, {
 					}else{
 						if(this.getMethod(hash)){
 							window.location.hash = this.getMethod(hash);
+						}if(hash.slice(-2) === "_d"){
+							$("#sidebar").hide(0);
+							$("#elmain").removeClass("container").addClass("container-fluid");
+							window.location.hash = this.getMethod(hash.substring(0, hash.length-2));
 						}else{
 							err404();
 						}
