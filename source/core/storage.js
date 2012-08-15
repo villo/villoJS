@@ -6,12 +6,11 @@ villo.storage = {
 	//TODO: Get callback values.
 	
 	set: function(addObject){
-		//The managing of update vs new content is handled on the server
 		if (!addObject.privacy) {
 			addObject.privacy = false;
 		}
 		if (typeof(addObject.data) === "object") {
-			//We'll be nice and stringify the data for them.
+			//Stringify any JSON data for them. This will automatically be converted back into an object with get.
 			addObject.data = JSON.stringify(addObject.data);
 		}
 		villo.ajax("https://api.villo.me/storage.php", {
@@ -57,6 +56,7 @@ villo.storage = {
 		var storeGetTitle = villo.app.title;
 		var storeGetAppID = villo.app.id;
 		
+		//TODO: Depreciate
 		if (getObject.external) {
 			storeGetTitle = getObject.external.appTitle;
 			storeGetAppID = getObject.external.appID;
@@ -76,7 +76,6 @@ villo.storage = {
 			},
 			onSuccess: function(transport){
 				if (transport !== "") {
-					//Check for JSON
 					var trans = "";
 					try{
 						trans = JSON.parse(transport);

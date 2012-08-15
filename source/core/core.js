@@ -26,7 +26,7 @@ var villo;
 (function() {
 	villo = this.villo || {};
 	
-	villo.version = "0.9.9 x1";
+	villo.version = "0.9.9 c1";
 	
 	villo.global = this;
 })();

@@ -1,7 +1,5 @@
 /* 
  * Villo Settings
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
  * 
  * 
  * For Docs:
@@ -15,7 +13,6 @@
  * 
  */
 villo.settings = {
-	//We strap the settings on to villo.app.settings.
 /**
 	villo.settings.load
 	===================
@@ -27,8 +24,8 @@ villo.settings = {
 
 	`villo.settings.load({instant: boolean, callback: function})`
     
-    - "Callback" is a function that is when the settings are loaded. The settings stored in the villo.app.settings object is passed to the callback. The callback function is not required if you set the "instant" parameter to true.
     - The "instant" parameter can be set to true if you wish to only retrieve the latest settings, and not the use the settings stored on the server. This parameter defaults to false, and is not required.
+    - "Callback" is a function that is when the settings are loaded. The settings stored in the villo.app.settings object is passed to the callback. The callback function is not required if you set the "instant" parameter to true.
 
 	Returns
 	-------
@@ -43,7 +40,7 @@ villo.settings = {
 	Use
 	---
 	
-	Example use with instant off:
+	Example use with instant _off_:
 	
 		villo.settings.load({
 			instant: false,
@@ -55,7 +52,7 @@ villo.settings = {
 			}
 		});
 		
-	Example use with instant on:
+	Example use with instant _on_:
 		
 		var prefs = villo.settings.load({instant: true});
 		//Settings are now loaded. We can grab a specific aspect of the return object now:
