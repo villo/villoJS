@@ -433,7 +433,6 @@ villo.extend(villo, {
 			
 			var hash = location.hash.substring(1);
 			if(villo.trim(hash) !== ""){
-				//TODO: 404
 				var hashArr = hash.split("/");
 				if(hashArr.length === 3){
 					if(this.docs[hashArr[0]][hashArr[1]][hashArr[2]]){
@@ -461,7 +460,11 @@ villo.extend(villo, {
 						var page = this.pages[hash];
 						$("#content").html(page.html);
 					}else{
-						err404();
+						if(this.getMethod(hash)){
+							window.location.hash = this.getMethod(hash);
+						}else{
+							err404();
+						}
 					}
 				}
 			}else{
