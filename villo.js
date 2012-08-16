@@ -26,7 +26,7 @@ var villo;
 (function() {
 	villo = this.villo || {};
 	
-	villo.version = "0.9.9 x1";
+	villo.version = "0.9.9 c1";
 	
 	villo.global = this;
 })();
@@ -2264,8 +2264,6 @@ villo.profile = {
 
 /* 
  * Villo Settings
- * ==========
- * Copyright 2011 Jordan Gensler. All rights reserved.
  * 
  * 
  * For Docs:
@@ -2279,7 +2277,6 @@ villo.profile = {
  * 
  */
 villo.settings = {
-	//We strap the settings on to villo.app.settings.
 /**
 	villo.settings.load
 	===================
@@ -2291,8 +2288,8 @@ villo.settings = {
 
 	`villo.settings.load({instant: boolean, callback: function})`
     
-    - "Callback" is a function that is when the settings are loaded. The settings stored in the villo.app.settings object is passed to the callback. The callback function is not required if you set the "instant" parameter to true.
     - The "instant" parameter can be set to true if you wish to only retrieve the latest settings, and not the use the settings stored on the server. This parameter defaults to false, and is not required.
+    - "Callback" is a function that is when the settings are loaded. The settings stored in the villo.app.settings object is passed to the callback. The callback function is not required if you set the "instant" parameter to true.
 
 	Returns
 	-------
@@ -2307,7 +2304,7 @@ villo.settings = {
 	Use
 	---
 	
-	Example use with instant off:
+	Example use with instant _off_:
 	
 		villo.settings.load({
 			instant: false,
@@ -2319,7 +2316,7 @@ villo.settings = {
 			}
 		});
 		
-	Example use with instant on:
+	Example use with instant _on_:
 		
 		var prefs = villo.settings.load({instant: true});
 		//Settings are now loaded. We can grab a specific aspect of the return object now:
@@ -2523,12 +2520,11 @@ villo.storage = {
 	//TODO: Get callback values.
 	
 	set: function(addObject){
-		//The managing of update vs new content is handled on the server
 		if (!addObject.privacy) {
 			addObject.privacy = false;
 		}
 		if (typeof(addObject.data) === "object") {
-			//We'll be nice and stringify the data for them.
+			//Stringify any JSON data for them. This will automatically be converted back into an object with get.
 			addObject.data = JSON.stringify(addObject.data);
 		}
 		villo.ajax("https://api.villo.me/storage.php", {
@@ -2546,6 +2542,7 @@ villo.storage = {
 				data: addObject.data
 			},
 			onSuccess: function(transport){
+				console.log(transport);
 				if (transport !== "") {
 					//Check for JSON:
 					var trans = "";
@@ -2574,6 +2571,7 @@ villo.storage = {
 		var storeGetTitle = villo.app.title;
 		var storeGetAppID = villo.app.id;
 		
+		//TODO: Depreciate
 		if (getObject.external) {
 			storeGetTitle = getObject.external.appTitle;
 			storeGetAppID = getObject.external.appID;
@@ -2592,8 +2590,8 @@ villo.storage = {
 				privacy: getObject.privacy
 			},
 			onSuccess: function(transport){
+				console.log(transport);
 				if (transport !== "") {
-					//Check for JSON
 					var trans = "";
 					try{
 						trans = JSON.parse(transport);

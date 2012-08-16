@@ -28,6 +28,7 @@ villo.storage = {
 				data: addObject.data
 			},
 			onSuccess: function(transport){
+				console.log(transport);
 				if (transport !== "") {
 					//Check for JSON:
 					var trans = "";
@@ -75,6 +76,7 @@ villo.storage = {
 				privacy: getObject.privacy
 			},
 			onSuccess: function(transport){
+				console.log(transport);
 				if (transport !== "") {
 					var trans = "";
 					try{
