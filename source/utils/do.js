@@ -19,7 +19,7 @@ villo.doSomething = function(){
 	villo.log("You said", strings);
 	if (arguments[0] === "easterEgg") {
 		//Easter Egg!
-		villo.webLog("Suit up!");
+		villo.webLog("Oh, hi Mark!");
 	}
 	return true;
 };

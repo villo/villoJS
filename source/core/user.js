@@ -44,7 +44,7 @@ villo.user = {
 	The username of the user currently logged in to Villo is stored as a string in villo.user.username, which you can view by calling villo.user.getUsername.
 
 */
-	login: function(userObject, callback){
+	login: function(userObject){
 		villo.ajax("https://api.villo.me/user/login.php", {
 			method: 'post',
 			parameters: {
@@ -59,25 +59,24 @@ villo.user = {
 				if (token === 1 || token === 2 || token === 33 || token === 99) {
 					//Error, call back with our error codes.
 					//We also are using the newer callback syntax here.
-					callback ? callback(token) : userObject.callback(token);
+					userObject.callback(token);
 				} else 
 					if (token.length === 32) {
 						
 						villo.user.strapLogin({username: userObject.username, token: token});
-						
-						//Support old callback method:
-						callback ? callback(true) : userObject.callback(true);
+
+						userObject.callback(true);
 						
 						//Call the login hook.
 						villo.hooks.call({name: "login"});
 					} else {
-						callback ? callback(33) : userObject.callback(33);
+						userObject.callback(33);
 						villo.verbose && villo.log(33);
 						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 					}
 			},
 			onFailure: function(failure){
-				callback ? callback(33) : userObject.callback(33);
+				userObject.callback(33);
 			}
 		});
 	},
@@ -243,7 +242,7 @@ villo.user = {
 	Once a user is registered using villo.user.register, it will automatically log them in. You do not need to store the username or password. Villo will automatically save the username, along with a unique authentication token, and will load both of them every time Villo is initialized.
 
 */
-	register: function(userObject, callback){
+	register: function(userObject){
 		villo.ajax("https://api.villo.me/user/register.php", {
 			method: 'post',
 			parameters: {
@@ -259,26 +258,26 @@ villo.user = {
 				var token = villo.trim(transport);
 				if (token === 1 || token === 2 || token === 33 || token === 99) {
 					//Error, call back with our error codes.
-					callback ? callback(token) : userObject.callback(token);
+					userObject.callback(token);
 				} else 
 					if (token.length === 32) {
 						
 						villo.user.strapLogin({username: userObject.username, token: token});
 						
 						
-						callback ? callback(true) : userObject.callback(true);
+						userObject.callback(true);
 						
 						//Call the hook
 						villo.hooks.call({name: "register"});
 					} else {
-						callback ? callback(33) : userObject.callback(33);
+						userObject.callback(33);
 						
 						villo.verbose && villo.log(33);
 						villo.verbose && villo.log("Error Logging In - Undefined: " + token);
 					}
 			},
 			onFailure: function(failure){
-				callback ? callback(33) : userObject.callback(33);
+				userObject.callback(33);
 			}
 		});
 	},
