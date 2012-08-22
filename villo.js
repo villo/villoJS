@@ -2543,17 +2543,8 @@ villo.storage = {
 			},
 			onSuccess: function(transport){
 				console.log(transport);
-				if (transport !== "") {
-					//Check for JSON:
-					var trans = "";
-					try{
-						trans = JSON.parse(transport);
-					}catch(e){
-						trans = transport;
-					}
-					if(addObject.callback){
-						addObject.callback(trans);
-					}
+				if (transport === "1") {
+					addObject.callback(true);
 				} else {
 					addObject.callback(33);
 				}
@@ -2583,7 +2574,7 @@ villo.storage = {
 				api: villo.apiKey,
 				appid: storeGetAppID,
 				app: storeGetTitle,
-				type: "retrieve",
+				type: "get",
 				username: villo.user.username,
 				token: villo.user.token,
 				title: getObject.title,
@@ -2591,7 +2582,7 @@ villo.storage = {
 			},
 			onSuccess: function(transport){
 				console.log(transport);
-				if (transport !== "") {
+				if (transport !== "" && transport !== "0") {
 					var trans = "";
 					try{
 						trans = JSON.parse(transport);
@@ -2599,6 +2590,8 @@ villo.storage = {
 						trans = transport;
 					}
 					getObject.callback(trans);
+				} else if(transport === "0"){
+					getObject.callback(false);
 				} else {
 					getObject.callback(33);
 				}
