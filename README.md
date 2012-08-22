@@ -13,11 +13,22 @@ Contributing
 
 If you would like to contribute to VilloJS, just follow these super easy steps:
 
-- Fork this repository.
-- Make the changes that you want.
-- Submit a pull request with the chnages made to the files in the source directory. DO NOT submit a pull request with the rebuilt villo.js and villo.min.js files.
+1. Fork this repository.
+2. Make the changes that you want.
+3. Submit a pull request with the chnages made to the files in the source directory. DO NOT submit a pull request with the rebuilt villo.js and villo.min.js files.
 
 If your pull request conflicts with pending changes, we'll do our best to manually merge them.
+
+Building
+--------
+
+VilloJS is already built and minified for your convienience. However, if you wish to rebuild villo.js and villo.min.js from the source files, you can do so by following the steps below.
+
+1. Ensure that you have Node.js installed.
+2. Open the "build" directory.
+3. Run build.sh (mac/linux) or build.bat (windows).
+
+That's it. The build script will create villo.js and villo.min.js in the main villo directory.
 
 Version 1.0 Todo 
 ----------------

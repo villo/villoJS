@@ -2,9 +2,6 @@
 /* Villo Cloud Storage */
 villo.storage = {
 	
-	//TODO: Check to see if the string is JSON when we get it back.
-	//TODO: Get callback values.
-	
 	set: function(addObject){
 		if (!addObject.privacy) {
 			addObject.privacy = false;
