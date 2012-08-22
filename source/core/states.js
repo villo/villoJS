@@ -70,7 +70,7 @@ villo.states = {
 	get: function(getObject){
 		if (getObject.instant && getObject.instant === true) {
 			//Don't force return, allow callback:
-			var ret = villo.store.get("VAppState") || false
+			var ret = villo.store.get("VAppState") || false;
 			if(getObject.callback){
 				getObject.callback(ret);
 			}
