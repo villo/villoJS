@@ -13,7 +13,7 @@ villo.user = {
 	
 	- The "username" string should be the Villo username, as provided by the user.
 	- The "password" string should be the Villo password, as provided by the user.
-	- The "callback" funtion is called when the function is completed, letting you know if the user was logged in or not.
+	- The "callback" function is called when the function is completed, letting you know if the user was logged in or not.
 
 	Callback
 	--------
