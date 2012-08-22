@@ -181,7 +181,8 @@ villo.load = function(options){
 	villo.app.developer = options.developer || "";
 	
 	//Load up the settings (includes sync + cloud).
-	if (villo.store.get("VilloSettingsProp")) {
+	if(villo.settings.exists()){
+		villo.settings.load({instant: true});
 		villo.settings.load({
 			callback: function(){
 				villo.hooks.call({name: "settings"});
