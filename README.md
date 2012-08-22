@@ -36,6 +36,7 @@ Version 1.0 Todo
 The following should be completed by the 1.0 release.
 
 - Finish full unit test suite.
+- Document villo.storage.
 - Finish villo.Game (beta).
 	- Finish game example, and write a simple "getting started with villo.Game" guide.
 - Finish feeds (get + repost).
