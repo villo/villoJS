@@ -472,12 +472,8 @@ villo.extend(villo, {
 					}
 				}
 			}else{
-				var page;
-				for(var first in this.pages){
-					page = this.pages[first];
-					break;
-				}
-				$("#content").html(page.html);
+				//FIXME: Specific to Villo:
+				window.location.hash = "About Villo";
 			}
 			window.scrollTo(0, 0);
 		}
