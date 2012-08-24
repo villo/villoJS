@@ -1332,7 +1332,7 @@ villo.Game.type({
 
 /**
 	villo.gift
-	==================
+	==========
 	
 	As of Villo 1.0.0 Villo's Gift functionality is being rewritten from the ground up to make it easier for developers to use. 
 	
@@ -1590,7 +1590,7 @@ villo.resource = function(options){
 };
 /**
 	villo.load
-	===========
+	==========
 	
 	The load function can be called for two things. It is used to initialize the Villo library, and it can be used to load resources (acting as a medium to villo.resource). 
     
@@ -2279,7 +2279,7 @@ villo.profile = {
 	},
 /**
 	villo.profile.avatar
-	=====================
+	====================
 	
     Uses the Villo Avatar API to load a given users avatar.
     
@@ -3193,7 +3193,7 @@ villo.user = {
 	},
 /**
 	villo.user.getUsername
-	==================
+	======================
 	
 	This function returns the username of the user who is currently logged in. This function acts as a safe medium for villo.user.username, where the string is stored.
 	
@@ -3227,7 +3227,7 @@ villo.user = {
 
 /**
 	villo.ajax
-	=================
+	==========
 	
     Cross-platform, cross-browser Ajax function. This is used by Villo to connect to the Villo APIs.
     
@@ -3510,7 +3510,7 @@ villo.clone = function(obj){
 
 /**
 	villo.extend
-	=================
+	============
 	
 	Allows developers to extend Villo functionality by adding methods to the Villo object.
     
@@ -3569,9 +3569,6 @@ villo.extend = function(that, obj){
 };
 
 
-/*
- * Experimental
- */
 villo.hooks = {
 	//Where we store the callbacks.
 	hooks: [],
@@ -3590,7 +3587,7 @@ villo.hooks = {
 	
 /**
 	villo.hooks.listen
-	=================
+	==================
 	
 	Listen on a specific hook and fire a callback when the hook is activated.
     
@@ -3835,7 +3832,7 @@ villo.cap = function(str) {
 
 /**
 	villo.log
-	=================
+	=========
 	
     Acts as a wrapper for console.log, logging any parameters you pass it. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
     
@@ -3881,7 +3878,7 @@ villo.log = function(){
 };
 /**
 	villo.webLog
-	=================
+	============
 	
     Acts as a wrapper for console.log, and also passes the log data to Villo, which can be viewed in the Villo Developer Portal. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
     
@@ -3953,7 +3950,7 @@ villo.webLog = function(){
 };
 /**
 	villo.dumpLogs
-	=================
+	==============
 	
     Get the log data, originating from calls to villo.log or villo.webLog.
     
@@ -4853,15 +4850,16 @@ var db = (function(){
 /**
  * UTIL LOCALS
  */
-var NOW    = 1
-,   SWF    = 'https://dh15atwfs066y.cloudfront.net/pubnub.swf'
-,   REPL   = /{([\w\-]+)}/g
-,   ASYNC  = 'async'
-,   URLBIT = '/'
-,   XHRTME = 310000
-,   SECOND = 1000
-,   UA     = navigator.userAgent
-,   XORIGN = UA.indexOf('MSIE 6') == -1;
+var NOW             = 1
+,   SWF             = 'https://dh15atwfs066y.cloudfront.net/pubnub.swf'
+,   REPL            = /{([\w\-]+)}/g
+,   ASYNC           = 'async'
+,   URLBIT          = '/'
+,   XHRTME          = 310000
+,   SECOND          = 1000
+,   PRESENCE_SUFFIX = '-pnpres'
+,   UA              = navigator.userAgent
+,   XORIGN          = UA.indexOf('MSIE 6') == -1;
 
 /**
  * NEXTORIGIN
@@ -5307,13 +5305,16 @@ var PDIV          = $('pubnub') || {}
             PUBNUB.uuid(function(uuid) { console.log(uuid) });
         */
         'uuid' : function(callback) {
-        	return villo.user.getUsername() || "Guest"
+        	
+        	return villo.user.getUsername() || "Guest";
+        	/*
             var u = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
                 var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
                 return v.toString(16);
             });
             if (callback) callback(u);
             return u;
+            */
         },
 
         /*
@@ -5343,9 +5344,9 @@ var PDIV          = $('pubnub') || {}
                 0, encode(channel),
                 jsonp, encode(message)
             ];
-            
-            UUID = SELF.uuid();
-
+			
+			UUID = SELF.uuid();
+			
             // Send Message
             xdr({
                 callback : jsonp,
@@ -5359,17 +5360,21 @@ var PDIV          = $('pubnub') || {}
             PUBNUB.unsubscribe({ channel : 'my_chat' });
         */
         'unsubscribe' : function(args) {
-            var channel = args['channel'];
+            // Unsubscribe from both the Channel and the Presence Channel
+            _unsubscribe(args['channel']);
+            _unsubscribe(args['channel'] + PRESENCE_SUFFIX);
 
-            // Leave if there never was a channel.
-            if (!(channel in CHANNELS)) return;
+            function _unsubscribe(channel) {
+                // Leave if there never was a channel.
+                if (!(channel in CHANNELS)) return;
 
-            // Disable Channel
-            CHANNELS[channel].connected = 0;
+                // Disable Channel
+                CHANNELS[channel].connected = 0;
 
-            // Abort and Remove Script
-            CHANNELS[channel].done && 
-            CHANNELS[channel].done(0);
+                // Abort and Remove Script
+                CHANNELS[channel].done && 
+                CHANNELS[channel].done(0);
+            }
         },
 
         /*
@@ -5408,14 +5413,14 @@ var PDIV          = $('pubnub') || {}
                 CHANNELS[channel].connected = 1;
 
             // Recurse Subscribe
-            function pubnub() {
+            function _connect() {
                 var jsonp = jsonp_cb();
 
                 // Stop Connection
                 if (!CHANNELS[channel].connected) return;
-				
-				UUID = SELF.uuid();
-				
+                
+                UUID = SELF.uuid();
+
                 // Connect to PubNub Subscribe Servers
                 CHANNELS[channel].done = xdr({
                     callback : jsonp,
@@ -5472,21 +5477,19 @@ var PDIV          = $('pubnub') || {}
                         } );
 
                         timeout( pubnub, 10 );
-                    },
-                    
+                    }
                 });
             }
 
+            // Presence Subscribe
+            if (args['presence']) SELF.subscribe({
+                channel  : args['channel'] + PRESENCE_SUFFIX,
+                callback : presence,
+                restore  : args['restore']
+            });
+
             // Begin Recursive Subscribe
-            pubnub();
-            
-            if (args['presence']) {
-                SELF.subscribe({
-                    channel: args['channel']+"-pnpres",
-                    callback: presence,
-                    restore: args['restore']
-                });
-            }
+            _connect();
         },
         'here_now' : function( args, callback ) {
             var callback = args['callback'] || callback 
@@ -5537,6 +5540,7 @@ var PDIV          = $('pubnub') || {}
     };
     
     if (UUID == '') UUID = SELF.uuid();
+    db.set(SUBSCRIBE_KEY+'uuid', UUID);
     
     return SELF;
 };
