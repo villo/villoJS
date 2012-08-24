@@ -70,7 +70,7 @@ villo.resource = function(options){
 };
 /**
 	villo.load
-	===========
+	==========
 	
 	The load function can be called for two things. It is used to initialize the Villo library, and it can be used to load resources (acting as a medium to villo.resource). 
     

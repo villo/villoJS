@@ -3,7 +3,7 @@
 
 /**
 	villo.gift
-	==================
+	==========
 	
 	As of Villo 1.0.0 Villo's Gift functionality is being rewritten from the ground up to make it easier for developers to use. 
 	

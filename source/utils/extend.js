@@ -46,7 +46,7 @@ villo.clone = function(obj){
 
 /**
 	villo.extend
-	=================
+	============
 	
 	Allows developers to extend Villo functionality by adding methods to the Villo object.
     

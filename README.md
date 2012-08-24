@@ -35,14 +35,15 @@ Version 1.0 Todo
 
 The following should be completed by the 1.0 release.
 
-- Finish full unit test suite.
-- Finish villo.Game (beta).
-	- Finish game example, and write a simple "getting started with villo.Game" guide.
+- Gravatar
 - Finish feeds (get + repost).
 	- Add docs.
+- Finish villo.Game (beta).
+	- Finish game example, and write a simple "getting started with villo.Game" guide.
 - Analytics (server-side).
 	- Documentation on methods.
 	- Small write-up on what is tracked, how it's tracked, how to enable/disable.
+- Finish full unit test suite.
 	
 Roadmap
 -------

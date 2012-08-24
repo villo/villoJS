@@ -1,7 +1,7 @@
 
 /**
 	villo.log
-	=================
+	=========
 	
     Acts as a wrapper for console.log, logging any parameters you pass it. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
     
@@ -47,7 +47,7 @@ villo.log = function(){
 };
 /**
 	villo.webLog
-	=================
+	============
 	
     Acts as a wrapper for console.log, and also passes the log data to Villo, which can be viewed in the Villo Developer Portal. If no console is available, it pushes it to an object, which you can get using villo.dumpLogs.
     
@@ -119,7 +119,7 @@ villo.webLog = function(){
 };
 /**
 	villo.dumpLogs
-	=================
+	==============
 	
     Get the log data, originating from calls to villo.log or villo.webLog.
     

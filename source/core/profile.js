@@ -246,7 +246,7 @@ villo.profile = {
 	},
 /**
 	villo.profile.avatar
-	=====================
+	====================
 	
     Uses the Villo Avatar API to load a given users avatar.
     

@@ -326,7 +326,7 @@ villo.user = {
 	},
 /**
 	villo.user.getUsername
-	==================
+	======================
 	
 	This function returns the username of the user who is currently logged in. This function acts as a safe medium for villo.user.username, where the string is stored.
 	

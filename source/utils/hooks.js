@@ -1,7 +1,4 @@
 
-/*
- * Experimental
- */
 villo.hooks = {
 	//Where we store the callbacks.
 	hooks: [],
@@ -20,7 +17,7 @@ villo.hooks = {
 	
 /**
 	villo.hooks.listen
-	=================
+	==================
 	
 	Listen on a specific hook and fire a callback when the hook is activated.
     
