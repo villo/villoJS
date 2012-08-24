@@ -1,3 +1,7 @@
+
+//We store references to the games here just for ease of use.
+villo.games = {};
+
 /**
 	villo.Game
 	==========
@@ -9,27 +13,53 @@
 	Calling
 	-------
 
-	`new villo.Game({name: string, type: string, use: array, events: object, create: function)`
+	`new villo.Game({name: string, type: string, features: array, events: object, create: function})`
 	
-	- The "name" is a string given to the game instance. Games use the given name to communicate.
+	- The "name" is a string given to the game instance. Games use the given name to communicate, and the name should be unique for every instance of villo.Game.
 	- The "type" is defines the type of game that you are creating, and sets up different channels of communication based that type. Currently, the two built-in types are "all" and "none".
-	- Use (optional)
+	- The "features" array lets you define what features you would like the game constructor to include. If you don't include this parameter, all of the features will be imported. For more details, see the "Features" section.
 	- Events (optional)
-	- Create (optional)
+	- The "create" function will be called when your game is initialized. This function is optional.
 	
-	Additionally, you can put any other properties in the call and they will be added to the prototype.
-
+	Additionally, you can put any other properties in the call and they will be added to the prototype of the constructed game.
+	
+	Types
+	-----
+	
+	Types in villo.Game help you get started even faster by setting up some features
+	
+	Features
+	--------
+	
+	Features works with the villo.Game core, giving you modular features that build on top of Villo's existing API. Currently, two features are included with villo.Game: chat and data.
+	
+	### Chat ###
+	
+	Some blurb about chat.
+	
+	### Data ###
+	
+	Some blurb about data.
+	
+	For more details on features, see "Expanding villo.Game".
+	
 	Returns
 	-------
 		
-	Returns the object of the constructed game. This allows you to store the return value to a variable and reference the constructed game object to call methods.
-		
+	Returns the object of the constructed game. This allows you to store the return value to a variable and reference the constructed game object to call methods. Additionally, a reference to the game will be added to the villo.games object.
+	
 	Use
 	---
 		
 		var mmo = new villo.Game({
-			
+			name: "mmo",
+			type: "all"
 		});
+		
+		//Broadcast something:
+		mmo.data.send({message: "Hello."});
+		//We can also reference the constructed game this way:
+		villo.games.mmo.data.send({message: "Why hello there!"});
 		
 	For a better use example, see "Game Demo" in the examples folder.
 	
@@ -39,7 +69,6 @@
 	This is only designed to handle the online interactions in games, and is not designed to handle any actual game mechanics.
 
 */
-
 villo.Game = function(gameObject){
 	
 	//If they forget to include the new keyword, we'll do it for them, so that we always have a new instance:
@@ -55,7 +84,7 @@ villo.Game = function(gameObject){
 		delete gameObject.name;
 	}else{
 		//we need a name
-		return;
+		return false;
 	}
 	
 	var invoke = "";
@@ -69,22 +98,14 @@ villo.Game = function(gameObject){
 		invoke = "all";
 	}
 	
-	if(gameObject.use){
-		if(gameObject.indexOf().clean && gameObject.use.clean === true){
-			invoke = false;
-		}
-		this.use = gameObject.use;
-		delete gameObject.use;
-		for(var x in this.use){
-			if(this.use.hasOwnProperty(x)){
-				if(this.use[x] === "clean"){
-					invoke = false;
-				}else if(villo.Game.features[x]){
-					//Do they want it?
-					if(this.use[x] === true){
-						//Add it in:
-						this[x] = villo.clone(villo.Game.features[x]);
-					}
+	if(gameObject.features){
+		this.features = gameObject.features;
+		delete gameObject.features;
+		for(var x in this.features){
+			if(this.features.hasOwnProperty(x)){
+				if(villo.Game.features[this.features[x]]){
+					//Add it in:
+					this[this.features[x]] = villo.clone(villo.Game.features[this.features[x]]);
 				}
 			}
 		}
@@ -140,6 +161,9 @@ villo.Game = function(gameObject){
 		//We pass the create function true, just for giggles.
 		this.create(true);
 	}
+	
+	//Store a reference:
+	villo.games[this.name] = this;
 	
 	//Return the prototype, to allow for calling methods off of a variable reference:
 	return this;
@@ -201,32 +225,47 @@ villo.Game.feature({
 		});
 		return this;
 	},
-	history: function(){},
-	leave: function(){},
+	history: function(histObject){
+		villo.chat.history({
+			room: histObject.room || this.room,
+			callback: histObject.callback
+		});
+		return this;
+	},
+	leave: function(room){
+		villo.chat.leave(room || this.room);
+		return this;
+	},
 	leaveAll: function(){
 		villo.chat.leaveAll();
 		return this;
 	}
 });
 
-//Add Presence feature:
-villo.Game.feature({
-	name: "presence"
-});
-
 //Add Data feature:
 villo.Game.feature({
 	name: "data",
+	room: "data-main",
 	//Send data down the public lines:
-	send: function(){},
+	send: function(){
+		
+	},
 	//Send data at a given interval:
-	interval: function(){},
+	interval: function(){
+		
+	},
 	//Send data after a given timeout:
-	timeout: function(){},
+	timeout: function(){
+		
+	},
 	//Join the data rooms:
-	join: function(){},
+	join: function(){
+		this.room = ("data-" + joinObject.room) || this.room;
+	},
 	//Send data to a specific user:
-	user: function(){}
+	user: function(){
+		
+	}
 });
 
 /*
@@ -240,7 +279,7 @@ villo.Game.type({
 		//Check to see if we have chat enabled:
 		if(this.chat){
 			this.chat.join({
-				room: "game/" + this.name,
+				room: "game-" + this.name,
 				callback: villo.bind(this, function(callbackObject){
 					this.triggerEvent({
 						name: "chat",
@@ -251,14 +290,26 @@ villo.Game.type({
 		}
 		//Manage presence separately:
 		if(this.presence){
-			
+			//TODO
 		}
 		//And finally subscribe to some data!
 		if(this.data){
 			this.data.join({
-				name: this.name
+				room: this.name,
+				callback: villo.bind(this, function(callbackObject){
+					this.triggerEvent({
+						name: "data",
+						data: callbackObject
+					});
+				})
 			});
 		}
 		return this;
 	}
+});
+
+//Add the "none" tyoe:
+villo.Game.type({
+	name: "none",
+	create: villo.doNothing
 });

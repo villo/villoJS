@@ -9,6 +9,6 @@ villo.load({
 	"verbose": false,
 	"include": [
 		//By doing this, we turn off all of the caching:
-		"js/game.js?" + new Date().getTime()
+		"js/mygame.js?" + new Date().getTime()
 	]
 });
