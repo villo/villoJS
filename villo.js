@@ -2126,7 +2126,7 @@ villo.profile = {
 
 	`villo.profile.get({field: string, data: string, callback: function})`
 	
-	- The "field" parameter is the specific profile field you wish to update. Supported fields are "firstname", "lastname", "location", "status", and "avatar".
+	- The "field" parameter is the specific profile field you wish to update. Supported fields are "firstname", "lastname", "location", and "status".
 	- The "data" field is the information you would like to put in the field.
 	- The "callback" is a function that is called when the profile has been updated.
 	
@@ -2145,6 +2145,11 @@ villo.profile = {
 				//Data holds the goods.
 			}
 		});
+		
+	Notes
+	-----
+	
+	Up to Villo 1.0.0, you were able to set the user avatar with this function. However, with the switch to Gravatar for users' avatars, this functionality is not longer supported.
 
 */	
 	set: function(updateObject){
@@ -2284,7 +2289,7 @@ villo.profile = {
 	`villo.profile.avatar({username: string, size: string})`
 	
 	- The "username" should be a string of the user whose avatar you wish to retrieve.
-	- The "size" should be the size of the avatar that you want. Supported sizes are "thumbnail" (64x64), "small" (200x200), and "full" (up to 800x800). By default, "full" is used.
+	- The "size" should be the size of the avatar that you want. You can define your own size by using the format "lengthxwidth" (for example, "100x100"). You can also use the pre-defined sizes, which are "thumbnail" (64x64), "small" (200x200), and "full" (up to 800x800). By default, "full" is used.
 	
 	Returns
 	-------
@@ -2301,16 +2306,25 @@ villo.profile = {
 			username: "kesne",
 			size: "thumbnail"
 		});
+	
+	Notes
+	-----
+	
+	As of Villo 1.0, user avatars are powered by Gravatar.
 
 */
 	avatar: function(avatarObject){
 		var size = "full";
-		if(avatarObject.size === "thumbnail"){
+		var custom = "false";
+		if(avatarObject.size.toLowerCase().split("x").length === 2){
+			size = "custom";
+			custom = avatarObject.size;
+		}else if(avatarObject.size === "thumbnail"){
 			size = "thumbnail";
 		}else if(avatarObject.size === "small"){
 			size = "small";
 		}
-		return "https://api.villo.me/avatar.php?username=" + encodeURIComponent(avatarObject.username) + "&" + size + "=true";
+		return "https://api.villo.me/avatar.php?username=" + encodeURIComponent(avatarObject.username) + "&" + size + "=true&size=" + custom;
 	}
 };
 

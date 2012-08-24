@@ -56,7 +56,6 @@ These features are currently planned to be added to future version of VilloJS, t
 	- HTTP Rest API for developers.
 - villo.dom?
 	- villo.animation?
-- villo.feature?
 - Remove $LABJS dependency.
 - Villo Push?
 - Better Cross-Platform
