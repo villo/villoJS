@@ -255,8 +255,8 @@ villo.profile = {
 
 	`villo.profile.avatar({username: string, size: string})`
 	
-	- The "username" should be a string of the user whose avatar you wish to retrieve.
-	- The "size" should be the size of the avatar that you want. You can define your own size by using the format "lengthxwidth" (for example, "100x100"). You can also use the pre-defined sizes, which are "thumbnail" (64x64), "small" (200x200), and "full" (up to 800x800). By default, "full" is used.
+	- The "username" should be a string of the user whose avatar you wish to retrieve. If left blank, the avatar of the current user logged in will be retrieved. 
+	- The "size" should be the size of the avatar that you want. You can define your own size, such as "100" (which would return a 100px by 100px image). You can also use the pre-defined sizes, which are "thumbnail" (64x64), "small" (200x200), and "big" (800x800). By default, "small" is used.
 	
 	Returns
 	-------
@@ -281,16 +281,19 @@ villo.profile = {
 
 */
 	avatar: function(avatarObject){
+		var user = avatarObject.username || villo.user.getUsername();
 		var size = "full";
 		var custom = "false";
-		if(avatarObject.size.toLowerCase().split("x").length === 2){
+		if(avatarObject.size.toLowerCase() === "thumbnail"){
+			size = "thumbnail";
+		}else if(avatarObject.size.toLowerCase() === "small"){
+			size = "small";
+		}else if(avatarObject.size.toLowerCase() === "big"){
+			size = "big";
+		}else{
 			size = "custom";
 			custom = avatarObject.size;
-		}else if(avatarObject.size === "thumbnail"){
-			size = "thumbnail";
-		}else if(avatarObject.size === "small"){
-			size = "small";
 		}
-		return "https://api.villo.me/avatar.php?username=" + encodeURIComponent(avatarObject.username) + "&" + size + "=true&size=" + custom;
+		return "https://api.villo.me/avatar.php?username=" + encodeURIComponent(user) + "&" + size + "=true&size=" + custom;
 	}
 };

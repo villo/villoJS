@@ -2288,8 +2288,8 @@ villo.profile = {
 
 	`villo.profile.avatar({username: string, size: string})`
 	
-	- The "username" should be a string of the user whose avatar you wish to retrieve.
-	- The "size" should be the size of the avatar that you want. You can define your own size by using the format "lengthxwidth" (for example, "100x100"). You can also use the pre-defined sizes, which are "thumbnail" (64x64), "small" (200x200), and "full" (up to 800x800). By default, "full" is used.
+	- The "username" should be a string of the user whose avatar you wish to retrieve. If left blank, the avatar of the current user logged in will be retrieved. 
+	- The "size" should be the size of the avatar that you want. You can define your own size, such as "100" (which would return a 100px by 100px image). You can also use the pre-defined sizes, which are "thumbnail" (64x64), "small" (200x200), and "big" (800x800). By default, "small" is used.
 	
 	Returns
 	-------
@@ -2314,17 +2314,20 @@ villo.profile = {
 
 */
 	avatar: function(avatarObject){
+		var user = avatarObject.username || villo.user.getUsername();
 		var size = "full";
 		var custom = "false";
-		if(avatarObject.size.toLowerCase().split("x").length === 2){
+		if(avatarObject.size.toLowerCase() === "thumbnail"){
+			size = "thumbnail";
+		}else if(avatarObject.size.toLowerCase() === "small"){
+			size = "small";
+		}else if(avatarObject.size.toLowerCase() === "big"){
+			size = "big";
+		}else{
 			size = "custom";
 			custom = avatarObject.size;
-		}else if(avatarObject.size === "thumbnail"){
-			size = "thumbnail";
-		}else if(avatarObject.size === "small"){
-			size = "small";
 		}
-		return "https://api.villo.me/avatar.php?username=" + encodeURIComponent(avatarObject.username) + "&" + size + "=true&size=" + custom;
+		return "https://api.villo.me/avatar.php?username=" + encodeURIComponent(user) + "&" + size + "=true&size=" + custom;
 	}
 };
 
@@ -4850,16 +4853,15 @@ var db = (function(){
 /**
  * UTIL LOCALS
  */
-var NOW             = 1
-,   SWF             = 'https://dh15atwfs066y.cloudfront.net/pubnub.swf'
-,   REPL            = /{([\w\-]+)}/g
-,   ASYNC           = 'async'
-,   URLBIT          = '/'
-,   XHRTME          = 310000
-,   SECOND          = 1000
-,   PRESENCE_SUFFIX = '-pnpres'
-,   UA              = navigator.userAgent
-,   XORIGN          = UA.indexOf('MSIE 6') == -1;
+var NOW    = 1
+,   SWF    = 'https://dh15atwfs066y.cloudfront.net/pubnub.swf'
+,   REPL   = /{([\w\-]+)}/g
+,   ASYNC  = 'async'
+,   URLBIT = '/'
+,   XHRTME = 310000
+,   SECOND = 1000
+,   UA     = navigator.userAgent
+,   XORIGN = UA.indexOf('MSIE 6') == -1;
 
 /**
  * NEXTORIGIN
@@ -5305,16 +5307,13 @@ var PDIV          = $('pubnub') || {}
             PUBNUB.uuid(function(uuid) { console.log(uuid) });
         */
         'uuid' : function(callback) {
-        	
-        	return villo.user.getUsername() || "Guest";
-        	/*
+        	return villo.user.getUsername() || "Guest"
             var u = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
                 var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
                 return v.toString(16);
             });
             if (callback) callback(u);
             return u;
-            */
         },
 
         /*
@@ -5344,9 +5343,9 @@ var PDIV          = $('pubnub') || {}
                 0, encode(channel),
                 jsonp, encode(message)
             ];
-			
-			UUID = SELF.uuid();
-			
+            
+            UUID = SELF.uuid();
+
             // Send Message
             xdr({
                 callback : jsonp,
@@ -5360,21 +5359,17 @@ var PDIV          = $('pubnub') || {}
             PUBNUB.unsubscribe({ channel : 'my_chat' });
         */
         'unsubscribe' : function(args) {
-            // Unsubscribe from both the Channel and the Presence Channel
-            _unsubscribe(args['channel']);
-            _unsubscribe(args['channel'] + PRESENCE_SUFFIX);
+            var channel = args['channel'];
 
-            function _unsubscribe(channel) {
-                // Leave if there never was a channel.
-                if (!(channel in CHANNELS)) return;
+            // Leave if there never was a channel.
+            if (!(channel in CHANNELS)) return;
 
-                // Disable Channel
-                CHANNELS[channel].connected = 0;
+            // Disable Channel
+            CHANNELS[channel].connected = 0;
 
-                // Abort and Remove Script
-                CHANNELS[channel].done && 
-                CHANNELS[channel].done(0);
-            }
+            // Abort and Remove Script
+            CHANNELS[channel].done && 
+            CHANNELS[channel].done(0);
         },
 
         /*
@@ -5413,14 +5408,14 @@ var PDIV          = $('pubnub') || {}
                 CHANNELS[channel].connected = 1;
 
             // Recurse Subscribe
-            function _connect() {
+            function pubnub() {
                 var jsonp = jsonp_cb();
 
                 // Stop Connection
                 if (!CHANNELS[channel].connected) return;
-                
-                UUID = SELF.uuid();
-
+				
+				UUID = SELF.uuid();
+				
                 // Connect to PubNub Subscribe Servers
                 CHANNELS[channel].done = xdr({
                     callback : jsonp,
@@ -5477,19 +5472,21 @@ var PDIV          = $('pubnub') || {}
                         } );
 
                         timeout( pubnub, 10 );
-                    }
+                    },
+                    
                 });
             }
 
-            // Presence Subscribe
-            if (args['presence']) SELF.subscribe({
-                channel  : args['channel'] + PRESENCE_SUFFIX,
-                callback : presence,
-                restore  : args['restore']
-            });
-
             // Begin Recursive Subscribe
-            _connect();
+            pubnub();
+            
+            if (args['presence']) {
+                SELF.subscribe({
+                    channel: args['channel']+"-pnpres",
+                    callback: presence,
+                    restore: args['restore']
+                });
+            }
         },
         'here_now' : function( args, callback ) {
             var callback = args['callback'] || callback 
@@ -5540,7 +5537,6 @@ var PDIV          = $('pubnub') || {}
     };
     
     if (UUID == '') UUID = SELF.uuid();
-    db.set(SUBSCRIBE_KEY+'uuid', UUID);
     
     return SELF;
 };
