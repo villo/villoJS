@@ -49,6 +49,7 @@ Roadmap
 
 These features are currently planned to be added to future version of VilloJS, though they are all subject to change.
 
+- Feeds History After
 - Feature Keys
 - VQL
 	- NodeJS
