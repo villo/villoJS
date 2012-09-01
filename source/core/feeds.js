@@ -41,9 +41,12 @@ villo.feeds = {
 				username: villo.user.username,
 				token: villo.user.token,
 				description: pubObject.description,
-				action: pubObject.action || "user-post"
+				action: pubObject.action || "user-post",
+				//Hybrid of @reply and re-posting:
+				reference: pubObject.reference || ""
 			},
 			onSuccess: function(transport){
+				console.log(transport);
 				if(transport === "1"){
 					//Successful:
 					pubObject.callback(true);
@@ -56,13 +59,30 @@ villo.feeds = {
 			}
 		});
 	},
-	repost: function(repostObject){
-		//TODO
-		return false;
-	},
-	get: function(){
-		//TODO
-		return false;
+	get: function(getObject){
+		villo.ajax("https://api.villo.me/feeds.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "get",
+				username: villo.user.username,
+				token: villo.user.token,
+				//Get multiple supported! Just add a comma!
+				id: getObject.id
+			},
+			onSuccess: function(transport){
+				try{
+					var trans = JSON.parse(transport);
+					getObject.callback(trans);
+				}catch(e){
+					getObject.callback(33);
+				}
+			},
+			onFailure: function(err){
+				getObject.callback(33);
+			}
+		});
 	},
 	search: function(searchObject){
 		villo.ajax("https://api.villo.me/feeds.php", {

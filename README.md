@@ -35,9 +35,7 @@ Version 1.0 Todo
 
 The following should be completed by the 1.0 release.
 
-- Gravatar
-- Finish feeds (get + repost).
-	- Add docs.
+- Document feeds.
 - Finish villo.Game (beta).
 	- Finish game example, and write a simple "getting started with villo.Game" guide.
 - Analytics (server-side).

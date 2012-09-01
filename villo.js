@@ -677,9 +677,12 @@ villo.feeds = {
 				username: villo.user.username,
 				token: villo.user.token,
 				description: pubObject.description,
-				action: pubObject.action || "user-post"
+				action: pubObject.action || "user-post",
+				//Hybrid of @reply and re-posting:
+				reference: pubObject.reference || ""
 			},
 			onSuccess: function(transport){
+				console.log(transport);
 				if(transport === "1"){
 					//Successful:
 					pubObject.callback(true);
@@ -692,13 +695,30 @@ villo.feeds = {
 			}
 		});
 	},
-	repost: function(repostObject){
-		//TODO
-		return false;
-	},
-	get: function(){
-		//TODO
-		return false;
+	get: function(getObject){
+		villo.ajax("https://api.villo.me/feeds.php", {
+			method: 'post',
+			parameters: {
+				api: villo.apiKey,
+				appid: villo.app.id,
+				type: "get",
+				username: villo.user.username,
+				token: villo.user.token,
+				//Get multiple supported! Just add a comma!
+				id: getObject.id
+			},
+			onSuccess: function(transport){
+				try{
+					var trans = JSON.parse(transport);
+					getObject.callback(trans);
+				}catch(e){
+					getObject.callback(33);
+				}
+			},
+			onFailure: function(err){
+				getObject.callback(33);
+			}
+		});
 	},
 	search: function(searchObject){
 		villo.ajax("https://api.villo.me/feeds.php", {
@@ -4044,15 +4064,12 @@ villo.store = (function(){
 
 //Private function that is run on initialization.
 villo.sync = function(){
-	console.log("Sync...");
 	//Create voucher date
 	var d = new Date();
 	
 	var setVoucher = function(serverq){
-		console.log("Setting voucher...");
 		villo.store.set('voucher', d.toString());
 		if(!serverq){
-			console.log("Posting to server...");
 			villo.ajax("https://api.villo.me/credits.php", {
 				method: 'post',
 				parameters: {
@@ -4072,12 +4089,10 @@ villo.sync = function(){
 	var voucher = villo.store.get('voucher');
 	if(voucher){
 		if(new Date(voucher).getDate() !== d.getDate()){
-			console.log("new day, posting date!...");
 			setVoucher();
 		}
 		//We'll post a launch update every two hours:
 		else if(d.getTime() > (new Date(voucher).getTime() + 7200000)){
-			console.log("Feed update...");
 			setVoucher(false);
 			villo.ajax("https://api.villo.me/credits.php", {
 				method: 'post',
@@ -4095,7 +4110,6 @@ villo.sync = function(){
 			});
 		}
 	}else{
-		console.log("voucher never set...");
 		setVoucher();
 	}
 };
