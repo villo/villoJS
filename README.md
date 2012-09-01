@@ -18,6 +18,7 @@ If you would like to contribute to VilloJS, just follow these super easy steps:
 3. Submit a pull request with the chnages made to the files in the source directory. DO NOT submit a pull request with the rebuilt villo.js and villo.min.js files.
 
 If your pull request conflicts with pending changes, we'll do our best to manually merge them.
+In order for your pull request to be merged, the Unit Tests example (found in "examples/Unit Test") should run without any errors. You will need to rebuild villo.js with the build script to run your changes in the Unit Test example.
 
 Building
 --------
