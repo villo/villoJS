@@ -36,7 +36,6 @@ Version 1.0 Todo
 
 The following should be completed by the 1.0 release.
 
-- Document feeds.
 - Finish villo.Game (beta).
 	- Finish game example, and write a simple "getting started with villo.Game" guide.
 - Analytics (server-side).
@@ -49,7 +48,9 @@ Roadmap
 
 These features are currently planned to be added to future version of VilloJS, though they are all subject to change.
 
-- Feeds History After
+- Feeds
+	- History After
+	- unlisten
 - Feature Keys
 - VQL
 	- NodeJS

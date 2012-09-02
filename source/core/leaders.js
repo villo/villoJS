@@ -12,12 +12,12 @@ villo.leaders = {
     Calling
 	-------
 
-	`villo.leaders.get({duration: string, board: string, callback: function, limit: number})`
+	`villo.leaders.get({duration: string, board: string, limit: number, callback: function})`
     
     - "Duration" is the time frame you want to load the scores from. Possible durations include "all", "year", "month", "day", and "latest".
     - "Board"  is an optional parameter that lets you specify what leaderboard you wish to grab scores from in your application.
-    - "Callback" is a function that is called when the retrieval of scores from the server is completed. The scores object is passed to the callback.
     - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for performance reasons. If the parameter is not passed, a value of 30 will be used by default.
+    - "Callback" is a function that is called when the retrieval of scores from the server is completed. The scores object is passed to the callback.
 
 	Callback
 	--------
@@ -35,6 +35,7 @@ villo.leaders = {
 	
 		villo.leaders.get({
 			duration: "all",
+			limit: 50,
 			callback: function(leaderboard){
 				//Check for errors.
 				if(leaderboard && leaderboard.leaders){
@@ -44,8 +45,7 @@ villo.leaders = {
 					//Some error occured.
 					alert("Error getting leaderboards.");
 				}
-			},
-			limit: 50
+			}
 		});
 
 */
@@ -104,12 +104,12 @@ villo.leaders = {
     Calling
 	-------
 
-	`villo.leaders.search({username: string, board: string, callback: function, limit: number})`
+	`villo.leaders.search({username: string, board: string, limit: number, callback: function})`
     
     - "Username" is the full or partial username you want to get the scores for.
     - "Board"  is an optional parameter that lets you specify what leaderboard you wish to grab scores from in your application.
-    - "Callback" is a function that is called when the retrieval of the user's scores from the server is completed. The scores object is passed to the callback.
     - "Limit" is an optional parameter that lets you limit the number of scores retrieved from the database, for performance reasons. If the parameter is not passed, a value of 30 will be used by default.
+    - "Callback" is a function that is called when the retrieval of the user's scores from the server is completed. The scores object is passed to the callback.
 
 	Callback
 	--------
@@ -128,6 +128,7 @@ villo.leaders = {
 	
 		villo.leaders.search({
 			username: this.$.scoreSearch.getValue(),
+			limit: 50,
 			callback: function(leaderboard){
 				//Check for errors.
 				if(leaderboard && leaderboard.leaders){
@@ -137,8 +138,7 @@ villo.leaders = {
 					//Some error occured.
 					alert("Error getting leaderboards.");
 				}
-			},
-			limit: 50
+			}
 		});
 
 */
